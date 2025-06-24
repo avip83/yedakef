@@ -466,10 +466,6 @@ h2, .game-modal-header h2 {
     border: 3px solid #fff;
     box-shadow: 0 2px 8px #0001;
 }
-.shape-drag:nth-child(1), .shape-drag:nth-child(2), .shape-drag:nth-child(3), .shape-drag:nth-child(4),
-.color-drag:nth-child(1), .color-drag:nth-child(2), .color-drag:nth-child(3), .color-drag:nth-child(4) {
-    background: none !important;
-}
 
 .color-target, .shape-target {
     border: 2px dashed #bbb;

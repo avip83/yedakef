@@ -226,15 +226,11 @@ window['shape-match'] = {
       drag.style.boxShadow = '0 2px 8px #0001';
       drag.dataset.shape = s.id.toLowerCase();
       drag.draggable = true;
-      // Desktop: drag and drop only
-      if (!('ontouchstart' in window)) {
-        drag.ondragstart = e => {
-          e.dataTransfer.setData('shape', s.id.toLowerCase());
-          window['shape-match'].playSound('click');
-        };
-      }
-      // Mobile: touch ghost only
-      // (touch logic remains below, in setTimeout)
+      drag.ondragstart = e => {
+        e.dataTransfer.setData('shape', s.id.toLowerCase());
+        window['shape-match'].playSound('click');
+      };
+      // touch logic will be added below for mobile
       // טען SVG צבעוני לגרירה
       fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
@@ -252,7 +248,7 @@ window['shape-match'] = {
 
     // תמיכה בגרירה באצבע (touch events) למובייל - תמיד אחרי יצירת dragsDiv
     setTimeout(() => {
-      if (!('ontouchstart' in window)) return; // Only run touch logic on mobile
+      // Always add touch listeners, only trigger on touch events
       let touchDrag = null;
       let touchGhost = null;
       let touchOffset = {x:0, y:0};

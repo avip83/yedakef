@@ -1,0 +1,375 @@
+window['shape-match'] = {
+  stage: 0,
+  totalStages: 10,
+  sounds: {},
+  shapes: [],
+  async loadShapes() {
+    // דוגמה ידנית, אפשר להרחיב לפי כל הקבצים שיש בתיקיה
+    this.shapes = [
+      { id: 'A', label: 'A' },
+      { id: 'B', label: 'B' },
+      { id: 'C', label: 'C' },
+      { id: 'D', label: 'D' },
+      { id: 'E', label: 'E' },
+      { id: 'F', label: 'F' },
+      { id: 'G', label: 'G' },
+      { id: 'H', label: 'H' },
+      { id: 'I', label: 'I' },
+      { id: 'J', label: 'J' },
+      { id: 'K', label: 'K' },
+      { id: 'L', label: 'L' },
+      { id: 'M', label: 'M' },
+      { id: 'N', label: 'N' },
+      { id: 'O', label: 'O' },
+      { id: 'P', label: 'P' },
+      { id: 'Q', label: 'Q' },
+      { id: 'R', label: 'R' },
+      { id: 'S', label: 'S' },
+      { id: 'T', label: 'T' },
+      { id: 'U', label: 'U' },
+      { id: 'V', label: 'V' },
+      { id: 'W', label: 'W' },
+      { id: 'X', label: 'X' },
+      { id: 'Y', label: 'Y' },
+      { id: 'Z', label: 'Z' },
+      { id: '1', label: '1' },
+      { id: '2', label: '2' },
+      { id: '3', label: '3' },
+      { id: '4', label: '4' },
+      { id: '5', label: '5' },
+      { id: '6', label: '6' },
+      { id: '7', label: '7' },
+      { id: '8', label: '8' },
+      { id: '9', label: '9' },
+      { id: '0', label: '0' },
+      // הוסף כאן שמות נוספים לפי הצורך (למשל one, two וכו')
+    ];
+  },
+  async init() {
+    await this.loadShapes();
+    this.stage = 0;
+    this.loadSounds();
+    this.showModal();
+    this.renderGame();
+  },
+  loadSounds() {
+    this.sounds = {
+      success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
+      wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
+      click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
+    };
+  },
+  playSound(name) {
+    if (this.sounds[name]) {
+      this.sounds[name].currentTime = 0;
+      this.sounds[name].play().catch(()=>{});
+    }
+  },
+  showModal() {
+    const modal = document.createElement('div');
+    modal.className = 'game-modal';
+    modal.innerHTML = `
+      <div class="game-modal-content" style="max-width:900px; min-height:unset; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div class="game-modal-header">
+          <h2 style="margin-bottom:0;">התאמת צורות וחיות</h2>
+          <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+        </div>
+        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content:center; margin-top:10px; margin-bottom:0; padding-bottom:0; overflow:hidden;">
+          <p style="margin:0 0 10px 0; font-size:1.3em;">גרור כל תמונה לצל המתאים לה!</p>
+          <div id="shape-match-board" style="display: flex; flex-direction: row; gap: 32px; margin: 0; justify-content: center; align-items:center; overflow:hidden;"></div>
+          <div id="shape-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px;"></div>
+          <button id="shape-next-stage" style="display:none; margin-top:12px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  },
+  renderGame() {
+    // עדכון בר שלבים בראש המודאל
+    const modalContent = document.querySelector('.game-modal-content');
+    if (modalContent) {
+      const stageNum = this.stage + 1;
+      const total = this.totalStages;
+      const percent = Math.round((stageNum / total) * 100);
+      let progressBar = document.getElementById('shape-progress-bar');
+      if (!progressBar) {
+        const progressDiv = document.createElement('div');
+        progressDiv.style.width = '100%';
+        progressDiv.style.display = 'flex';
+        progressDiv.style.flexDirection = 'column';
+        progressDiv.style.alignItems = 'center';
+        progressDiv.style.marginBottom = '8px';
+        progressDiv.innerHTML = `
+          <div id="shape-progress-label" style="font-size:1.3rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
+          <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
+            <div id="shape-progress-bar" style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
+          </div>
+        `;
+        modalContent.insertBefore(progressDiv, modalContent.firstChild);
+      } else {
+        document.getElementById('shape-progress-label').textContent = `שלב ${stageNum} מתוך ${total}`;
+        progressBar.style.width = percent + '%';
+      }
+    }
+    // בחר 4–6 צורות רנדומליות
+    const allShapes = [...this.shapes];
+    const stageShapes = [];
+    const usedIds = new Set();
+    while (stageShapes.length < 6 && allShapes.length > 0) {
+      const idx = Math.floor(Math.random() * allShapes.length);
+      const shape = allShapes.splice(idx, 1)[0];
+      if (!usedIds.has(shape.id)) {
+        stageShapes.push(shape);
+        usedIds.add(shape.id);
+      }
+    }
+    // ערבוב סדר
+    const targets = [...stageShapes].sort(() => Math.random() - 0.5);
+    const drags = [...stageShapes].sort(() => Math.random() - 0.5);
+    const board = document.getElementById('shape-match-board');
+    board.innerHTML = '';
+    // צד ימין: מטרות (צללים)
+    const targetsDiv = document.createElement('div');
+    targetsDiv.style.display = 'grid';
+    targetsDiv.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    targetsDiv.style.gap = '18px';
+    targetsDiv.style.alignItems = 'center';
+    targetsDiv.style.justifyItems = 'center';
+    if (targets.length > 4) targetsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    targets.forEach((s, i) => {
+      const target = document.createElement('div');
+      target.className = 'shape-target';
+      target.style.background = '#f5f5f5';
+      target.style.border = '2px dashed #bbb';
+      target.style.width = '80px';
+      target.style.height = '80px';
+      target.style.display = 'flex';
+      target.style.alignItems = 'center';
+      target.style.justifyContent = 'center';
+      target.style.margin = '0 10px';
+      target.style.opacity = '0.9';
+      target.dataset.shape = s.id;
+      // טען SVG שחור מהתיקיה (תמיד מטרות = BLACK)
+      fetch(`shapes/BLACK/${s.id}.svg`).then(r => r.text()).then(svg => {
+        target.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
+        const svgEl = target.querySelector('svg');
+        if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+      }).catch(() => {
+        target.innerHTML = '<svg width="60" height="60"><rect x="12" y="12" width="36" height="36" fill="#111"/></svg>';
+      });
+      target.ondragover = e => e.preventDefault();
+      target.ondrop = e => {
+        const shape = e.dataTransfer.getData('shape');
+        if (shape === s.id && !target.classList.contains('filled')) {
+          target.classList.add('filled');
+          target.style.opacity = '1';
+          // טען SVG צבעוני (COLOR)
+          fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+            target.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
+            const svgEl = target.querySelector('svg');
+            if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+          });
+          this.playSound('success');
+          document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+          // הסר את הצורה מהצד השמאלי
+          const dragEl = document.querySelector(`.shape-drag[data-shape='${s.id}']`);
+          if (dragEl) dragEl.remove();
+          // בדוק אם כל המטרות מולאו
+          if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
+            this.nextStageButton();
+          }
+        } else {
+          this.playSound('wrong');
+          document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+        }
+      };
+      targetsDiv.appendChild(target);
+    });
+    // צד שמאל: צורות צבעוניות לגרירה
+    const dragsDiv = document.createElement('div');
+    dragsDiv.style.display = 'grid';
+    dragsDiv.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    dragsDiv.style.gap = '18px';
+    dragsDiv.style.alignItems = 'center';
+    dragsDiv.style.justifyItems = 'center';
+    if (drags.length > 4) dragsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    drags.forEach((s, i) => {
+      const drag = document.createElement('div');
+      drag.className = 'shape-drag';
+      drag.style.background = '#fff';
+      drag.style.width = '80px';
+      drag.style.height = '80px';
+      drag.style.display = 'flex';
+      drag.style.alignItems = 'center';
+      drag.style.justifyContent = 'center';
+      drag.style.margin = '0 10px';
+      drag.style.cursor = 'grab';
+      drag.dataset.shape = s.id;
+      // טען SVG צבעוני מהתיקיה (תמיד גרירה = COLOR)
+      fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+        drag.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
+        const svgEl = drag.querySelector('svg');
+        if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+      }).catch(() => {
+        drag.innerHTML = '<svg width="60" height="60"><rect x="12" y="12" width="36" height="36" fill="#111"/></svg>';
+      });
+      // --- custom drag logic ---
+      let ghost = null;
+      let offsetX = 0, offsetY = 0;
+      drag.onmousedown = e => {
+        e.preventDefault();
+        drag.style.visibility = 'hidden';
+        ghost = document.createElement('div');
+        ghost.className = 'shape-drag-ghost';
+        ghost.style.position = 'fixed';
+        ghost.style.width = drag.style.width;
+        ghost.style.height = drag.style.height;
+        ghost.style.display = 'flex';
+        ghost.style.alignItems = 'center';
+        ghost.style.justifyContent = 'center';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = 9999;
+        ghost.style.opacity = '0.97';
+        fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+          ghost.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+          const svgEl = ghost.querySelector('svg');
+          if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+          // מיקום ghost במרכז הסמן
+          ghost.style.left = (e.clientX - ghost.offsetWidth/2) + 'px';
+          ghost.style.top = (e.clientY - ghost.offsetHeight/2) + 'px';
+        });
+        document.body.appendChild(ghost);
+        offsetX = 0;
+        offsetY = 0;
+        window['shape-match'].playSound('click');
+        function moveGhost(ev) {
+          ghost.style.left = (ev.clientX - ghost.offsetWidth/2) + 'px';
+          ghost.style.top = (ev.clientY - ghost.offsetHeight/2) + 'px';
+        }
+        document.addEventListener('mousemove', moveGhost);
+        document.addEventListener('mouseup', function mouseUpHandler(upEvt) {
+          document.removeEventListener('mousemove', moveGhost);
+          document.removeEventListener('mouseup', mouseUpHandler);
+          if (ghost) { ghost.remove(); ghost = null; }
+          let dropped = false;
+          const targets = document.querySelectorAll('.shape-target');
+          targets.forEach(target => {
+            const rect = target.getBoundingClientRect();
+            if (
+              upEvt.clientX >= rect.left && upEvt.clientX <= rect.right &&
+              upEvt.clientY >= rect.top && upEvt.clientY <= rect.bottom
+            ) {
+              if (target.dataset.shape === s.id && !target.classList.contains('filled')) {
+                target.classList.add('filled');
+                target.style.opacity = '1';
+                fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+                  target.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+                  const svgEl = target.querySelector('svg');
+                  if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+                });
+                window['shape-match'].playSound('success');
+                document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+                drag.remove();
+                if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
+                  window['shape-match'].nextStageButton();
+                }
+                dropped = true;
+              }
+            }
+          });
+          if (!dropped) {
+            drag.style.visibility = 'visible';
+            window['shape-match'].playSound('wrong');
+            document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+          }
+        });
+      };
+      dragsDiv.appendChild(drag);
+    });
+    board.appendChild(dragsDiv);
+    board.appendChild(targetsDiv);
+    document.getElementById('shape-match-feedback').textContent = '';
+    document.getElementById('shape-next-stage').style.display = 'none';
+  },
+  nextStageButton() {
+    const btn = document.getElementById('shape-next-stage');
+    btn.style.display = 'inline-block';
+    btn.onclick = () => {
+      this.stage++;
+      if (this.stage < this.totalStages) {
+        this.renderGame();
+      } else {
+        document.querySelector('.game-modal-body').innerHTML = '<h3>סיימת את כל השלבים! כל הכבוד!</h3>';
+      }
+    };
+  },
+  showShadowTest() {
+    // צור מודאל בדיקה
+    const modal = document.createElement('div');
+    modal.className = 'game-modal';
+    modal.innerHTML = `
+      <div class="game-modal-content" style="max-width:900px; min-height:unset; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div class="game-modal-header">
+          <h2 style="margin-bottom:0;">בדיקת צלליות</h2>
+          <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+        </div>
+        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content:center; margin-top:10px; margin-bottom:0; padding-bottom:0; overflow-x:auto;">
+          <table style="border-collapse:collapse; width:100%; max-width:700px;">
+            <thead><tr><th style='font-size:1.1em; padding:8px;'>צורה צבעונית</th><th style='font-size:1.1em; padding:8px;'>צללית</th><th style='font-size:1.1em; padding:8px;'>id</th></tr></thead>
+            <tbody id="shapes-shadow-test-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    // הוסף שורות לכל הצורות
+    const tbody = modal.querySelector('#shapes-shadow-test-tbody');
+    this.shapes.forEach(s => {
+      let colorCell = document.createElement('td');
+      colorCell.style.textAlign = 'center';
+      let shadowCell = document.createElement('td');
+      shadowCell.style.textAlign = 'center';
+      // טען SVG צבעוני
+      fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+        colorCell.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
+        const svgEl = colorCell.querySelector('svg');
+        if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+      });
+      // טען SVG שחור
+      fetch(`shapes/BLACK/${s.id}.svg`).then(r => r.text()).then(svg => {
+        shadowCell.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
+        const svgEl = shadowCell.querySelector('svg');
+        if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+      });
+      let idCell = document.createElement('td');
+      idCell.style.textAlign = 'center';
+      idCell.style.fontFamily = 'monospace';
+      idCell.textContent = s.id;
+      let row = document.createElement('tr');
+      row.appendChild(colorCell);
+      row.appendChild(shadowCell);
+      row.appendChild(idCell);
+      tbody.appendChild(row);
+    });
+  }
+};
+// הוספת כפתור בדיקה (למפתחים בלבד)
+if (!document.getElementById('showShadowTestBtn')) {
+  const btn = document.createElement('button');
+  btn.id = 'showShadowTestBtn';
+  btn.textContent = 'בדיקת צלליות';
+  btn.style.position = 'fixed';
+  btn.style.bottom = '24px';
+  btn.style.left = '24px';
+  btn.style.zIndex = '99999';
+  btn.style.padding = '12px 22px';
+  btn.style.fontSize = '1.1em';
+  btn.style.background = '#222';
+  btn.style.color = '#fff';
+  btn.style.border = 'none';
+  btn.style.borderRadius = '16px';
+  btn.style.boxShadow = '0 2px 12px #0003';
+  btn.style.cursor = 'pointer';
+  btn.onclick = () => window['shape-match'].showShadowTest();
+  document.body.appendChild(btn);
+} 

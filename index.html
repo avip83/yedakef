@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ידעכיף - אתר משחקים ולמידה</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">🎮 ידעכיף 🎮</h1>
+            <p class="subtitle">אתר משחקים ולמידה כיפי!</p>
+        </header>
+
+        <main class="main-content">
+            <div id="ageSelector">
+                <div class="age-selector">
+                    <h2>בחר את הגיל שלך:</h2>
+                    <div class="age-buttons" id="ageButtons">
+                        <!-- Age buttons will be generated here -->
+                    </div>
+                    <div class="age-selector-note">
+                        <span>הגיל הוא המלצה בלבד – כדאי להתאים את הבחירה למה שמתאים לילד/ה שלך.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="categories-container" id="categoriesContainer" style="display: none;">
+                <h2 id="selectedAgeTitle">בחר קטגוריה:</h2>
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- Categories will be generated here -->
+                </div>
+                <button class="back-button" id="backButton">← חזור לבחירת גיל</button>
+            </div>
+
+            <div class="games-container" id="gamesContainer" style="display: none;">
+                <h2 id="selectedCategoryTitle">בחר משחק:</h2>
+                <div class="games-grid" id="gamesGrid">
+                    <!-- Games will be generated here -->
+                </div>
+                <button class="back-button" id="backToCategoriesButton">← חזור לקטגוריות</button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>© 2024 ידעכיף - אתר משחקים ולמידה</p>
+        </footer>
+    </div>
+
+    <script src="data/categories.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html> 

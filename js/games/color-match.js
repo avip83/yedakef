@@ -87,16 +87,17 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
-    // הגדרת הצורות
+    // הגדרת הצורות - SVG גדול יותר וברור יותר
     const shapes = [
-      {name: 'circle', svg: `<svg width='36' height='36'><circle cx='18' cy='18' r='12' fill='white'/></svg>`},
-      {name: 'square', svg: `<svg width='36' height='36'><rect x='6' y='6' width='24' height='24' rx='6' fill='white'/></svg>`},
-      {name: 'triangle', svg: `<svg width='36' height='36'><polygon points='18,6 30,30 6,30' fill='white'/></svg>`}
+      {name: 'circle', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='20' fill='white' stroke='white' stroke-width='2'/></svg>`},
+      {name: 'square', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><rect x='15' y='15' width='30' height='30' rx='6' fill='white' stroke='white' stroke-width='2'/></svg>`},
+      {name: 'triangle', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><polygon points='30,15 45,45 15,45' fill='white' stroke='white' stroke-width='2'/></svg>`}
     ];
     const colors = ['#e53935', '#1e88e5', '#43a047'];
     // ערבוב סדר
     const pairs = shapes.map((shape, i) => ({shape, color: colors[i]})).sort(() => Math.random() - 0.5);
-    // מטרות (עיגולים ריקים)
+    
+    // מטרות (עיגולים ריקים) - ללא צורה בפנים
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
     pairs.forEach((pair, i) => {
@@ -134,19 +135,23 @@ window['color-match'] = {
       };
       board.appendChild(target);
     });
-    // עיגולים לגרירה
+    
+    // עיגולים לגרירה - עם צורה לבנה ברורה בפנים
+    const dragsContainer = document.getElementById('color-match-drags');
+    dragsContainer.innerHTML = '';
     pairs.forEach((pair, i) => {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
       drag.style.background = pair.color;
-      drag.style.width = '60px';
-      drag.style.height = '60px';
+      drag.style.width = '70px';
+      drag.style.height = '70px';
       drag.style.borderRadius = '50%';
       drag.style.margin = '0 10px';
       drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
       drag.style.justifyContent = 'center';
+      drag.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
       drag.dataset.color = pair.color;
@@ -206,8 +211,11 @@ window['color-match'] = {
           }
         }
       }, {passive:false});
-      board.appendChild(drag);
+      dragsContainer.appendChild(drag);
     });
+    
+    document.getElementById('color-match-feedback').textContent = '';
+    document.getElementById('color-next-stage').style.display = 'none';
   },
   nextStageButton() {
     const btn = document.getElementById('color-next-stage');

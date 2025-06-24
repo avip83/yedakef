@@ -123,8 +123,9 @@ window['color-match'] = {
         const color = e.dataTransfer.getData('color');
         if (shape === pair.shape.name && color === pair.color) {
           target.style.background = pair.color;
-          // Always use the correct SVG for the matched shape
-          const svg = shapes.find(s => s.name === shape)?.svg || '';
+          // Dynamically color the SVG for the target (top row)
+          let svg = shapes.find(s => s.name === shape)?.svg || '';
+          svg = svg.replace(/fill=['"]white['"]/g, `fill='${color}'`).replace(/stroke=['"]white['"]/g, `stroke='${color}'`);
           target.innerHTML = svg;
           target.classList.add('filled');
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
@@ -211,8 +212,9 @@ window['color-match'] = {
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
             targetDiv.classList.add('filled');
             targetDiv.style.background = color;
-            // Always use the correct SVG for the matched shape
-            const svg = shapes.find(s => s.name === shape)?.svg || '';
+            // Dynamically color the SVG for the target (top row)
+            let svg = shapes.find(s => s.name === shape)?.svg || '';
+            svg = svg.replace(/fill=['"]white['"]/g, `fill='${color}'`).replace(/stroke=['"]white['"]/g, `stroke='${color}'`);
             targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();

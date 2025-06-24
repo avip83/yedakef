@@ -355,27 +355,26 @@ html, body {
     background: none;
 }
 .close-button {
-    background: #e53935;
-    border: none;
-    font-size: 2.5rem;
-    cursor: pointer;
-    color: #fff;
-    padding: 0 18px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    position: absolute;
-    top: 24px;
-    left: 24px;
-    z-index: 10;
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    z-index: 1001 !important;
+    font-size: 2.2rem !important;
+    width: 48px !important;
+    height: 48px !important;
+    background: #fff !important;
+    border: 2px solid #f44336 !important;
+    border-radius: 50% !important;
+    color: #f44336 !important;
+    box-shadow: 0 2px 8px #0002 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
     transition: background 0.2s;
-    box-shadow: 0 2px 8px #e5393550;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 .close-button:hover {
-    background: #b71c1c;
+    background: #ffeaea !important;
 }
 @media (max-width: 600px) {
     .game-modal-content {

@@ -87,11 +87,11 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
-    // הגדרת הצורות - SVG גדול יותר וברור יותר
+    // הגדרת צורות - SVG גדול, ממורכז, דומיננטי
     const shapes = [
-      {name: 'circle', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='20' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'square', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><rect x='15' y='15' width='30' height='30' rx='6' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'triangle', svg: `<svg width='48' height='48' viewBox='0 0 60 60' style='display:block;'><polygon points='30,15 45,45 15,45' fill='white' stroke='white' stroke-width='2'/></svg>`}
+      {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
+      {name: 'square', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><rect x='10' y='10' width='40' height='40' rx='8' fill='white' stroke='white' stroke-width='2'/></svg>`},
+      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`}
     ];
     const colors = ['#e53935', '#1e88e5', '#43a047'];
     // ערבוב סדר
@@ -105,13 +105,14 @@ window['color-match'] = {
       target.className = 'color-target';
       target.style.background = '#fff';
       target.style.border = '3px dashed #bbb';
-      target.style.width = '70px';
-      target.style.height = '70px';
+      target.style.width = '76px';
+      target.style.height = '76px';
       target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 10px';
+      target.style.margin = '0 12px';
+      target.style.boxSizing = 'border-box';
       target.dataset.shape = pair.shape.name;
       target.dataset.color = pair.color;
       target.ondragover = e => e.preventDefault();
@@ -143,19 +144,23 @@ window['color-match'] = {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
       drag.style.background = pair.color;
-      drag.style.width = '70px';
-      drag.style.height = '70px';
+      drag.style.width = '76px';
+      drag.style.height = '76px';
       drag.style.borderRadius = '50%';
-      drag.style.margin = '0 10px';
+      drag.style.margin = '0 12px';
       drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
       drag.style.justifyContent = 'center';
-      drag.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+      drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)';
+      drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
       drag.dataset.color = pair.color;
       drag.innerHTML = pair.shape.svg;
+      // אפקט hover/touch
+      drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
+      drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
         e.dataTransfer.setData('shape', pair.shape.name);
         e.dataTransfer.setData('color', pair.color);
@@ -174,9 +179,10 @@ window['color-match'] = {
         touchGhost.style.top = rect.top + 'px';
         touchGhost.style.width = rect.width + 'px';
         touchGhost.style.height = rect.height + 'px';
-        touchGhost.style.opacity = '0.95';
+        touchGhost.style.opacity = '0.97';
         touchGhost.style.zIndex = 9999;
         touchGhost.style.pointerEvents = 'none';
+        touchGhost.style.transform = 'scale(1.10)';
         document.body.appendChild(touchGhost);
       }, {passive:false});
       drag.addEventListener('touchmove', function(ev) {

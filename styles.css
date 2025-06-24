@@ -517,6 +517,7 @@ button, .game-card, .category-card {
     display: block;
     justify-content: center;
     align-items: center;
+    pointer-events: none;
     z-index: 1;
     margin-bottom: 0;
 }
@@ -606,7 +607,10 @@ button, .game-card, .category-card {
 }
 
 .shape-drag {
-    /* Remove problematic overrides that interfere with drag functionality */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 
 .game-modal-content, .game-modal-body, #shape-match-board {

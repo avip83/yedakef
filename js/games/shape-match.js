@@ -152,9 +152,9 @@ window['shape-match'] = {
       target.style.margin = '0 10px';
       target.style.opacity = '1';
       target.style.boxShadow = '0 2px 8px #0001';
-      target.dataset.shape = s.id.toLowerCase();
+      target.dataset.shape = s.id;
       // טען SVG שחור outline בלבד
-      fetch(`shapes/black/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
+      fetch(`shapes/black/${s.id}.svg`).then(r => r.text()).then(svg => {
         // הוסף fill/stroke ל-path/g/svg אם חסר
         let processed = false;
         if (svg.includes('<path')) {
@@ -179,11 +179,11 @@ window['shape-match'] = {
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
         const shape = e.dataTransfer.getData('shape');
-        if (shape === s.id.toLowerCase() && !target.classList.contains('filled')) {
+        if (shape === s.id && !target.classList.contains('filled')) {
           target.classList.add('filled');
           target.style.opacity = '1';
           // טען SVG צבעוני מלא
-          fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
+          fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
             target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
           }).catch(() => {
             target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
@@ -191,7 +191,7 @@ window['shape-match'] = {
           this.playSound('success');
           document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
           // הסר את הצורה מהגרירה
-          const dragEl = document.querySelector(`.shape-drag[data-shape='${s.id.toLowerCase()}']`);
+          const dragEl = document.querySelector(`.shape-drag[data-shape='${s.id}']`);
           if (dragEl) dragEl.remove();
           // בדוק אם כל המטרות מולאו
           if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
@@ -224,21 +224,79 @@ window['shape-match'] = {
       drag.style.margin = '0 10px';
       drag.style.cursor = 'grab';
       drag.style.boxShadow = '0 2px 8px #0001';
-      drag.dataset.shape = s.id.toLowerCase();
-      drag.draggable = true;
-      drag.ondragstart = e => {
-        e.dataTransfer.setData('shape', s.id.toLowerCase());
-        window['shape-match'].playSound('click');
-      };
-      // touch logic will be added below for mobile
+      drag.dataset.shape = s.id;
       // טען SVG צבעוני לגרירה
-      fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
+      fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
       }).catch(() => {
         drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // --- custom drag logic for touch only ---
-      drag.onmousedown = null; // remove custom ghost for desktop
+      // --- custom drag logic ---
+      let ghost = null;
+      let offsetX = 0, offsetY = 0;
+      drag.onmousedown = e => {
+        e.preventDefault();
+        drag.style.visibility = 'hidden';
+        ghost = document.createElement('div');
+        ghost.className = 'shape-drag-ghost';
+        ghost.style.position = 'fixed';
+        ghost.style.width = drag.style.width;
+        ghost.style.height = drag.style.height;
+        ghost.style.display = 'flex';
+        ghost.style.alignItems = 'center';
+        ghost.style.justifyContent = 'center';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = 9999;
+        ghost.style.opacity = '0.97';
+        fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
+          ghost.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+        });
+        document.body.appendChild(ghost);
+        offsetX = 0;
+        offsetY = 0;
+        window['shape-match'].playSound('click');
+        function moveGhost(ev) {
+          ghost.style.left = (ev.clientX - ghost.offsetWidth/2) + 'px';
+          ghost.style.top = (ev.clientY - ghost.offsetHeight/2) + 'px';
+        }
+        document.addEventListener('mousemove', moveGhost);
+        document.addEventListener('mouseup', function mouseUpHandler(upEvt) {
+          document.removeEventListener('mousemove', moveGhost);
+          document.removeEventListener('mouseup', mouseUpHandler);
+          if (ghost) { ghost.remove(); ghost = null; }
+          let dropped = false;
+          const targets = document.querySelectorAll('.shape-target');
+          targets.forEach(target => {
+            const rect = target.getBoundingClientRect();
+            if (
+              upEvt.clientX >= rect.left && upEvt.clientX <= rect.right &&
+              upEvt.clientY >= rect.top && upEvt.clientY <= rect.bottom
+            ) {
+              if (target.dataset.shape === s.id && !target.classList.contains('filled')) {
+                target.classList.add('filled');
+                target.style.opacity = '1';
+                fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
+                  target.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+                }).catch(() => {
+                  target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+                });
+                window['shape-match'].playSound('success');
+                document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+                drag.remove();
+                if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
+                  window['shape-match'].nextStageButton();
+                }
+                dropped = true;
+              }
+            }
+          });
+          if (!dropped) {
+            drag.style.visibility = 'visible';
+            window['shape-match'].playSound('wrong');
+            document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+          }
+        });
+      };
       dragsDiv.appendChild(drag);
     });
     board.appendChild(dragsDiv);
@@ -248,7 +306,6 @@ window['shape-match'] = {
 
     // תמיכה בגרירה באצבע (touch events) למובייל - תמיד אחרי יצירת dragsDiv
     setTimeout(() => {
-      // Always add touch listeners, only trigger on touch events
       let touchDrag = null;
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
@@ -291,7 +348,7 @@ window['shape-match'] = {
           if (shape === targetDiv.dataset.shape) {
             targetDiv.classList.add('filled');
             targetDiv.style.opacity = '1';
-            fetch(`shapes/color/${shape.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
+            fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
               targetDiv.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
             }).catch(() => {
               targetDiv.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;

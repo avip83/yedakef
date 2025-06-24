@@ -85,7 +85,7 @@ window['animal-sounds'] = {
     const options = [correct, ...others].sort(() => Math.random() - 0.5);
     // נגן קול אמיתי
     const playSound = () => {
-      const audio = new Audio(`animal sounds/${correct.file}`);
+      const audio = new Audio(`Animal-sounds/${correct.file}`);
       audio.play();
     };
     // נבנה דינמית: אזור כפתור + טקסט פידבק

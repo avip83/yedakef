@@ -6,32 +6,32 @@ window['shape-match'] = {
   async loadShapes() {
     // דוגמה ידנית, אפשר להרחיב לפי כל הקבצים שיש בתיקיה
     this.shapes = [
-      { id: 'A', label: 'A' },
-      { id: 'B', label: 'B' },
-      { id: 'C', label: 'C' },
-      { id: 'D', label: 'D' },
-      { id: 'E', label: 'E' },
-      { id: 'F', label: 'F' },
-      { id: 'G', label: 'G' },
-      { id: 'H', label: 'H' },
-      { id: 'I', label: 'I' },
-      { id: 'J', label: 'J' },
-      { id: 'K', label: 'K' },
-      { id: 'L', label: 'L' },
-      { id: 'M', label: 'M' },
-      { id: 'N', label: 'N' },
-      { id: 'O', label: 'O' },
-      { id: 'P', label: 'P' },
-      { id: 'Q', label: 'Q' },
-      { id: 'R', label: 'R' },
-      { id: 'S', label: 'S' },
-      { id: 'T', label: 'T' },
-      { id: 'U', label: 'U' },
-      { id: 'V', label: 'V' },
-      { id: 'W', label: 'W' },
-      { id: 'X', label: 'X' },
-      { id: 'Y', label: 'Y' },
-      { id: 'Z', label: 'Z' },
+      { id: 'a', label: 'A' },
+      { id: 'b', label: 'B' },
+      { id: 'c', label: 'C' },
+      { id: 'd', label: 'D' },
+      { id: 'e', label: 'E' },
+      { id: 'f', label: 'F' },
+      { id: 'g', label: 'G' },
+      { id: 'h', label: 'H' },
+      { id: 'i', label: 'I' },
+      { id: 'j', label: 'J' },
+      { id: 'k', label: 'K' },
+      { id: 'l', label: 'L' },
+      { id: 'm', label: 'M' },
+      { id: 'n', label: 'N' },
+      { id: 'o', label: 'O' },
+      { id: 'p', label: 'P' },
+      { id: 'q', label: 'Q' },
+      { id: 'r', label: 'R' },
+      { id: 's', label: 'S' },
+      { id: 't', label: 'T' },
+      { id: 'u', label: 'U' },
+      { id: 'v', label: 'V' },
+      { id: 'w', label: 'W' },
+      { id: 'x', label: 'X' },
+      { id: 'y', label: 'Y' },
+      { id: 'z', label: 'Z' },
       { id: '1', label: '1' },
       { id: '2', label: '2' },
       { id: '3', label: '3' },
@@ -149,8 +149,8 @@ window['shape-match'] = {
       target.style.margin = '0 10px';
       target.style.opacity = '0.9';
       target.dataset.shape = s.id;
-      // טען SVG שחור מהתיקיה (תמיד מטרות = BLACK)
-      fetch(`shapes/BLACK/${s.id}.svg`).then(r => r.text()).then(svg => {
+      // טען SVG שחור מהתיקיה (תמיד מטרות = black)
+      fetch(`shapes/black/${s.id}.svg`).then(r => r.text()).then(svg => {
         target.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
         const svgEl = target.querySelector('svg');
         if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
@@ -163,8 +163,8 @@ window['shape-match'] = {
         if (shape === s.id && !target.classList.contains('filled')) {
           target.classList.add('filled');
           target.style.opacity = '1';
-          // טען SVG צבעוני (COLOR)
-          fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+          // טען SVG צבעוני (color)
+          fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
             target.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
             const svgEl = target.querySelector('svg');
             if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
@@ -205,13 +205,13 @@ window['shape-match'] = {
       drag.style.margin = '0 10px';
       drag.style.cursor = 'grab';
       drag.dataset.shape = s.id;
-      // טען SVG צבעוני מהתיקיה (תמיד גרירה = COLOR)
-      fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+      // טען SVG צבעוני לגרירה
+      fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
         const svgEl = drag.querySelector('svg');
         if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
       }).catch(() => {
-        drag.innerHTML = '<svg width="60" height="60"><rect x="12" y="12" width="36" height="36" fill="#111"/></svg>';
+        drag.innerHTML = '<svg width="60" height="60"><rect x="12" y="12" width="36" height="36" fill="#1976d2"/></svg>';
       });
       // --- custom drag logic ---
       let ghost = null;
@@ -230,7 +230,7 @@ window['shape-match'] = {
         ghost.style.pointerEvents = 'none';
         ghost.style.zIndex = 9999;
         ghost.style.opacity = '0.97';
-        fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+        fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
           ghost.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
           const svgEl = ghost.querySelector('svg');
           if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
@@ -262,7 +262,7 @@ window['shape-match'] = {
               if (target.dataset.shape === s.id && !target.classList.contains('filled')) {
                 target.classList.add('filled');
                 target.style.opacity = '1';
-                fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+                fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
                   target.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
                   const svgEl = target.querySelector('svg');
                   if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
@@ -330,13 +330,13 @@ window['shape-match'] = {
       let shadowCell = document.createElement('td');
       shadowCell.style.textAlign = 'center';
       // טען SVG צבעוני
-      fetch(`shapes/COLOR/${s.id}.svg`).then(r => r.text()).then(svg => {
+      fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
         colorCell.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
         const svgEl = colorCell.querySelector('svg');
         if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
       });
       // טען SVG שחור
-      fetch(`shapes/BLACK/${s.id}.svg`).then(r => r.text()).then(svg => {
+      fetch(`shapes/black/${s.id}.svg`).then(r => r.text()).then(svg => {
         shadowCell.innerHTML = `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;">${svg}</div>`;
         const svgEl = shadowCell.querySelector('svg');
         if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }

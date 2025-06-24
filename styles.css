@@ -472,6 +472,17 @@ h2, .game-modal-header h2 {
     background: #fffde7 !important;
 }
 
+.color-target.filled {
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px #0003;
+}
+.color-target.filled svg {
+    width: 60px !important;
+    height: 60px !important;
+    display: block;
+    margin: 0 auto;
+}
+
 button, .game-card, .category-card {
     font-family: 'Baloo 2', 'Varela Round', Arial, sans-serif;
 }

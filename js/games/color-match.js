@@ -124,8 +124,8 @@ window['color-match'] = {
         if (shape === pair.shape.name && color === pair.color) {
           target.style.background = pair.color;
           target.innerHTML = pair.shape.svg;
-          document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
           target.classList.add('filled');
+          document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
           // הסר את הצורה מהגרירה
           const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
           if (dragEl) dragEl.remove();

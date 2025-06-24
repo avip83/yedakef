@@ -97,7 +97,7 @@ window['color-match'] = {
     // ערבוב סדר
     const pairs = shapes.map((shape, i) => ({shape, color: colors[i]})).sort(() => Math.random() - 0.5);
     
-    // מטרות (עיגולים ריקים) - ללא צורה בפנים
+    // מטרות (עיגולים ריקים) - ללא צורה בפנים עד התאמה
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
     pairs.forEach((pair, i) => {
@@ -113,6 +113,8 @@ window['color-match'] = {
       target.style.justifyContent = 'center';
       target.style.margin = '0 12px';
       target.style.boxSizing = 'border-box';
+      target.style.opacity = '1';
+      target.innerHTML = '';
       target.dataset.shape = pair.shape.name;
       target.dataset.color = pair.color;
       target.ondragover = e => e.preventDefault();
@@ -137,7 +139,7 @@ window['color-match'] = {
       board.appendChild(target);
     });
     
-    // עיגולים לגרירה - עם צורה לבנה ברורה בפנים
+    // עיגולים לגרירה - עם צורה לבנה ברורה בפנים תמיד
     const dragsContainer = document.getElementById('color-match-drags');
     dragsContainer.innerHTML = '';
     pairs.forEach((pair, i) => {
@@ -154,10 +156,11 @@ window['color-match'] = {
       drag.style.justifyContent = 'center';
       drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)';
       drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
+      drag.style.opacity = '1';
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
       drag.dataset.color = pair.color;
-      drag.innerHTML = pair.shape.svg;
+      drag.innerHTML = pair.shape.svg; // הצורה תמיד מוצגת
       // אפקט hover/touch
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };

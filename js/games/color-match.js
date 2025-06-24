@@ -94,17 +94,18 @@ window['color-match'] = {
       {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`}
     ];
     const colors = ['#e53935', '#1e88e5', '#43a047'];
-    // ערבוב סדר
-    const pairs = shapes.map((shape, i) => ({shape, color: colors[i]})).sort(() => Math.random() - 0.5);
-    
-    // מטרות (עיגולים ריקים) - ללא צורה בפנים עד התאמה
+    // ערבוב סדר עצמאי למטרות ולגרירות
+    const pairs = shapes.map((shape, i) => ({shape, color: colors[i]}));
+    const targets = pairs.slice().sort(() => Math.random() - 0.5); // מטרות (שורה עליונה)
+    const drags = pairs.slice().sort(() => Math.random() - 0.5);   // לגרירה (שורה תחתונה)
+    // מטרות (עיגולים ריקים)
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
-    pairs.forEach((pair, i) => {
+    targets.forEach((pair, i) => {
       const target = document.createElement('div');
       target.className = 'color-target';
       target.style.background = '#fff';
-      target.style.border = '3px dashed #bbb';
+      target.style.border = `4px dashed ${pair.color}`;
       target.style.width = '76px';
       target.style.height = '76px';
       target.style.borderRadius = '50%';
@@ -114,7 +115,12 @@ window['color-match'] = {
       target.style.margin = '0 12px';
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
-      target.innerHTML = '';
+      // Show only the outline of the shape in the target
+      let outlineSvg = pair.shape.svg
+        .replace(/fill=['"][^'"]*['"]/g, "fill='none'")
+        .replace(/stroke=['"][^'"]*['"]/g, `stroke='${pair.color}'`)
+        .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='4'");
+      target.innerHTML = outlineSvg;
       target.dataset.shape = pair.shape.name;
       target.dataset.color = pair.color;
       target.ondragover = e => e.preventDefault();
@@ -122,30 +128,33 @@ window['color-match'] = {
         const shape = e.dataTransfer.getData('shape');
         const color = e.dataTransfer.getData('color');
         if (shape === pair.shape.name && color === pair.color) {
+          window['color-match'].sounds.success.play();
           target.style.background = pair.color;
-          // Dynamically color the SVG for the target (top row)
-          let svg = shapes.find(s => s.name === shape)?.svg || '';
-          svg = svg.replace(/fill=['"]white['"]/g, `fill='${color}'`).replace(/stroke=['"]white['"]/g, `stroke='${color}'`);
+          target.style.border = '4px solid #fff';
+          let svg = pair.shape.svg
+            .replace(/fill=['"][^'"]*['"]/g, `fill='#fff'`)
+            .replace(/stroke=['"][^'"]*['"]/g, `stroke='#fff'`)
+            .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='2'");
           target.innerHTML = svg;
           target.classList.add('filled');
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-          // Remove the drag element
           const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
           if (dragEl) dragEl.remove();
-          if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
+          if (document.querySelectorAll('.color-target.filled').length === targets.length) {
             this.nextStageButton();
           }
         } else {
+          window['color-match'].sounds.error.play();
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
         }
       };
       board.appendChild(target);
     });
     
-    // עיגולים לגרירה - עם צורה לבנה ברורה בפנים תמיד
+    // עיגולים לגרירה
     const dragsContainer = document.getElementById('color-match-drags');
     dragsContainer.innerHTML = '';
-    pairs.forEach((pair, i) => {
+    drags.forEach((pair, i) => {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
       drag.style.background = pair.color;
@@ -168,6 +177,7 @@ window['color-match'] = {
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
+        window['color-match'].sounds.drag.play();
         e.dataTransfer.setData('shape', pair.shape.name);
         e.dataTransfer.setData('color', pair.color);
       };
@@ -175,6 +185,7 @@ window['color-match'] = {
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
       drag.addEventListener('touchstart', function(ev) {
+        window['color-match'].sounds.drag.play();
         ev.preventDefault();
         const rect = drag.getBoundingClientRect();
         touchOffset.x = ev.touches[0].clientX - rect.left;
@@ -203,25 +214,28 @@ window['color-match'] = {
         const dropY = ev.changedTouches[0].clientY;
         document.body.removeChild(touchGhost);
         touchGhost = null;
-        // בדוק אם שוחרר על מטרה
         const elem = document.elementFromPoint(dropX, dropY);
         const targetDiv = elem && elem.closest('.color-target');
         if (targetDiv && !targetDiv.classList.contains('filled')) {
           const shape = drag.dataset.shape;
           const color = drag.dataset.color;
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
+            window['color-match'].sounds.success.play();
             targetDiv.classList.add('filled');
             targetDiv.style.background = color;
-            // Dynamically color the SVG for the target (top row)
-            let svg = shapes.find(s => s.name === shape)?.svg || '';
-            svg = svg.replace(/fill=['"]white['"]/g, `fill='${color}'`).replace(/stroke=['"]white['"]/g, `stroke='${color}'`);
+            targetDiv.style.border = '4px solid #fff';
+            let svg = pair.shape.svg
+              .replace(/fill=['"][^'"]*['"]/g, `fill='#fff'`)
+              .replace(/stroke=['"][^'"]*['"]/g, `stroke='#fff'`)
+              .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='2'");
             targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();
-            if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
+            if (document.querySelectorAll('.color-target.filled').length === targets.length) {
               window['color-match'].nextStageButton();
             }
           } else {
+            window['color-match'].sounds.error.play();
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
           }
         }

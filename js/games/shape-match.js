@@ -226,78 +226,18 @@ window['shape-match'] = {
       drag.style.boxShadow = '0 2px 8px #0001';
       drag.dataset.shape = s.id.toLowerCase();
       drag.draggable = true;
+      drag.ondragstart = e => {
+        e.dataTransfer.setData('shape', s.id.toLowerCase());
+        window['shape-match'].playSound('click');
+      };
       // טען SVG צבעוני לגרירה
       fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
       }).catch(() => {
         drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // --- custom drag logic ---
-      let ghost = null;
-      let offsetX = 0, offsetY = 0;
-      drag.onmousedown = e => {
-        e.preventDefault();
-        drag.style.visibility = 'hidden';
-        ghost = document.createElement('div');
-        ghost.className = 'shape-drag-ghost';
-        ghost.style.position = 'fixed';
-        ghost.style.width = drag.style.width;
-        ghost.style.height = drag.style.height;
-        ghost.style.display = 'flex';
-        ghost.style.alignItems = 'center';
-        ghost.style.justifyContent = 'center';
-        ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = 9999;
-        ghost.style.opacity = '0.97';
-        fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
-          ghost.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
-        });
-        document.body.appendChild(ghost);
-        offsetX = 0;
-        offsetY = 0;
-        window['shape-match'].playSound('click');
-        function moveGhost(ev) {
-          ghost.style.left = (ev.clientX - ghost.offsetWidth/2) + 'px';
-          ghost.style.top = (ev.clientY - ghost.offsetHeight/2) + 'px';
-        }
-        document.addEventListener('mousemove', moveGhost);
-        document.addEventListener('mouseup', function mouseUpHandler(upEvt) {
-          document.removeEventListener('mousemove', moveGhost);
-          document.removeEventListener('mouseup', mouseUpHandler);
-          if (ghost) { ghost.remove(); ghost = null; }
-          let dropped = false;
-          const targets = document.querySelectorAll('.shape-target');
-          targets.forEach(target => {
-            const rect = target.getBoundingClientRect();
-            if (
-              upEvt.clientX >= rect.left && upEvt.clientX <= rect.right &&
-              upEvt.clientY >= rect.top && upEvt.clientY <= rect.bottom
-            ) {
-              if (target.dataset.shape === s.id.toLowerCase() && !target.classList.contains('filled')) {
-                target.classList.add('filled');
-                target.style.opacity = '1';
-                fetch(`shapes/color/${s.id.toLowerCase()}.svg`).then(r => r.text()).then(svg => {
-                  target.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
-                }).catch(() => {
-                  target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
-                });
-                window['shape-match'].playSound('success');
-                document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
-                drag.remove();
-                if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
-                  window['shape-match'].nextStageButton();
-                }
-                dropped = true;
-              }
-            }
-          });
-          if (!dropped) {
-            drag.style.visibility = 'visible';
-            window['shape-match'].playSound('wrong');
-            document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
-          }
-        });
-      };
+      // --- custom drag logic for touch only ---
+      drag.onmousedown = null; // remove custom ghost for desktop
       dragsDiv.appendChild(drag);
     });
     board.appendChild(dragsDiv);

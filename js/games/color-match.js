@@ -123,10 +123,12 @@ window['color-match'] = {
         const color = e.dataTransfer.getData('color');
         if (shape === pair.shape.name && color === pair.color) {
           target.style.background = pair.color;
-          target.innerHTML = pair.shape.svg;
+          // Always use the correct SVG for the matched shape
+          const svg = shapes.find(s => s.name === shape)?.svg || '';
+          target.innerHTML = svg;
           target.classList.add('filled');
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-          // הסר את הצורה מהגרירה
+          // Remove the drag element
           const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
           if (dragEl) dragEl.remove();
           if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
@@ -209,7 +211,9 @@ window['color-match'] = {
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
             targetDiv.classList.add('filled');
             targetDiv.style.background = color;
-            targetDiv.innerHTML = pair.shape.svg;
+            // Always use the correct SVG for the matched shape
+            const svg = shapes.find(s => s.name === shape)?.svg || '';
+            targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();
             if (document.querySelectorAll('.color-target.filled').length === pairs.length) {

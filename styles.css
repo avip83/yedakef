@@ -469,7 +469,7 @@ h2, .game-modal-header h2 {
 
 .color-target, .shape-target {
     border: 2px dashed #bbb;
-    background: #fffde7 !important;
+    background: #fffde7;
 }
 
 .color-target.filled {

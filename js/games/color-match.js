@@ -87,50 +87,47 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
-    // בחר N צורות-צבע רנדומליים
-    let numPairs = 3;
-    if (this.stage >= 5) numPairs = 4;
-    if (this.stage >= 10) numPairs = 5;
-    const pairs = [];
-    const used = new Set();
-    while (pairs.length < numPairs) {
-      const shape = this.shapes[Math.floor(Math.random() * this.shapes.length)];
-      const color = this.colors[Math.floor(Math.random() * this.colors.length)];
-      const key = shape.name + '-' + color.color;
-      if (!used.has(key)) {
-        pairs.push({ shape, color });
-        used.add(key);
-      }
-    }
-    this.targets = this.shuffle([...pairs]);
-    this.drags = this.shuffle([...pairs]);
-    this.dragsState = [...this.drags];
-    this.targetsState = Array(numPairs).fill(null);
-    // נקה את הלוח לפני יצירה
+    // הגדרת הצורות
+    const shapes = [
+      {name: 'circle', svg: `<svg width='36' height='36'><circle cx='18' cy='18' r='12' fill='white'/></svg>`},
+      {name: 'square', svg: `<svg width='36' height='36'><rect x='6' y='6' width='24' height='24' rx='6' fill='white'/></svg>`},
+      {name: 'triangle', svg: `<svg width='36' height='36'><polygon points='18,6 30,30 6,30' fill='white'/></svg>`}
+    ];
+    const colors = ['#e53935', '#1e88e5', '#43a047'];
+    // ערבוב סדר
+    const pairs = shapes.map((shape, i) => ({shape, color: colors[i]})).sort(() => Math.random() - 0.5);
+    // מטרות (עיגולים ריקים)
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
-    // מטרות (עיגולים ריקים)
-    this.targets.forEach((c, i) => {
+    pairs.forEach((pair, i) => {
       const target = document.createElement('div');
       target.className = 'color-target';
       target.style.background = '#fff';
-      target.style.border = '2px dashed #bbb';
-      target.style.width = '80px';
-      target.style.height = '80px';
+      target.style.border = '3px dashed #bbb';
+      target.style.width = '70px';
+      target.style.height = '70px';
       target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
       target.style.margin = '0 10px';
-      target.dataset.color = c.color;
+      target.dataset.shape = pair.shape.name;
+      target.dataset.color = pair.color;
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
+        const shape = e.dataTransfer.getData('shape');
         const color = e.dataTransfer.getData('color');
-        if (color === c.color) {
-          target.style.background = color;
-          target.innerHTML = '✔';
+        if (shape === pair.shape.name && color === pair.color) {
+          target.style.background = pair.color;
+          target.innerHTML = pair.shape.svg;
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-          this.nextStageButton();
+          target.classList.add('filled');
+          // הסר את הצורה מהגרירה
+          const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
+          if (dragEl) dragEl.remove();
+          if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
+            this.nextStageButton();
+          }
         } else {
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
         }
@@ -138,18 +135,26 @@ window['color-match'] = {
       board.appendChild(target);
     });
     // עיגולים לגרירה
-    this.drags.forEach((c, i) => {
+    pairs.forEach((pair, i) => {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
-      drag.style.background = c.color;
+      drag.style.background = pair.color;
       drag.style.width = '60px';
       drag.style.height = '60px';
       drag.style.borderRadius = '50%';
       drag.style.margin = '0 10px';
       drag.style.cursor = 'grab';
-      drag.style.display = 'inline-block';
+      drag.style.display = 'flex';
+      drag.style.alignItems = 'center';
+      drag.style.justifyContent = 'center';
       drag.draggable = true;
-      drag.ondragstart = e => e.dataTransfer.setData('color', c.color);
+      drag.dataset.shape = pair.shape.name;
+      drag.dataset.color = pair.color;
+      drag.innerHTML = pair.shape.svg;
+      drag.ondragstart = e => {
+        e.dataTransfer.setData('shape', pair.shape.name);
+        e.dataTransfer.setData('color', pair.color);
+      };
       // touch לגרירה במובייל
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
@@ -185,19 +190,18 @@ window['color-match'] = {
         const elem = document.elementFromPoint(dropX, dropY);
         const targetDiv = elem && elem.closest('.color-target');
         if (targetDiv && !targetDiv.classList.contains('filled')) {
-          const color = drag.style.background;
-          if (color === targetDiv.dataset.color) {
+          const shape = drag.dataset.shape;
+          const color = drag.dataset.color;
+          if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
             targetDiv.classList.add('filled');
-            targetDiv.style.opacity = '1';
             targetDiv.style.background = color;
-            window['color-match'].playSound && window['color-match'].playSound('success');
+            targetDiv.innerHTML = pair.shape.svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();
-            if (document.querySelectorAll('.color-target.filled').length === document.querySelectorAll('.color-target').length) {
+            if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
               window['color-match'].nextStageButton();
             }
           } else {
-            window['color-match'].playSound && window['color-match'].playSound('wrong');
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
           }
         }

@@ -106,152 +106,37 @@ window['color-match'] = {
     this.drags = this.shuffle([...pairs]);
     this.dragsState = [...this.drags];
     this.targetsState = Array(numPairs).fill(null);
-    // בנה יעדים (למעלה)
+    // נקה את הלוח לפני יצירה
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
-    this.targets.forEach((pair, i) => {
+    // מטרות (עיגולים ריקים)
+    this.targets.forEach((c, i) => {
       const target = document.createElement('div');
-      target.className = 'shape-target';
+      target.className = 'color-target';
       target.style.background = '#fff';
-      target.style.border = `6px solid ${pair.color.color}`;
-      target.style.width = 'min(100px, 18vw)';
-      target.style.height = 'min(100px, 18vw)';
-      target.style.borderRadius = '18px';
+      target.style.border = '2px dashed #bbb';
+      target.style.width = '80px';
+      target.style.height = '80px';
+      target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 0.7vw';
-      target.style.boxShadow = '0 2px 12px #0001';
-      target.style.boxSizing = 'border-box';
-      target.dataset.shape = pair.shape.name;
-      target.dataset.color = pair.color.color;
+      target.style.margin = '0 10px';
+      target.dataset.color = c.color;
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
-        const shape = e.dataTransfer.getData('shape');
         const color = e.dataTransfer.getData('color');
-        this.playSound('drag');
-        if (shape === pair.shape.name && color === pair.color.color && !this.targetsState[i]) {
-          target.innerHTML = pair.shape.svg.replace(/COLOR/g, pair.color.color);
-          this.targetsState[i] = true;
-          if (this.draggedPair) {
-            this.dragsState[this.draggedPair.index] = null;
-            this.draggedPair = null;
-            this.updateDrags();
-          }
-          document.getElementById('color-match-feedback').textContent = '';
-          if (this.targetsState.every(val => val)) {
-            this.playSound('success');
-            document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-            this.nextStageButton();
-          }
+        if (color === c.color) {
+          target.style.background = color;
+          target.innerHTML = '✔';
+          document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
+          this.nextStageButton();
         } else {
-          this.playSound('error');
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
         }
       };
-      target.onmouseenter = () => { target.style.cursor = 'pointer'; };
-      target.onmouseleave = () => { target.style.cursor = 'default'; };
-      // הצג רק מסגרת של הצורה עם היקף שחור
-      let svgWithStroke = pair.shape.svg.replace(/COLOR/g, '#fff');
-      // הוסף היקף שחור לכל הצורות
-      if (pair.shape.name === 'circle') {
-        svgWithStroke = svgWithStroke.replace('<circle', '<circle stroke="black" stroke-width="3"');
-      } else if (pair.shape.name === 'square') {
-        svgWithStroke = svgWithStroke.replace('<rect', '<rect stroke="black" stroke-width="3"');
-      } else if (pair.shape.name === 'triangle' || pair.shape.name === 'star') {
-        svgWithStroke = svgWithStroke.replace('<polygon', '<polygon stroke="black" stroke-width="3"');
-      }
-      target.innerHTML = svgWithStroke;
       board.appendChild(target);
     });
-    this.updateDrags();
-    document.getElementById('color-match-feedback').textContent = '';
-    document.getElementById('color-next-stage').style.display = 'none';
-  },
-  updateDrags() {
-    const dragsDiv = document.getElementById('color-match-drags');
-    dragsDiv.innerHTML = '';
-    this.dragsState.forEach((pair, i) => {
-      if (!pair) return;
-      const span = document.createElement('span');
-      span.className = 'shape-drag';
-      span.style.display = 'inline-block';
-      span.style.margin = '0 0.7vw';
-      span.draggable = false;
-      span.style.cursor = 'grab';
-      let isDragging = false;
-      let ghost = null;
-      let offsetX = 0, offsetY = 0;
-      span.onmousedown = e => {
-        e.preventDefault();
-        isDragging = true;
-        span.style.visibility = 'hidden';
-        ghost = document.createElement('div');
-        ghost.style.position = 'fixed';
-        ghost.style.left = e.clientX - 30 + 'px';
-        ghost.style.top = e.clientY - 30 + 'px';
-        ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = 9999;
-        ghost.innerHTML = pair.shape.svg.replace(/COLOR/g, pair.color.color);
-        document.body.appendChild(ghost);
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-        this.draggedPair = { pair, index: i };
-        document.onmousemove = moveEvt => {
-          if (!isDragging) return;
-          ghost.style.left = (moveEvt.clientX - offsetX) + 'px';
-          ghost.style.top = (moveEvt.clientY - offsetY) + 'px';
-        };
-        document.onmouseup = upEvt => {
-          document.onmousemove = null;
-          document.onmouseup = null;
-          if (ghost) { ghost.remove(); ghost = null; }
-          let dropped = false;
-          const targets = document.querySelectorAll('.shape-target');
-          targets.forEach((target, idx) => {
-            const rect = target.getBoundingClientRect();
-            if (
-              upEvt.clientX >= rect.left && upEvt.clientX <= rect.right &&
-              upEvt.clientY >= rect.top && upEvt.clientY <= rect.bottom
-            ) {
-              const shape = pair.shape.name;
-              const color = pair.color.color;
-              if (
-                shape === target.dataset.shape &&
-                color === target.dataset.color &&
-                !this.targetsState[idx]
-              ) {
-                target.innerHTML = pair.shape.svg.replace(/COLOR/g, pair.color.color);
-                this.targetsState[idx] = true;
-                this.dragsState[i] = null;
-                this.draggedPair = null;
-                this.updateDrags();
-                document.getElementById('color-match-feedback').textContent = '';
-                this.playSound('drag');
-                if (this.targetsState.every(val => val)) {
-                  this.playSound('success');
-                  document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-                  this.nextStageButton();
-                }
-                dropped = true;
-              }
-            }
-          });
-          if (!dropped) {
-            span.style.visibility = 'visible';
-            this.draggedPair = null;
-            this.playSound('error');
-            document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
-          }
-          isDragging = false;
-        };
-      };
-      let svg = pair.shape.svg.replace(/COLOR/g, pair.color.color);
-      svg = svg.replace(/<svg ([^>]+)>/, '<svg $1 style="background:none">');
-      span.innerHTML = svg;
-      dragsDiv.appendChild(span);
-    });
-
     // עיגולים לגרירה
     this.drags.forEach((c, i) => {
       const drag = document.createElement('div');
@@ -265,7 +150,7 @@ window['color-match'] = {
       drag.style.display = 'inline-block';
       drag.draggable = true;
       drag.ondragstart = e => e.dataTransfer.setData('color', c.color);
-      // תמיכה ב-touch לגרירה במובייל
+      // touch לגרירה במובייל
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
       drag.addEventListener('touchstart', function(ev) {
@@ -317,7 +202,6 @@ window['color-match'] = {
           }
         }
       }, {passive:false});
-      const board = document.getElementById('color-match-board');
       board.appendChild(drag);
     });
   },

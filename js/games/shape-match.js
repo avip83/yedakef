@@ -291,69 +291,80 @@ window['shape-match'] = {
     document.getElementById('shape-match-feedback').textContent = '';
     document.getElementById('shape-next-stage').style.display = 'none';
 
-    // תמיכה בגרירה באצבע (touch events) למובייל
-    // נוסיף ל-targetsDiv ול-dragsDiv מאזיני touch
-    // --- touch drag logic ---
-    let touchDrag = null;
-    let touchGhost = null;
-    let touchOffset = {x:0, y:0};
-    dragsDiv.addEventListener('touchstart', function(ev) {
-      const target = ev.target.closest('.shape-drag');
-      if (!target) return;
-      ev.preventDefault();
-      touchDrag = target;
-      const rect = target.getBoundingClientRect();
-      touchOffset.x = ev.touches[0].clientX - rect.left;
-      touchOffset.y = ev.touches[0].clientY - rect.top;
-      touchGhost = target.cloneNode(true);
-      touchGhost.style.position = 'fixed';
-      touchGhost.style.left = rect.left + 'px';
-      touchGhost.style.top = rect.top + 'px';
-      touchGhost.style.width = rect.width + 'px';
-      touchGhost.style.height = rect.height + 'px';
-      touchGhost.style.opacity = '0.95';
-      touchGhost.style.zIndex = 9999;
-      touchGhost.style.pointerEvents = 'none';
-      document.body.appendChild(touchGhost);
-    }, {passive:false});
-    dragsDiv.addEventListener('touchmove', function(ev) {
-      if (!touchGhost) return;
-      ev.preventDefault();
-      touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
-      touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
-    }, {passive:false});
-    dragsDiv.addEventListener('touchend', function(ev) {
-      if (!touchGhost || !touchDrag) return;
-      const dropX = ev.changedTouches[0].clientX;
-      const dropY = ev.changedTouches[0].clientY;
-      document.body.removeChild(touchGhost);
-      touchGhost = null;
-      // בדוק אם שוחרר על מטרה
-      const elem = document.elementFromPoint(dropX, dropY);
-      const targetDiv = elem && elem.closest('.shape-target');
-      if (targetDiv && !targetDiv.classList.contains('filled')) {
-        const shape = touchDrag.dataset.shape;
-        if (shape === targetDiv.dataset.shape) {
-          targetDiv.classList.add('filled');
-          targetDiv.style.opacity = '1';
-          fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
-            targetDiv.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
-            const svgEl = targetDiv.querySelector('svg');
-            if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
-          });
-          window['shape-match'].playSound('success');
-          document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
-          touchDrag.remove();
-          if (document.querySelectorAll('.shape-target.filled').length === document.querySelectorAll('.shape-target').length) {
-            window['shape-match'].nextStageButton();
+    // תמיכה בגרירה באצבע (touch events) למובייל - תמיד אחרי יצירת dragsDiv
+    setTimeout(() => {
+      let touchDrag = null;
+      let touchGhost = null;
+      let touchOffset = {x:0, y:0};
+      dragsDiv.addEventListener('touchstart', function(ev) {
+        const target = ev.target.closest('.shape-drag');
+        if (!target) return;
+        ev.preventDefault();
+        touchDrag = target;
+        const rect = target.getBoundingClientRect();
+        touchOffset.x = ev.touches[0].clientX - rect.left;
+        touchOffset.y = ev.touches[0].clientY - rect.top;
+        touchGhost = target.cloneNode(true);
+        touchGhost.style.position = 'fixed';
+        touchGhost.style.left = rect.left + 'px';
+        touchGhost.style.top = rect.top + 'px';
+        touchGhost.style.width = rect.width + 'px';
+        touchGhost.style.height = rect.height + 'px';
+        touchGhost.style.opacity = '0.95';
+        touchGhost.style.zIndex = 9999;
+        touchGhost.style.pointerEvents = 'none';
+        document.body.appendChild(touchGhost);
+      }, {passive:false});
+      dragsDiv.addEventListener('touchmove', function(ev) {
+        if (!touchGhost) return;
+        ev.preventDefault();
+        touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
+        touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
+      }, {passive:false});
+      dragsDiv.addEventListener('touchend', function(ev) {
+        if (!touchGhost || !touchDrag) return;
+        const dropX = ev.changedTouches[0].clientX;
+        const dropY = ev.changedTouches[0].clientY;
+        document.body.removeChild(touchGhost);
+        touchGhost = null;
+        // בדוק אם שוחרר על מטרה
+        const elem = document.elementFromPoint(dropX, dropY);
+        const targetDiv = elem && elem.closest('.shape-target');
+        if (targetDiv && !targetDiv.classList.contains('filled')) {
+          const shape = touchDrag.dataset.shape;
+          if (shape === targetDiv.dataset.shape) {
+            targetDiv.classList.add('filled');
+            targetDiv.style.opacity = '1';
+            fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+              targetDiv.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+              const svgEl = targetDiv.querySelector('svg');
+              if(svgEl) { svgEl.style.width = '60px'; svgEl.style.height = '60px'; svgEl.style.display = 'block'; }
+            });
+            window['shape-match'].playSound('success');
+            document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+            touchDrag.remove();
+            if (document.querySelectorAll('.shape-target.filled').length === document.querySelectorAll('.shape-target').length) {
+              window['shape-match'].nextStageButton();
+            }
+          } else {
+            window['shape-match'].playSound('wrong');
+            document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
           }
-        } else {
-          window['shape-match'].playSound('wrong');
-          document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
         }
+        touchDrag = null;
+      }, {passive:false});
+    }, 0);
+    // ודא שכפתור הסגירה תמיד מוצג
+    setTimeout(() => {
+      const closeBtn = document.querySelector('.close-button');
+      if(closeBtn) {
+        closeBtn.style.display = 'block';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '12px';
+        closeBtn.style.right = '12px';
+        closeBtn.style.zIndex = 1001;
       }
-      touchDrag = null;
-    }, {passive:false});
+    }, 100);
   },
   nextStageButton() {
     const btn = document.getElementById('shape-next-stage');

@@ -22,8 +22,6 @@ body {
     justify-content: flex-start;
     position: relative;
     overflow-x: hidden;
-    overscroll-behavior: contain;
-    touch-action: manipulation;
 }
 body::before {
     content: '';
@@ -300,6 +298,14 @@ body::after {
     }
     .age-button .age-number {
         font-size: 1.2rem;
+    }
+    .close-button {
+        font-size: 2.2rem !important;
+        width: 48px !important;
+        height: 48px !important;
+        top: 8px !important;
+        right: 8px !important;
+        z-index: 1001 !important;
     }
 }
 

@@ -29,6 +29,9 @@ window['color-match'] = {
     this.renderGame();
   },
   showModal() {
+    window.scrollTo({top: 0, behavior: "auto"});
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
     document.querySelectorAll('.game-modal').forEach(m => m.remove());
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
@@ -249,62 +252,74 @@ window['color-match'] = {
       dragsDiv.appendChild(span);
     });
 
-    // תמיכה בגרירה באצבע (touch events) לכל color-drag
-    setTimeout(() => {
-      document.querySelectorAll('.color-drag').forEach(drag => {
-        let touchGhost = null;
-        let touchOffset = {x:0, y:0};
-        drag.addEventListener('touchstart', function(ev) {
-          ev.preventDefault();
-          const rect = drag.getBoundingClientRect();
-          touchOffset.x = ev.touches[0].clientX - rect.left;
-          touchOffset.y = ev.touches[0].clientY - rect.top;
-          touchGhost = drag.cloneNode(true);
-          touchGhost.style.position = 'fixed';
-          touchGhost.style.left = rect.left + 'px';
-          touchGhost.style.top = rect.top + 'px';
-          touchGhost.style.width = rect.width + 'px';
-          touchGhost.style.height = rect.height + 'px';
-          touchGhost.style.opacity = '0.95';
-          touchGhost.style.zIndex = 9999;
-          touchGhost.style.pointerEvents = 'none';
-          document.body.appendChild(touchGhost);
-        }, {passive:false});
-        drag.addEventListener('touchmove', function(ev) {
-          if (!touchGhost) return;
-          ev.preventDefault();
-          touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
-          touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
-        }, {passive:false});
-        drag.addEventListener('touchend', function(ev) {
-          if (!touchGhost) return;
-          const dropX = ev.changedTouches[0].clientX;
-          const dropY = ev.changedTouches[0].clientY;
-          document.body.removeChild(touchGhost);
-          touchGhost = null;
-          // בדוק אם שוחרר על מטרה
-          const elem = document.elementFromPoint(dropX, dropY);
-          const targetDiv = elem && elem.closest('.color-target');
-          if (targetDiv && !targetDiv.classList.contains('filled')) {
-            const color = drag.dataset.color;
-            if (color === targetDiv.dataset.color) {
-              targetDiv.classList.add('filled');
-              targetDiv.style.opacity = '1';
-              targetDiv.style.background = color;
-              window['color-match'].playSound && window['color-match'].playSound('success');
-              document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
-              drag.remove();
-              if (document.querySelectorAll('.color-target.filled').length === document.querySelectorAll('.color-target').length) {
-                window['color-match'].nextStageButton();
-              }
-            } else {
-              window['color-match'].playSound && window['color-match'].playSound('wrong');
-              document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
+    // עיגולים לגרירה
+    this.drags.forEach((c, i) => {
+      const drag = document.createElement('div');
+      drag.className = 'color-drag';
+      drag.style.background = c.color;
+      drag.style.width = '60px';
+      drag.style.height = '60px';
+      drag.style.borderRadius = '50%';
+      drag.style.margin = '0 10px';
+      drag.style.cursor = 'grab';
+      drag.style.display = 'inline-block';
+      drag.draggable = true;
+      drag.ondragstart = e => e.dataTransfer.setData('color', c.color);
+      // תמיכה ב-touch לגרירה במובייל
+      let touchGhost = null;
+      let touchOffset = {x:0, y:0};
+      drag.addEventListener('touchstart', function(ev) {
+        ev.preventDefault();
+        const rect = drag.getBoundingClientRect();
+        touchOffset.x = ev.touches[0].clientX - rect.left;
+        touchOffset.y = ev.touches[0].clientY - rect.top;
+        touchGhost = drag.cloneNode(true);
+        touchGhost.style.position = 'fixed';
+        touchGhost.style.left = rect.left + 'px';
+        touchGhost.style.top = rect.top + 'px';
+        touchGhost.style.width = rect.width + 'px';
+        touchGhost.style.height = rect.height + 'px';
+        touchGhost.style.opacity = '0.95';
+        touchGhost.style.zIndex = 9999;
+        touchGhost.style.pointerEvents = 'none';
+        document.body.appendChild(touchGhost);
+      }, {passive:false});
+      drag.addEventListener('touchmove', function(ev) {
+        if (!touchGhost) return;
+        ev.preventDefault();
+        touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
+        touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
+      }, {passive:false});
+      drag.addEventListener('touchend', function(ev) {
+        if (!touchGhost) return;
+        const dropX = ev.changedTouches[0].clientX;
+        const dropY = ev.changedTouches[0].clientY;
+        document.body.removeChild(touchGhost);
+        touchGhost = null;
+        // בדוק אם שוחרר על מטרה
+        const elem = document.elementFromPoint(dropX, dropY);
+        const targetDiv = elem && elem.closest('.color-target');
+        if (targetDiv && !targetDiv.classList.contains('filled')) {
+          const color = drag.style.background;
+          if (color === targetDiv.dataset.color) {
+            targetDiv.classList.add('filled');
+            targetDiv.style.opacity = '1';
+            targetDiv.style.background = color;
+            window['color-match'].playSound && window['color-match'].playSound('success');
+            document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
+            drag.remove();
+            if (document.querySelectorAll('.color-target.filled').length === document.querySelectorAll('.color-target').length) {
+              window['color-match'].nextStageButton();
             }
+          } else {
+            window['color-match'].playSound && window['color-match'].playSound('wrong');
+            document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
           }
-        }, {passive:false});
-      });
-    }, 0);
+        }
+      }, {passive:false});
+      const board = document.getElementById('color-match-board');
+      board.appendChild(drag);
+    });
   },
   nextStageButton() {
     const btn = document.getElementById('color-next-stage');

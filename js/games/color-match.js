@@ -58,7 +58,7 @@ window['color-match'] = {
           </div>
         </div>
         <div class="game-modal-header" style="width:100%; display:flex; justify-content: center; align-items:center; margin-bottom: 8px;">
-          <h2 style="font-size:2.2rem; font-family: 'Baloo 2', 'Heebo', sans-serif; margin:0; text-align:center;">התאמת צבעים וצורות</h2>
+          <h2 style="font-size:2.2rem; font-family: 'Baloo 2', 'Heebo', sans-serif; margin:0; text-align:center;">התאמת צבעים</h2>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; width:100%; justify-content: center; overflow-x:hidden; box-sizing:border-box;">
           <p style="font-size:1.2rem; font-weight:700; margin: 0 0 10px 0; text-align:center;">גרור כל צורה צבעונית למקום המתאים</p>

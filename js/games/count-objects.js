@@ -99,7 +99,7 @@ window['count-objects'] = {
     // כפתורי מספרים
     const btns = document.getElementById('count-objects-buttons');
     btns.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 4; i++) {
       const btn = document.createElement('button');
       btn.textContent = i;
       btn.style.fontSize = '2rem';

@@ -313,6 +313,12 @@ body {
     .games-container h2 {
         font-size: 2rem !important;
     }
+    .age-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        width: 100%;
+    }
     .age-button, .category-card, .game-card {
         min-width: 120px;
         min-height: 80px;

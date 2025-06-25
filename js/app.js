@@ -11,6 +11,7 @@ class KidsApp {
         this.setupEventListeners();
         this.showAgeSelector();
         this.addSoundEffects();
+        this.setupMobileScrolling();
     }
 
     setupEventListeners() {
@@ -276,6 +277,31 @@ class KidsApp {
             this.sounds[soundName].play().catch(() => {
                 // התעלם משגיאות קול אם הדפדפן לא תומך
             });
+        }
+    }
+
+    setupMobileScrolling() {
+        // שיפור גלילה במובייל
+        if ('ontouchstart' in window) {
+            // מניעת zoom על double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // מניעת scroll bounce במובייל
+            document.addEventListener('touchmove', function (event) {
+                if (event.scale !== 1) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+
+            // וידוא שהגלילה חלקה
+            document.body.style.webkitOverflowScrolling = 'touch';
         }
     }
 }

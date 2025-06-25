@@ -72,6 +72,12 @@ window['shape-match'] = {
     
     const board = document.getElementById('shape-match-board');
     board.innerHTML = '';
+    board.style.display = 'flex';
+    board.style.flexDirection = 'column';
+    board.style.alignItems = 'center';
+    board.style.justifyContent = 'center';
+    board.style.gap = '32px';
+    board.style.overflow = 'visible';
     
     // מטרות (צללים) - שורה עליונה
     const targetsContainer = document.createElement('div');

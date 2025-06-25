@@ -15,12 +15,6 @@ window['tower-builder'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
-        <button class="back-arrow-button" title="חזור לבחירת משחקים" style="position:fixed;top:18px;right:18px;z-index:2000;width:54px;height:54px;background:#7c5b33;border:2px solid #7c5b33;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="display:block;" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 16h12" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M18 10l4 6-4 6" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
         <div class="game-modal-header">
           <h2>בניית מגדל קוביות</h2>
         </div>
@@ -34,11 +28,6 @@ window['tower-builder'] = {
       </div>
     `;
     document.body.appendChild(modal);
-    // Add event to back arrow button
-    modal.querySelector('.back-arrow-button').onclick = function() {
-      modal.remove();
-      document.getElementById('gamesContainer').style.display = 'block';
-    };
   },
   renderGame() {
     // מספר קוביות עולה עם שלבים
@@ -98,6 +87,43 @@ window['tower-builder'] = {
     };
     document.getElementById('tower-feedback').textContent = '';
     document.getElementById('tower-next-stage').style.display = 'none';
+
+    setTimeout(() => {
+      if (!document.getElementById('tower-builder-back')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'back-arrow-button';
+          btn.id = 'tower-builder-back';
+          btn.title = 'חזור';
+          btn.style.position = 'absolute';
+          btn.style.top = '18px';
+          btn.style.right = '18px';
+          btn.style.zIndex = '2000';
+          btn.style.width = '54px';
+          btn.style.height = '54px';
+          btn.style.background = '#7c5b33';
+          btn.style.border = '2px solid #fff';
+          btn.style.borderRadius = '50%';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.style.padding = '0';
+          btn.innerHTML = `
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 16h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M18 10l6 6-6 6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          btn.onclick = function() {
+            modalContent.parentElement.remove();
+            document.getElementById('gamesContainer').style.display = 'block';
+          };
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
   },
   nextStageButton() {
     const btn = document.getElementById('tower-next-stage');

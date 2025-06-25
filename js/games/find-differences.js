@@ -58,13 +58,16 @@ window['find-differences'] = {
     img.style.display = 'block';
     img.style.position = 'relative';
     board.appendChild(img);
-    // הגדר אזורים אינטראקטיביים (קואורדינטות יחסיות)
-    const areas = [
-      // [left, top, radius, label]
-      {left: 0.19, top: 0.36, r: 0.07, label: 'פרח'}, // פרח
-      {left: 0.62, top: 0.23, r: 0.07, label: 'יד'}, // יד שמאל למעלה
-      {left: 0.73, top: 0.38, r: 0.055, label: 'עין'}, // עין ימין עצומה
-      {left: 0.68, top: 0.68, r: 0.09, label: 'נעליים'} // נעליים
+    // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל)
+    const diffs = [
+      // פרח
+      [ {left: 0.19, top: 0.36, r: 0.07}, {left: 0.69, top: 0.36, r: 0.07} ],
+      // יד
+      [ {left: 0.32, top: 0.56, r: 0.09}, {left: 0.82, top: 0.56, r: 0.09} ],
+      // עין
+      [ {left: 0.29, top: 0.38, r: 0.055}, {left: 0.79, top: 0.38, r: 0.055} ],
+      // נעליים
+      [ {left: 0.25, top: 0.82, r: 0.10}, {left: 0.75, top: 0.82, r: 0.10} ]
     ];
     // שכבת אינטראקציה
     const overlay = document.createElement('div');
@@ -81,50 +84,53 @@ window['find-differences'] = {
     // הפוך את board ל-position:relative
     board.style.position = 'relative';
     // הוסף אזורים אינטראקטיביים
-    areas.forEach((area, idx) => {
-      const btn = document.createElement('div');
-      btn.style.position = 'absolute';
-      btn.style.left = (area.left * 100) + '%';
-      btn.style.top = (area.top * 100) + '%';
-      btn.style.width = (area.r * 2 * 100) + '%';
-      btn.style.height = (area.r * 2 * 100) + '%';
-      btn.style.transform = 'translate(-50%,-50%)';
-      btn.style.borderRadius = '50%';
-      btn.style.cursor = 'pointer';
-      btn.style.pointerEvents = 'auto';
-      btn.style.background = 'rgba(0,0,0,0)';
-      btn.title = area.label;
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        if (!this.found.includes(idx)) {
-          this.found.push(idx);
-          this.drawCircle(area);
-          this.playSound('success');
-          if (this.found.length === areas.length) {
-            document.getElementById('diff-feedback').textContent = 'כל הכבוד!';
-            document.getElementById('diff-feedback').style.color = '#43a047';
-            this.nextStageButton();
+    diffs.forEach((pair, diffIdx) => {
+      pair.forEach((area, sideIdx) => {
+        const btn = document.createElement('div');
+        btn.style.position = 'absolute';
+        btn.style.left = (area.left * 100) + '%';
+        btn.style.top = (area.top * 100) + '%';
+        btn.style.width = (area.r * 2 * 100) + '%';
+        btn.style.height = (area.r * 2 * 100) + '%';
+        btn.style.transform = 'translate(-50%,-50%)';
+        btn.style.borderRadius = '50%';
+        btn.style.cursor = 'pointer';
+        btn.style.pointerEvents = 'auto';
+        btn.style.background = 'rgba(0,0,0,0)';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          if (!this.found.includes(diffIdx)) {
+            this.found.push(diffIdx);
+            // סמן עיגול ירוק בשני הצדדים
+            pair.forEach(a => this.drawCircle(a));
+            this.playSound('success');
+            if (this.found.length === diffs.length) {
+              document.getElementById('diff-feedback').textContent = 'כל הכבוד!';
+              document.getElementById('diff-feedback').style.color = '#43a047';
+              this.nextStageButton();
+            }
           }
-        }
-      };
-      board.appendChild(btn);
+        };
+        board.appendChild(btn);
+      });
     });
     // לחיצה על אזור לא נכון
     img.onclick = (e) => {
-      // חשב קואורדינטות יחסיות
       const rect = img.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
       // בדוק אם נלחץ על אחד האזורים
       let hit = false;
-      for (let i = 0; i < areas.length; i++) {
-        const a = areas[i];
-        const dx = x - a.left;
-        const dy = y - a.top;
-        if (Math.sqrt(dx*dx + dy*dy) < a.r) {
-          hit = true;
-          break;
+      for (let pair of diffs) {
+        for (let a of pair) {
+          const dx = x - a.left;
+          const dy = y - a.top;
+          if (Math.sqrt(dx*dx + dy*dy) < a.r) {
+            hit = true;
+            break;
+          }
         }
+        if (hit) break;
       }
       if (!hit) {
         document.getElementById('diff-feedback').textContent = 'נסה שוב!';
@@ -133,7 +139,7 @@ window['find-differences'] = {
       }
     };
     // צייר עיגולים על ההבדלים שנמצאו
-    this.found.forEach(idx => this.drawCircle(areas[idx]));
+    this.found.forEach(diffIdx => diffs[diffIdx].forEach(a => this.drawCircle(a)));
     document.getElementById('diff-feedback').textContent = '';
     document.getElementById('diff-next-stage').style.display = 'none';
   },

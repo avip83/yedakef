@@ -66,63 +66,6 @@ window['count-objects'] = {
     }
   },
   renderGame() {
-    setTimeout(() => {
-      if (!document.getElementById('count-objects-volume')) {
-        const modalContent = document.querySelector('.game-modal-content');
-        if (modalContent) {
-          const btn = document.createElement('button');
-          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
-          btn.id = 'count-objects-volume';
-          btn.title = 'הפעל/השתק צלילים';
-          btn.onclick = () => window['count-objects'].toggleMute();
-          btn.innerHTML = `
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
-              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
-            </svg>
-          `;
-          modalContent.appendChild(btn);
-        }
-      }
-    }, 0);
-    setTimeout(() => {
-      if (!document.getElementById('count-objects-back')) {
-        const modalContent = document.querySelector('.game-modal-content');
-        if (modalContent) {
-          const btn = document.createElement('button');
-          btn.className = 'volume-button back-arrow-button';
-          btn.id = 'count-objects-back';
-          btn.title = 'חזור';
-          btn.style.position = 'absolute';
-          btn.style.top = '18px';
-          btn.style.right = '18px';
-          btn.style.left = '';
-          btn.style.zIndex = '2000';
-          btn.style.width = '54px';
-          btn.style.height = '54px';
-          btn.style.background = '#7c5b33';
-          btn.style.border = '2px solid #fff';
-          btn.style.borderRadius = '50%';
-          btn.style.display = 'flex';
-          btn.style.alignItems = 'center';
-          btn.style.justifyContent = 'center';
-          btn.style.cursor = 'pointer';
-          btn.style.padding = '0';
-          btn.innerHTML = `
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-              <path d="M12 16h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-              <path d="M18 10l6 6-6 6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          btn.onclick = function() {
-            const modal = modalContent.parentElement;
-            if (modal) modal.remove();
-            document.getElementById('gamesContainer').style.display = 'block';
-          };
-          modalContent.appendChild(btn);
-        }
-      }
-    }, 0);
     // בחר מספר אובייקטים (1-5) ושלב אקראי
     const num = 1 + Math.floor(Math.random() * 5);
     const obj = this.objects[Math.floor(Math.random() * this.objects.length)];

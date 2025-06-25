@@ -111,19 +111,21 @@ window['shape-match'] = {
       target.dataset.shape = shape;
       // טען SVG שחור
       fetch(`shapes/black/${shape}.svg`).then(r => r.text()).then(svg => {
-        target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+        target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
       }).catch(() => {
         target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      target.ondragover = e => e.preventDefault();
+      // Enable drop on the outer div
+      target.ondragover = e => { e.preventDefault(); };
       target.ondrop = e => {
+        e.preventDefault();
         const shapeId = e.dataTransfer.getData('shape');
         if (shapeId === shape && !target.classList.contains('filled')) {
           this.playSound('success');
           target.classList.add('filled');
           // טען SVG צבעוני
           fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
-            target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+            target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
           }).catch(() => {
             target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
           });

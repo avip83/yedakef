@@ -73,20 +73,20 @@
           btn.onclick = function() {
             modal.remove();
             if (games) games.style.display = 'block';
-            updateGlobalBackBtn();
+            if (window.updateGlobalBackBtn) setTimeout(window.updateGlobalBackBtn, 0);
           };
         } else if (games && games.style.display !== 'none') {
           btn.style.display = '';
           btn.onclick = function() {
             games.style.display = 'none';
             if (ageSelector) ageSelector.style.display = 'block';
-            updateGlobalBackBtn();
+            if (window.updateGlobalBackBtn) setTimeout(window.updateGlobalBackBtn, 0);
           };
         } else if (ageSelector && ageSelector.style.display !== 'none') {
           btn.style.display = 'none';
         } else {
           btn.style.display = '';
-          btn.onclick = function() { history.back(); };
+          btn.onclick = function() { };
         }
       }
       updateGlobalBackBtn();

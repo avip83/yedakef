@@ -110,14 +110,14 @@ window['what-is-missing'] = {
         img.style.objectFit = 'contain';
         img.style.margin = '12px';
         img.style.borderRadius = '18px';
-        img.style.background = '#f7f7f7';
+        img.style.background = '#fff';
         img.style.boxShadow = '0 2px 8px #0001';
         bigBox.appendChild(img);
         shown++;
       }
     });
     board.appendChild(bigBox);
-    // הצג את כל הפירות כאופציות ב-2 שורות של 3
+    // הצג את כל הפירות כאופציות ב-2 שורות: 4 למעלה, 3 למטה
     const optsDiv = document.getElementById('missing-options');
     optsDiv.innerHTML = '';
     const row1 = document.createElement('div');
@@ -160,21 +160,8 @@ window['what-is-missing'] = {
           this.playSound('wrong');
         }
       };
-      if (i < 3) row1.appendChild(btn);
-      else if (i < 6) row2.appendChild(btn);
-      // אם יש 7 פירות, השביעי ירד לשורה שלישית
-      else {
-        let row3 = optsDiv.querySelector('.row3');
-        if (!row3) {
-          row3 = document.createElement('div');
-          row3.className = 'row3';
-          row3.style.display = 'flex';
-          row3.style.gap = '18px';
-          row3.style.marginTop = '8px';
-          optsDiv.appendChild(row3);
-        }
-        row3.appendChild(btn);
-      }
+      if (i < 4) row1.appendChild(btn);
+      else row2.appendChild(btn);
     });
     optsDiv.appendChild(row1);
     optsDiv.appendChild(row2);

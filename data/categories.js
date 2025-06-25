@@ -16,7 +16,7 @@ const KIDS_DATA = {
         {
             id: "4-5",
             name: "גיל 4-5", 
-            description: "פיתוח מיומנויות בסיסיות",
+            description: "פיתוח מיומנויות",
             color: "#ffecd2"
         },
         {
@@ -34,7 +34,7 @@ const KIDS_DATA = {
         {
             id: "7-8",
             name: "פיתוח חשיבה לוגית",
-            description: "פיתוח חשיבה לוגית",
+            description: "פיתוח חשיבה",
             color: "#ffecd2"
         }
     ],

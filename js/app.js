@@ -48,6 +48,7 @@ class KidsApp {
         document.getElementById('gamesContainer').style.display = 'none';
 
         this.renderAgeButtons();
+        if (window.updateBackToCategoriesTopBtn) window.updateBackToCategoriesTopBtn();
     }
 
     renderAgeButtons() {
@@ -131,6 +132,7 @@ class KidsApp {
         
         // הפעל את כפתור החזרה
         document.getElementById('backToCategoriesButton').onclick = () => this.showAgeSelector();
+        if (window.updateBackToCategoriesTopBtn) window.updateBackToCategoriesTopBtn();
     }
 
     selectCategory(ageId, categoryId) {
@@ -151,6 +153,7 @@ class KidsApp {
         document.getElementById('selectedCategoryTitle').textContent = `${category.name} - ${age.name}`;
 
         this.renderGames(ageId, categoryId);
+        if (window.updateBackToCategoriesTopBtn) window.updateBackToCategoriesTopBtn();
     }
 
     renderGames(ageId, categoryId) {

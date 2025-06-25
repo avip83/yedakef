@@ -59,7 +59,7 @@ window['shape-match'] = {
           <div id="shape-stage-bar" style="width:100%;margin-bottom:8px;"></div>
           <p style="margin:0 0 10px 0; font-size:1.3em; color:#ff9800;">גרור כל צורה למקום המתאים!</p>
           <div id="shape-match-board" style="display: flex; flex-direction: column; gap: 32px; margin: 24px 0;"></div>
-          <div id="shape-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px;"></div>
+          <div id="shape-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700;"></div>
           <button id="shape-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
         </div>
       </div>

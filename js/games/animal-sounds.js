@@ -48,7 +48,7 @@ window['animal-sounds'] = {
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
           <p>הקשב לקול ובחר את החיה המתאימה!</p>
           <div id="animal-sound-board" style="display: flex; gap: 32px; margin: 24px 0;"></div>
-          <div id="animal-sound-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px;"></div>
+          <div id="animal-sound-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700;"></div>
           <button id="animal-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
         </div>
       </div>

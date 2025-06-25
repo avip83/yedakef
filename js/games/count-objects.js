@@ -50,7 +50,7 @@ window['count-objects'] = {
           <p>כמה חפצים יש בתמונה?</p>
           <div id="count-objects-board" style="display: flex; gap: 16px; margin: 24px 0; flex-wrap: wrap;"></div>
           <div id="count-objects-buttons" style="display: flex; gap: 24px; margin: 16px 0;"></div>
-          <div id="count-objects-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; margin-bottom: 8px;"></div>
+          <div id="count-objects-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; margin-bottom: 8px; font-weight: 700;"></div>
           <button id="count-next-stage" style="display:none; margin-top:8px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
         </div>
       </div>

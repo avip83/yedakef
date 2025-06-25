@@ -316,17 +316,27 @@ body {
     .age-buttons {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
+        width: 100%;
+    }
+    .categories-grid, .games-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
         width: 100%;
     }
     .age-button, .category-card, .game-card {
-        min-width: 120px;
-        min-height: 80px;
-        font-size: 1rem;
-        padding: 16px 4px;
+        min-width: 100px;
+        min-height: 70px;
+        max-width: 140px;
+        max-height: 110px;
+        width: 98%;
+        height: 90px;
+        font-size: 0.95rem;
+        padding: 10px 2px;
     }
     .age-button .age-number {
-        font-size: 2rem !important;
+        font-size: 1.3rem !important;
     }
     .close-button {
         top: 24px !important;

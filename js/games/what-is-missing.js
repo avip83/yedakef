@@ -15,7 +15,12 @@ window['what-is-missing'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
-        <button class="close-button" onclick="this.parentElement.parentElement.remove()" style="position:fixed;top:12px;right:12px;z-index:2000;">×</button>
+        <button class="back-arrow-button" title="חזור לבחירת משחקים" style="position:fixed;top:18px;right:18px;z-index:2000;width:54px;height:54px;background:#7c5b33;border:2px solid #7c5b33;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 16h12" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M18 10l4 6-4 6" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <div class="game-modal-header">
           <h2>מה חסר?</h2>
         </div>
@@ -29,6 +34,11 @@ window['what-is-missing'] = {
       </div>
     `;
     document.body.appendChild(modal);
+    // Add event to back arrow button
+    modal.querySelector('.back-arrow-button').onclick = function() {
+      modal.remove();
+      document.getElementById('gamesContainer').style.display = 'block';
+    };
   },
   renderGame() {
     // בחר 3-4 אובייקטים שונים

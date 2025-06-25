@@ -160,6 +160,7 @@ window['shape-match'] = {
         } else {
           this.playSound('wrong');
           document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+          document.getElementById('shape-match-feedback').style.color = '#e53935';
         }
       };
 
@@ -248,6 +249,7 @@ window['shape-match'] = {
           } else {
             window['shape-match'].playSound('wrong');
             document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+            document.getElementById('shape-match-feedback').style.color = '#e53935';
           }
         }
       }, {passive:false});

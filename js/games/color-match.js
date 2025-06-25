@@ -133,6 +133,7 @@ window['color-match'] = {
           target.innerHTML = svg;
           target.classList.add('filled');
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
+          document.getElementById('color-match-feedback').style.color = '#43a047';
           const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
           if (dragEl) dragEl.remove();
           if (document.querySelectorAll('.color-target.filled').length === targets.length) {
@@ -226,14 +227,15 @@ window['color-match'] = {
               .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='2'");
             targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
+            document.getElementById('color-match-feedback').style.color = '#43a047';
             drag.remove();
             if (document.querySelectorAll('.color-target.filled').length === targets.length) {
-              window['color-match'].nextStageButton();
+              this.nextStageButton();
             }
           } else {
-            window['color-match'].playSound('error');
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
             document.getElementById('color-match-feedback').style.color = '#e53935';
+            this.playSound('error');
           }
         }
       }, {passive:false});

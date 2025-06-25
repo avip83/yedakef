@@ -27,6 +27,9 @@ class KidsApp {
     }
 
     showAgeSelector() {
+        // סגור כל מודאל פתוח
+        document.querySelectorAll('.game-modal').forEach(modal => modal.remove());
+        
         this.currentAge = null;
         this.currentCategory = null;
         this.currentGame = null;
@@ -43,13 +46,25 @@ class KidsApp {
         const ages = DataManager.getAges();
         
         ageButtonsContainer.innerHTML = ages.map(age => `
-            <button class="age-button" data-age="${age.id}" onclick="app.selectAge('${age.id}')">
+            <button class="age-button" data-age="${age.id}" tabindex="0" aria-label="בחר גיל ${age.name}">
                 <div class="age-button-content">
                     <div class="age-number">${age.id}</div>
                     <div class="age-description">${age.description}</div>
                 </div>
             </button>
         `).join('');
+        
+        // תמיכה ב־onclick וב־touchstart
+        Array.from(ageButtonsContainer.querySelectorAll('.age-button')).forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                app.selectAge(btn.getAttribute('data-age'));
+            };
+            btn.ontouchstart = (e) => {
+                e.preventDefault();
+                app.selectAge(btn.getAttribute('data-age'));
+            };
+        });
     }
 
     selectAge(ageId) {
@@ -78,7 +93,7 @@ class KidsApp {
             // רק color-match, shape-match ו-animal-sounds עם וי, כל השאר מנעול
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
-                <div class="game-card" onclick="app.selectGame('${ageId}', null, '${game.id}')">
+                <div class="game-card" data-age="${ageId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     <div class="game-status-icon" title="${isReady ? 'המשחק מוכן' : 'בקרוב'}">
                         ${isReady ? '<span style=\'color:#2ecc40;font-size:2em;font-weight:bold\'>✔️</span>' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
                     </div>
@@ -88,6 +103,23 @@ class KidsApp {
                 </div>
             `;
         }).join('');
+        
+        // תמיכה ב־onclick וב־touchstart למשחקים
+        Array.from(gamesGrid.querySelectorAll('.game-card')).forEach(card => {
+            card.onclick = (e) => {
+                e.preventDefault();
+                const ageId = card.getAttribute('data-age');
+                const gameId = card.getAttribute('data-game');
+                app.selectGame(ageId, null, gameId);
+            };
+            card.ontouchstart = (e) => {
+                e.preventDefault();
+                const ageId = card.getAttribute('data-age');
+                const gameId = card.getAttribute('data-game');
+                app.selectGame(ageId, null, gameId);
+            };
+        });
+        
         // הפעל את כפתור החזרה
         document.getElementById('backToCategoriesButton').onclick = () => this.showAgeSelector();
     }
@@ -119,7 +151,7 @@ class KidsApp {
             // רק color-match, shape-match ו-animal-sounds עם וי, כל השאר מנעול
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
-                <div class="game-card" onclick="app.selectGame('${ageId}', '${categoryId}', '${game.id}')">
+                <div class="game-card" data-age="${ageId}" data-category="${categoryId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     <div class="game-status-icon" title="${isReady ? 'המשחק מוכן' : 'בקרוב'}">
                         ${isReady ? '<span style=\'color:#2ecc40;font-size:2em;font-weight:bold\'>✔️</span>' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
                     </div>
@@ -132,6 +164,24 @@ class KidsApp {
                 </div>
             `;
         }).join('');
+        
+        // תמיכה ב־onclick וב־touchstart למשחקים
+        Array.from(gamesGrid.querySelectorAll('.game-card')).forEach(card => {
+            card.onclick = (e) => {
+                e.preventDefault();
+                const ageId = card.getAttribute('data-age');
+                const categoryId = card.getAttribute('data-category');
+                const gameId = card.getAttribute('data-game');
+                app.selectGame(ageId, categoryId, gameId);
+            };
+            card.ontouchstart = (e) => {
+                e.preventDefault();
+                const ageId = card.getAttribute('data-age');
+                const categoryId = card.getAttribute('data-category');
+                const gameId = card.getAttribute('data-game');
+                app.selectGame(ageId, categoryId, gameId);
+            };
+        });
     }
 
     selectGame(ageId, categoryId, gameId) {

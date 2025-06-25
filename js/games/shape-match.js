@@ -46,6 +46,8 @@ window['shape-match'] = {
     window.scrollTo({top: 0, behavior: "auto"});
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.className = 'game-modal';
     modal.innerHTML = `

@@ -41,6 +41,8 @@ window['color-match'] = {
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
     document.querySelectorAll('.game-modal').forEach(m => m.remove());
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.className = 'game-modal';
     // חישוב התקדמות
@@ -71,6 +73,8 @@ window['color-match'] = {
   },
   closeModal() {
     document.querySelectorAll('.game-modal').forEach(m => m.remove());
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
   },
   shuffle(arr) {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);

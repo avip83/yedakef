@@ -26,7 +26,7 @@ window['sound-match'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
-        <button class="close-button" onclick="this.parentElement.parentElement.remove()">×</button>
+        <button class="close-button" onclick="this.parentElement.parentElement.remove()" style="position:fixed;top:12px;right:12px;z-index:2000;">×</button>
         <div class="game-modal-header">
           <h2>צלילים ראשונים</h2>
         </div>

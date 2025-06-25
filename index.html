@@ -60,8 +60,22 @@
         updateGlobalVolumeBtn();
       };
       updateGlobalVolumeBtn();
+      function updateBackToCategoriesTopBtn() {
+        var btn = document.getElementById('backToCategoriesTopBtn');
+        var ageSelector = document.getElementById('ageSelector');
+        if (!btn || !ageSelector) return;
+        if (ageSelector.style.display === '' || ageSelector.style.display === 'block') {
+          btn.style.display = 'none';
+        } else {
+          btn.style.display = '';
+        }
+      }
+      // קריאה ראשונית
+      updateBackToCategoriesTopBtn();
+      // קריאה בכל שינוי עמוד (מומלץ להוסיף קריאות גם בקוד JS במעברים)
       document.getElementById('backToCategoriesTopBtn').onclick = function() {
         document.getElementById('backToCategoriesButton').click();
+        setTimeout(updateBackToCategoriesTopBtn, 100);
       };
     </script>
     <div class="container">

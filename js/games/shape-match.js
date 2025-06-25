@@ -2,6 +2,7 @@ window['shape-match'] = {
   stage: 0,
   totalStages: 20,
   sounds: {},
+  muted: false,
   allShapes: [],
   currentShapes: [],
 
@@ -28,9 +29,11 @@ window['shape-match'] = {
       drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3'),
       click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
     };
+    for (const k in this.sounds) this.sounds[k].volume = 1;
   },
 
   playSound(type) {
+    if (this.muted) return;
     if (this.sounds[type]) {
       try {
         this.sounds[type].currentTime = 0;
@@ -47,6 +50,12 @@ window['shape-match'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
+        <button class="volume-button${this.muted ? ' muted' : ''}" id="shape-match-volume" title="הפעל/השתק צלילים" onclick="window['shape-match'].toggleMute()">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+            <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+          </svg>
+        </button>
         <div class="game-modal-header">
           <h2>התאמת צורות</h2>
           <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
@@ -269,5 +278,14 @@ window['shape-match'] = {
         document.querySelector('.game-modal-body').innerHTML = '<h3 style="font-size:2rem; color:#43a047;">סיימת את כל השלבים! כל הכבוד!</h3>';
       }
     };
+  },
+
+  toggleMute() {
+    this.muted = !this.muted;
+    const btn = document.getElementById('shape-match-volume');
+    if (btn) {
+      if (this.muted) btn.classList.add('muted');
+      else btn.classList.remove('muted');
+    }
   }
 }; 

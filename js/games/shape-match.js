@@ -91,10 +91,17 @@ window['shape-match'] = {
     board.style.background = '#fffbe9';
     board.style.borderRadius = '24px';
     board.style.boxShadow = '0 8px 32px #0002';
-    board.style.padding = '32px 0 24px 0';
-    // מטרות - שורה עליונה
+    board.style.padding = '32px 24px';
+    board.style.display = 'flex';
+    board.style.flexDirection = 'row';
+    board.style.justifyContent = 'space-between';
+    board.style.alignItems = 'center';
+    board.style.gap = '32px';
+    
+    // מטרות - טור שמאל
     const targetsContainer = document.createElement('div');
     targetsContainer.style.display = 'flex';
+    targetsContainer.style.flexDirection = 'column';
     targetsContainer.style.justifyContent = 'center';
     targetsContainer.style.alignItems = 'center';
     targetsContainer.style.gap = '18px';
@@ -151,10 +158,11 @@ window['shape-match'] = {
       };
       targetsContainer.appendChild(target);
     });
-    // גרירות - שורה תחתונה
+    // גרירות - טור ימין
     const dragsContainer = document.createElement('div');
     dragsContainer.id = 'shape-match-drags';
     dragsContainer.style.display = 'flex';
+    dragsContainer.style.flexDirection = 'column';
     dragsContainer.style.justifyContent = 'center';
     dragsContainer.style.alignItems = 'center';
     dragsContainer.style.gap = '18px';

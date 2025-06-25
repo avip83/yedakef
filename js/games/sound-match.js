@@ -50,6 +50,7 @@ window['sound-match'] = {
     // הפעלת צליל (טקסט)
     const playBtn = document.getElementById('play-sound-btn');
     playBtn.onclick = () => {
+      if (window.__globalMute) return;
       playBtn.textContent = `🔊 ${correct.sound}`;
       setTimeout(() => { playBtn.textContent = '🔊 נגן צליל'; }, 1200);
     };

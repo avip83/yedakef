@@ -14,12 +14,11 @@ window['shape-match'] = {
   },
 
   async loadShapes() {
-    // Load all available shape names from the color SVGs directory
-    // We'll assume a fixed list for now, but you can replace with dynamic loading if needed
+    // Only use shapes that exist in both color and black folders
     this.allShapes = [
-      'circle','square','triangle','star','heart','diamond','hexagon','pentagon','octagon','cross','moon','cloud','drop','flower','leaf','arrow','plus','minus','wave','zigzag','parallelogram','trapezoid','crescent','egg','bean','bolt','crown','key','puzzle','spiral','sun','umbrella','fish','cat','dog','bird','turtle','bee','butterfly','lion','elephant','dino','cube','cone','cylinder' // add more as needed
+      '0','1','2','3','4','5','6','7','8','9',
+      'A','I','b','c','d','e','f','g','h','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
     ];
-    // Filter only those that exist in both color and black folders (optional: implement existence check)
   },
 
   loadSounds() {

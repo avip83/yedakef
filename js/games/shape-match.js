@@ -50,9 +50,9 @@ window['shape-match'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
+        <button class="close-button" onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:12px;right:12px;z-index:2000;">×</button>
         <div class="game-modal-header">
           <h2>התאמת צורות</h2>
-          <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
           <div id="shape-stage-bar" style="width:100%;margin-bottom:8px;"></div>

@@ -31,32 +31,21 @@ window['count-objects'] = {
     document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.className = 'game-modal';
-    // עדכון בר שלבים
-    const stageNum = this.stage + 1;
-    const total = this.totalStages;
-    const percent = Math.round((stageNum / total) * 100);
-    let progressBar = document.getElementById('count-objects-progress-bar');
-    if (!progressBar) {
-      const progressDiv = document.createElement('div');
-      progressDiv.style.width = '100%';
-      progressDiv.style.display = 'flex';
-      progressDiv.style.flexDirection = 'column';
-      progressDiv.style.alignItems = 'center';
-      progressDiv.style.marginBottom = '8px';
-      progressDiv.innerHTML = `
-        <div id="count-objects-progress-label" style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
-        <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
-          <div id="count-objects-progress-bar" style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
+    modal.innerHTML = `
+      <div class="game-modal-content">
+        <div class="game-modal-header">
+          <h2>ספור חפצים</h2>
         </div>
-      `;
-      const modalContent = document.querySelector('.game-modal-content');
-      if (modalContent) {
-        modalContent.insertBefore(progressDiv, modalContent.querySelector('.game-modal-body'));
-      }
-    } else {
-      document.getElementById('count-objects-progress-label').textContent = `שלב ${stageNum} מתוך ${total}`;
-      progressBar.style.width = percent + '%';
-    }
+        <div id="count-objects-progress-bar-container"></div>
+        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
+          <p>כמה חפצים יש בתמונה?</p>
+          <div id="count-objects-board" style="display: flex; gap: 16px; margin: 24px 0; flex-wrap: wrap;"></div>
+          <div id="count-objects-buttons" style="display: flex; gap: 24px; margin: 16px 0;"></div>
+          <div id="count-objects-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; margin-bottom: 8px; font-weight: 700;"></div>
+          <button id="count-next-stage" style="display:none; margin-top:8px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
+        </div>
+      </div>
+    `;
     document.body.appendChild(modal);
   },
   toggleMute() {
@@ -69,30 +58,31 @@ window['count-objects'] = {
   },
   renderGame() {
     // עדכון בר שלבים
-    const stageNum = this.stage + 1;
-    const total = this.totalStages;
-    const percent = Math.round((stageNum / total) * 100);
-    let progressBar = document.getElementById('count-objects-progress-bar');
-    if (!progressBar) {
-      const progressDiv = document.createElement('div');
-      progressDiv.style.width = '100%';
-      progressDiv.style.display = 'flex';
-      progressDiv.style.flexDirection = 'column';
-      progressDiv.style.alignItems = 'center';
-      progressDiv.style.marginBottom = '8px';
-      progressDiv.innerHTML = `
-        <div id="count-objects-progress-label" style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
-        <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
-          <div id="count-objects-progress-bar" style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
-        </div>
-      `;
-      const modalContent = document.querySelector('.game-modal-content');
-      if (modalContent) {
-        modalContent.insertBefore(progressDiv, modalContent.querySelector('.game-modal-body'));
+    const modalContent = document.querySelector('.game-modal-content');
+    if (modalContent) {
+      const stageNum = this.stage + 1;
+      const total = this.totalStages;
+      const percent = Math.round((stageNum / total) * 100);
+      let progressBar = document.getElementById('count-objects-progress-bar');
+      if (!progressBar) {
+        const progressDiv = document.createElement('div');
+        progressDiv.style.width = '100%';
+        progressDiv.style.display = 'flex';
+        progressDiv.style.flexDirection = 'column';
+        progressDiv.style.alignItems = 'center';
+        progressDiv.style.marginBottom = '8px';
+        progressDiv.innerHTML = `
+          <div id="count-objects-progress-label" style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
+          <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
+            <div id="count-objects-progress-bar" style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
+          </div>
+        `;
+        const container = document.getElementById('count-objects-progress-bar-container');
+        if (container) container.appendChild(progressDiv);
+      } else {
+        document.getElementById('count-objects-progress-label').textContent = `שלב ${stageNum} מתוך ${total}`;
+        progressBar.style.width = percent + '%';
       }
-    } else {
-      document.getElementById('count-objects-progress-label').textContent = `שלב ${stageNum} מתוך ${total}`;
-      progressBar.style.width = percent + '%';
     }
     // בחר מספר אובייקטים (1-5) ושלב אקראי
     const num = 1 + Math.floor(Math.random() * 5);

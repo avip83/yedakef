@@ -41,11 +41,11 @@ window['what-is-missing'] = {
         </div>
         <div id="missing-progress-bar-container"></div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
-          <p>איזה פרי חסר בתמונה?</p>
-          <div id="missing-board" style="display: flex; justify-content: center; align-items: center; margin: 24px 0;"></div>
-          <div id="missing-options" style="display: flex; flex-direction: column; gap: 16px; margin: 16px 0; align-items: center;"></div>
-          <div id="missing-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700; margin-bottom: 8px;"></div>
-          <button id="missing-next-stage" style="display:none; margin-top:8px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
+          <p style="margin-bottom: 10px; margin-top: 0; font-size: 1.25em; color: #ff9800;">איזה פרי חסר בתמונה?</p>
+          <div id="missing-board" style="display: flex; justify-content: center; align-items: center; margin: 8px 0 8px 0;"></div>
+          <div id="missing-options" style="display: flex; flex-direction: column; gap: 10px; margin: 0 0 10px 0; align-items: center;"></div>
+          <div id="missing-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700; margin-bottom: 6px;"></div>
+          <button id="missing-next-stage" style="display:none; margin-top:6px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
         </div>
       </div>
     `;
@@ -167,16 +167,6 @@ window['what-is-missing'] = {
     optsDiv.appendChild(row2);
     document.getElementById('missing-feedback').textContent = '';
     document.getElementById('missing-next-stage').style.display = 'none';
-    // התאמות מובייל: הקטן ריווחים, גובה, פונט
-    if (window.innerWidth < 600) {
-      bigBox.style.width = '98vw';
-      bigBox.style.height = '120px';
-      bigBox.style.marginBottom = '8px';
-      row1.style.gap = '8px';
-      row2.style.gap = '8px';
-      document.querySelector('.game-modal-body p').style.fontSize = '1.1rem';
-      document.querySelector('.game-modal-body p').style.marginBottom = '6px';
-    }
   },
   nextStageButton() {
     const btn = document.getElementById('missing-next-stage');

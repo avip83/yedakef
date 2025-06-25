@@ -149,7 +149,7 @@ window['color-match'] = {
         const shape = e.dataTransfer.getData('shape');
         const color = e.dataTransfer.getData('color');
         if (shape === pair.shape.name && color === pair.color) {
-          window['color-match'].sounds.success.play();
+          this.playSound('success');
           target.style.background = pair.color;
           target.style.border = '4px solid #fff';
           let svg = pair.shape.svg
@@ -165,7 +165,7 @@ window['color-match'] = {
             this.nextStageButton();
           }
         } else {
-          window['color-match'].sounds.error.play();
+          this.playSound('error');
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
         }
       };
@@ -198,7 +198,7 @@ window['color-match'] = {
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
-        window['color-match'].sounds.drag.play();
+        this.playSound('drag');
         e.dataTransfer.setData('shape', pair.shape.name);
         e.dataTransfer.setData('color', pair.color);
       };
@@ -206,7 +206,7 @@ window['color-match'] = {
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
       drag.addEventListener('touchstart', function(ev) {
-        window['color-match'].sounds.drag.play();
+        window['color-match'].playSound('drag');
         ev.preventDefault();
         const rect = drag.getBoundingClientRect();
         touchOffset.x = ev.touches[0].clientX - rect.left;
@@ -241,7 +241,7 @@ window['color-match'] = {
           const shape = drag.dataset.shape;
           const color = drag.dataset.color;
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
-            window['color-match'].sounds.success.play();
+            window['color-match'].playSound('success');
             targetDiv.classList.add('filled');
             targetDiv.style.background = color;
             targetDiv.style.border = '4px solid #fff';
@@ -256,7 +256,7 @@ window['color-match'] = {
               window['color-match'].nextStageButton();
             }
           } else {
-            window['color-match'].sounds.error.play();
+            window['color-match'].playSound('error');
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
           }
         }

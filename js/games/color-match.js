@@ -50,7 +50,7 @@ window['color-match'] = {
     const total = this.totalStages;
     const percent = Math.round((stageNum / total) * 100);
     modal.innerHTML = `
-      <div class="game-modal-content" style="background: #fffbe9; max-width: 520px; width: 96vw; border-radius: 24px; box-shadow: 0 8px 32px #0002; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: visible; box-sizing: border-box; padding: 18px 8px;">
+      <div class="game-modal-content" style="background: #fffbe9; max-width: 520px; width: 96vw; max-height: 100vh; height: auto; border-radius: 24px; box-shadow: 0 8px 32px #0002; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; padding: 18px 8px;">
         <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 8px;">
           <div style="font-size:1.3rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
           <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
@@ -60,12 +60,12 @@ window['color-match'] = {
         <div class="game-modal-header" style="width:100%; display:flex; justify-content: center; align-items:center; margin-bottom: 8px;">
           <h2 style="font-size:2.2rem; font-family: 'Baloo 2', 'Heebo', sans-serif; margin:0; text-align:center;">התאמת צבעים</h2>
         </div>
-        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; width:100%; justify-content: center; overflow: visible; box-sizing:border-box;">
+        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; width:100%; justify-content: center; overflow-x:hidden; box-sizing:border-box;">
           <p style="font-size:1.2rem; font-weight:700; margin: 0 0 10px 0; text-align:center;">גרור כל צורה צבעונית למקום המתאים</p>
           <div id="color-match-board" style="display: flex; gap: 3vw; margin: 10px 0 10px 0; justify-content: center; flex-wrap:wrap; width:100%; overflow-x:hidden; box-sizing:border-box;"></div>
           <div id="color-match-drags" style="display: flex; gap: 2vw; margin: 10px 0 10px 0; justify-content: center; flex-wrap:wrap; width:100%; overflow-x:hidden; box-sizing:border-box;"></div>
           <div id="color-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 28px; margin-bottom: 6px; font-weight:700; text-align:center;"></div>
-          <button id="color-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
+          <button id="color-next-stage" style="display:none; margin-top:12px; padding:14px 28px; font-size:1.1rem; border-radius:16px; border:none; background:#43a047; color:#fff; cursor:pointer; font-weight:900; box-shadow:0 2px 8px #0001;">לשלב הבא</button>
         </div>
       </div>
     `;
@@ -80,6 +80,8 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
+    // ודא שכפתור 'לשלב הבא' מוסתר רק בתחילת שלב חדש
+    document.getElementById('color-next-stage').style.display = 'none';
     // הגדרת צורות - SVG גדול, ממורכז, דומיננטי
     const shapes = [
       {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
@@ -243,7 +245,6 @@ window['color-match'] = {
     });
     
     document.getElementById('color-match-feedback').textContent = '';
-    document.getElementById('color-next-stage').style.display = 'none';
   },
   nextStageButton() {
     const btn = document.getElementById('color-next-stage');

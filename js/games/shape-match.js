@@ -111,20 +111,61 @@ window['shape-match'] = {
       target.dataset.shape = shape;
       // טען SVG שחור
       fetch(`shapes/black/${shape}.svg`).then(r => r.text()).then(svg => {
+        // Add pointer-events:none to all SVG elements
+        svg = svg.replace('<svg ', "<svg style='pointer-events:none;' ");
+        svg = svg.replace(/<path /g, "<path style='pointer-events:none;' ");
+        svg = svg.replace(/<g /g, "<g style='pointer-events:none;' ");
         target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
+        // Attach drag events to inner SVG container as well
+        const inner = target.firstChild;
+        if (inner) {
+          inner.ondragover = e => { e.preventDefault(); console.log('ondragover (inner)', shape); target.style.border = '3px solid #1976d2'; };
+          inner.ondragleave = e => { target.style.border = '3px dashed #bbb'; };
+          inner.ondrop = e => {
+            e.preventDefault();
+            console.log('ondrop (inner)', shape);
+            const shapeId = e.dataTransfer.getData('shape');
+            if (shapeId === shape && !target.classList.contains('filled')) {
+              window['shape-match'].playSound('success');
+              target.classList.add('filled');
+              fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+                svg = svg.replace('<svg ', "<svg style='pointer-events:none;' ");
+                svg = svg.replace(/<path /g, "<path style='pointer-events:none;' ");
+                svg = svg.replace(/<g /g, "<g style='pointer-events:none;' ");
+                target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
+              }).catch(() => {
+                target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+              });
+              document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+              const dragEl = document.querySelector(`.shape-drag[data-shape='${shape}']`);
+              if (dragEl) dragEl.remove();
+              if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
+                window['shape-match'].nextStageButton();
+              }
+            } else {
+              window['shape-match'].playSound('wrong');
+              document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+            }
+            target.style.border = '3px dashed #bbb';
+          };
+        }
       }).catch(() => {
         target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
       // Enable drop on the outer div
-      target.ondragover = e => { e.preventDefault(); };
+      target.ondragover = e => { e.preventDefault(); console.log('ondragover (target)', shape); target.style.border = '3px solid #1976d2'; };
+      target.ondragleave = e => { target.style.border = '3px dashed #bbb'; };
       target.ondrop = e => {
         e.preventDefault();
+        console.log('ondrop (target)', shape);
         const shapeId = e.dataTransfer.getData('shape');
         if (shapeId === shape && !target.classList.contains('filled')) {
           this.playSound('success');
           target.classList.add('filled');
-          // טען SVG צבעוני
           fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+            svg = svg.replace('<svg ', "<svg style='pointer-events:none;' ");
+            svg = svg.replace(/<path /g, "<path style='pointer-events:none;' ");
+            svg = svg.replace(/<g /g, "<g style='pointer-events:none;' ");
             target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
           }).catch(() => {
             target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
@@ -139,6 +180,7 @@ window['shape-match'] = {
           this.playSound('wrong');
           document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
         }
+        target.style.border = '3px dashed #bbb';
       };
       targetsContainer.appendChild(target);
     });
@@ -167,77 +209,143 @@ window['shape-match'] = {
       drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)';
       drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
       drag.style.opacity = '1';
-      drag.draggable = true;
+      drag.style.userSelect = 'none';
+      drag.style.webkitUserSelect = 'none';
+      drag.style.touchAction = 'none';
       drag.dataset.shape = shape;
+      
       // טען SVG צבעוני
       fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
-        drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+        drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
       }).catch(() => {
         drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // אפקט hover/touch
-      drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
-      drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
-      drag.ondragstart = e => {
+      
+      // Unified drag system for both desktop and mobile
+      let isDragging = false;
+      let dragGhost = null;
+      let startPos = {x: 0, y: 0};
+      let originalPos = {x: 0, y: 0};
+      
+      const startDrag = (clientX, clientY) => {
         this.playSound('drag');
-        e.dataTransfer.setData('shape', shape);
-      };
-      // Touch events
-      let touchGhost = null;
-      let touchOffset = {x:0, y:0};
-      drag.addEventListener('touchstart', function(ev) {
-        window['shape-match'].playSound('drag');
-        ev.preventDefault();
+        isDragging = true;
         const rect = drag.getBoundingClientRect();
-        touchOffset.x = ev.touches[0].clientX - rect.left;
-        touchOffset.y = ev.touches[0].clientY - rect.top;
-        touchGhost = drag.cloneNode(true);
-        touchGhost.style.position = 'fixed';
-        touchGhost.style.left = rect.left + 'px';
-        touchGhost.style.top = rect.top + 'px';
-        touchGhost.style.width = rect.width + 'px';
-        touchGhost.style.height = rect.height + 'px';
-        touchGhost.style.opacity = '0.97';
-        touchGhost.style.zIndex = 9999;
-        touchGhost.style.pointerEvents = 'none';
-        touchGhost.style.transform = 'scale(1.10)';
-        document.body.appendChild(touchGhost);
-      }, {passive:false});
-      drag.addEventListener('touchmove', function(ev) {
-        if (!touchGhost) return;
-        ev.preventDefault();
-        touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
-        touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
-      }, {passive:false});
-      drag.addEventListener('touchend', function(ev) {
-        if (!touchGhost) return;
-        const dropX = ev.changedTouches[0].clientX;
-        const dropY = ev.changedTouches[0].clientY;
-        document.body.removeChild(touchGhost);
-        touchGhost = null;
-        const elem = document.elementFromPoint(dropX, dropY);
+        startPos = {x: clientX, y: clientY};
+        originalPos = {x: rect.left, y: rect.top};
+        
+        // Create ghost element
+        dragGhost = drag.cloneNode(true);
+        dragGhost.style.position = 'fixed';
+        dragGhost.style.left = rect.left + 'px';
+        dragGhost.style.top = rect.top + 'px';
+        dragGhost.style.width = rect.width + 'px';
+        dragGhost.style.height = rect.height + 'px';
+        dragGhost.style.opacity = '0.8';
+        dragGhost.style.zIndex = '9999';
+        dragGhost.style.pointerEvents = 'none';
+        dragGhost.style.transform = 'scale(1.1)';
+        dragGhost.style.transition = 'none';
+        document.body.appendChild(dragGhost);
+        
+        // Hide original
+        drag.style.opacity = '0.3';
+      };
+      
+      const updateDrag = (clientX, clientY) => {
+        if (!isDragging || !dragGhost) return;
+        const deltaX = clientX - startPos.x;
+        const deltaY = clientY - startPos.y;
+        dragGhost.style.left = (originalPos.x + deltaX) + 'px';
+        dragGhost.style.top = (originalPos.y + deltaY) + 'px';
+      };
+      
+      const endDrag = (clientX, clientY) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Remove ghost
+        if (dragGhost) {
+          document.body.removeChild(dragGhost);
+          dragGhost = null;
+        }
+        
+        // Restore original
+        drag.style.opacity = '1';
+        
+        // Find target at drop position
+        const elem = document.elementFromPoint(clientX, clientY);
         const targetDiv = elem && elem.closest('.shape-target');
+        
         if (targetDiv && !targetDiv.classList.contains('filled')) {
           const shapeId = drag.dataset.shape;
           if (shapeId === targetDiv.dataset.shape) {
-            window['shape-match'].playSound('success');
+            this.playSound('success');
             targetDiv.classList.add('filled');
             fetch(`shapes/color/${shapeId}.svg`).then(r => r.text()).then(svg => {
-              targetDiv.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+              svg = svg.replace('<svg ', "<svg style='pointer-events:none;' ");
+              svg = svg.replace(/<path /g, "<path style='pointer-events:none;' ");
+              svg = svg.replace(/<g /g, "<g style='pointer-events:none;' ");
+              targetDiv.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
             }).catch(() => {
               targetDiv.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
             });
             document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();
             if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
-              window['shape-match'].nextStageButton();
+              this.nextStageButton();
             }
           } else {
-            window['shape-match'].playSound('wrong');
+            this.playSound('wrong');
             document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
           }
         }
-      }, {passive:false});
+      };
+      
+      // Mouse events (desktop)
+      drag.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startDrag(e.clientX, e.clientY);
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        updateDrag(e.clientX, e.clientY);
+      });
+      
+      document.addEventListener('mouseup', (e) => {
+        endDrag(e.clientX, e.clientY);
+      });
+      
+      // Touch events (mobile)
+      drag.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }, {passive: false});
+      
+      document.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        updateDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }, {passive: false});
+      
+      document.addEventListener('touchend', (e) => {
+        endDrag(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      });
+      
+      // Visual feedback
+      drag.addEventListener('pointerenter', () => {
+        if (!isDragging) {
+          drag.style.transform = 'scale(1.05)';
+          drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)';
+        }
+      });
+      
+      drag.addEventListener('pointerleave', () => {
+        if (!isDragging) {
+          drag.style.transform = '';
+          drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)';
+        }
+      });
+      
       dragsContainer.appendChild(drag);
     });
     board.appendChild(targetsContainer);

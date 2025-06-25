@@ -320,7 +320,7 @@ body {
         padding: 16px 4px;
     }
     .age-button .age-number {
-        font-size: 1.2rem;
+        font-size: 2rem !important;
     }
     .close-button {
         top: 24px !important;

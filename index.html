@@ -77,6 +77,8 @@
         var modal = document.querySelector('.game-modal');
         if (modal) {
           modal.remove();
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
           if (window.app && typeof app.showCategories === 'function' && app.currentAge) {
             app.showCategories(app.currentAge);
           }

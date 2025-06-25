@@ -74,7 +74,15 @@
       updateBackToCategoriesTopBtn();
       // קריאה בכל שינוי עמוד (מומלץ להוסיף קריאות גם בקוד JS במעברים)
       document.getElementById('backToCategoriesTopBtn').onclick = function() {
-        document.getElementById('backToCategoriesButton').click();
+        var modal = document.querySelector('.game-modal');
+        if (modal) {
+          modal.remove();
+          if (window.app && typeof app.showCategories === 'function' && app.currentAge) {
+            app.showCategories(app.currentAge);
+          }
+        } else {
+          document.getElementById('backToCategoriesButton').click();
+        }
         setTimeout(updateBackToCategoriesTopBtn, 100);
       };
     </script>

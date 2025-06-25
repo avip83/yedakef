@@ -114,6 +114,7 @@ window['shape-match'] = {
         progressBar.style.width = percent + '%';
       }
     }
+    
     // בחר 4–6 צורות רנדומליות
     const allShapes = [...this.shapes];
     const stageShapes = [];
@@ -126,19 +127,15 @@ window['shape-match'] = {
         usedIds.add(shape.id);
       }
     }
+    
     // ערבוב סדר עצמאי למטרות ולגרירות
     const targets = stageShapes.slice().sort(() => Math.random() - 0.5);
     const drags = stageShapes.slice().sort(() => Math.random() - 0.5);
+    
     const board = document.getElementById('shape-match-board');
     board.innerHTML = '';
-    // מטרות (צללים)
-    const targetsDiv = document.createElement('div');
-    targetsDiv.style.display = 'grid';
-    targetsDiv.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    targetsDiv.style.gap = '18px';
-    targetsDiv.style.alignItems = 'center';
-    targetsDiv.style.justifyItems = 'center';
-    if (targets.length > 4) targetsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    
+    // מטרות (צללים) - שורה עליונה
     targets.forEach((s, i) => {
       const target = document.createElement('div');
       target.className = 'shape-target';
@@ -146,13 +143,16 @@ window['shape-match'] = {
       target.style.border = '3px dashed #bbb';
       target.style.width = '80px';
       target.style.height = '80px';
+      target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 10px';
+      target.style.margin = '0 12px';
+      target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
       target.style.boxShadow = '0 2px 8px #0001';
       target.dataset.shape = s.id;
+      
       // טען SVG שחור outline בלבד
       fetch(`shapes/black/${s.id}.svg`).then(r => r.text()).then(svg => {
         // הוסף fill/stroke ל-path/g/svg אם חסר
@@ -176,12 +176,14 @@ window['shape-match'] = {
       }).catch(() => {
         target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
+      
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
         const shape = e.dataTransfer.getData('shape');
         if (shape === s.id && !target.classList.contains('filled')) {
           target.classList.add('filled');
-          target.style.opacity = '1';
+          target.style.background = '#fff';
+          target.style.border = '3px solid #43a047';
           // טען SVG צבעוני מלא
           fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
             target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
@@ -202,182 +204,126 @@ window['shape-match'] = {
           document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
         }
       };
-      targetsDiv.appendChild(target);
+      board.appendChild(target);
     });
-    // צורות לגרירה
-    const dragsDiv = document.createElement('div');
-    dragsDiv.style.display = 'grid';
-    dragsDiv.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    dragsDiv.style.gap = '18px';
-    dragsDiv.style.alignItems = 'center';
-    dragsDiv.style.justifyItems = 'center';
-    if (drags.length > 4) dragsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    
+    // צורות לגרירה - שורה תחתונה
+    const dragsContainer = document.createElement('div');
+    dragsContainer.id = 'shape-match-drags';
+    dragsContainer.style.display = 'flex';
+    dragsContainer.style.justifyContent = 'center';
+    dragsContainer.style.alignItems = 'center';
+    dragsContainer.style.flexWrap = 'wrap';
+    dragsContainer.style.gap = '12px';
+    dragsContainer.style.marginTop = '24px';
+    
     drags.forEach((s, i) => {
       const drag = document.createElement('div');
       drag.className = 'shape-drag';
       drag.style.background = '#fff';
       drag.style.width = '80px';
       drag.style.height = '80px';
+      drag.style.borderRadius = '50%';
+      drag.style.margin = '0 12px';
+      drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
       drag.style.justifyContent = 'center';
-      drag.style.margin = '0 10px';
-      drag.style.cursor = 'grab';
-      drag.style.boxShadow = '0 2px 8px #0001';
+      drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)';
+      drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
+      drag.style.opacity = '1';
+      drag.draggable = true;
       drag.dataset.shape = s.id;
+      
       // טען SVG צבעוני לגרירה
       fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
       }).catch(() => {
         drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // --- custom drag logic ---
-      let ghost = null;
-      let offsetX = 0, offsetY = 0;
-      drag.onmousedown = e => {
-        e.preventDefault();
-        drag.style.visibility = 'hidden';
-        ghost = document.createElement('div');
-        ghost.className = 'shape-drag-ghost';
-        ghost.style.position = 'fixed';
-        ghost.style.width = drag.style.width;
-        ghost.style.height = drag.style.height;
-        ghost.style.display = 'flex';
-        ghost.style.alignItems = 'center';
-        ghost.style.justifyContent = 'center';
-        ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = 9999;
-        ghost.style.opacity = '0.97';
-        fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
-          ghost.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
-        });
-        document.body.appendChild(ghost);
-        offsetX = 0;
-        offsetY = 0;
-        window['shape-match'].playSound('click');
-        function moveGhost(ev) {
-          ghost.style.left = (ev.clientX - ghost.offsetWidth/2) + 'px';
-          ghost.style.top = (ev.clientY - ghost.offsetHeight/2) + 'px';
-        }
-        document.addEventListener('mousemove', moveGhost);
-        document.addEventListener('mouseup', function mouseUpHandler(upEvt) {
-          document.removeEventListener('mousemove', moveGhost);
-          document.removeEventListener('mouseup', mouseUpHandler);
-          if (ghost) { ghost.remove(); ghost = null; }
-          let dropped = false;
-          const targets = document.querySelectorAll('.shape-target');
-          targets.forEach(target => {
-            const rect = target.getBoundingClientRect();
-            if (
-              upEvt.clientX >= rect.left && upEvt.clientX <= rect.right &&
-              upEvt.clientY >= rect.top && upEvt.clientY <= rect.bottom
-            ) {
-              if (target.dataset.shape === s.id && !target.classList.contains('filled')) {
-                target.classList.add('filled');
-                target.style.opacity = '1';
-                fetch(`shapes/color/${s.id}.svg`).then(r => r.text()).then(svg => {
-                  target.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
-                }).catch(() => {
-                  target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
-                });
-                window['shape-match'].playSound('success');
-                document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
-                drag.remove();
-                if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
-                  window['shape-match'].nextStageButton();
-                }
-                dropped = true;
-              }
-            }
-          });
-          if (!dropped) {
-            drag.style.visibility = 'visible';
-            window['shape-match'].playSound('wrong');
-            document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
-          }
-        });
+      
+      // אפקט hover/touch
+      drag.onpointerdown = () => { 
+        drag.style.transform = 'scale(1.10)'; 
+        drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; 
       };
-      dragsDiv.appendChild(drag);
-    });
-    board.appendChild(dragsDiv);
-    board.appendChild(targetsDiv);
-    document.getElementById('shape-match-feedback').textContent = '';
-    document.getElementById('shape-next-stage').style.display = 'none';
-
-    // תמיכה בגרירה באצבע (touch events) למובייל - תמיד אחרי יצירת dragsDiv
-    setTimeout(() => {
-      let touchDrag = null;
+      drag.onpointerup = drag.onpointerleave = () => { 
+        drag.style.transform = ''; 
+        drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; 
+      };
+      
+      drag.ondragstart = e => {
+        this.playSound('click');
+        e.dataTransfer.setData('shape', s.id);
+      };
+      
+      // touch לגרירה במובייל - בדיוק כמו במשחק הצבעים
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
-      dragsDiv.addEventListener('touchstart', function(ev) {
-        const target = ev.target.closest('.shape-drag');
-        if (!target) return;
+      drag.addEventListener('touchstart', function(ev) {
+        this.playSound('click');
         ev.preventDefault();
-        touchDrag = target;
-        const rect = target.getBoundingClientRect();
+        const rect = drag.getBoundingClientRect();
         touchOffset.x = ev.touches[0].clientX - rect.left;
         touchOffset.y = ev.touches[0].clientY - rect.top;
-        touchGhost = target.cloneNode(true);
+        touchGhost = drag.cloneNode(true);
         touchGhost.style.position = 'fixed';
         touchGhost.style.left = rect.left + 'px';
         touchGhost.style.top = rect.top + 'px';
         touchGhost.style.width = rect.width + 'px';
         touchGhost.style.height = rect.height + 'px';
-        touchGhost.style.opacity = '0.95';
+        touchGhost.style.opacity = '0.97';
         touchGhost.style.zIndex = 9999;
         touchGhost.style.pointerEvents = 'none';
+        touchGhost.style.transform = 'scale(1.10)';
         document.body.appendChild(touchGhost);
-      }, {passive:false});
-      dragsDiv.addEventListener('touchmove', function(ev) {
+      }.bind(this), {passive:false});
+      
+      drag.addEventListener('touchmove', function(ev) {
         if (!touchGhost) return;
         ev.preventDefault();
         touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
         touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
       }, {passive:false});
-      dragsDiv.addEventListener('touchend', function(ev) {
-        if (!touchGhost || !touchDrag) return;
+      
+      drag.addEventListener('touchend', function(ev) {
+        if (!touchGhost) return;
         const dropX = ev.changedTouches[0].clientX;
         const dropY = ev.changedTouches[0].clientY;
         document.body.removeChild(touchGhost);
         touchGhost = null;
-        // בדוק אם שוחרר על מטרה
         const elem = document.elementFromPoint(dropX, dropY);
         const targetDiv = elem && elem.closest('.shape-target');
         if (targetDiv && !targetDiv.classList.contains('filled')) {
-          const shape = touchDrag.dataset.shape;
+          const shape = drag.dataset.shape;
           if (shape === targetDiv.dataset.shape) {
             targetDiv.classList.add('filled');
-            targetDiv.style.opacity = '1';
+            targetDiv.style.background = '#fff';
+            targetDiv.style.border = '3px solid #43a047';
             fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
-              targetDiv.innerHTML = `<div style=\"width:60px;height:60px;display:flex;align-items:center;justify-content:center;\">${svg}</div>`;
+              targetDiv.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
             }).catch(() => {
               targetDiv.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
             });
-            window['shape-match'].playSound('success');
+            this.playSound('success');
             document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
-            touchDrag.remove();
-            if (document.querySelectorAll('.shape-target.filled').length === document.querySelectorAll('.shape-target').length) {
-              window['shape-match'].nextStageButton();
+            drag.remove();
+            if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
+              this.nextStageButton();
             }
           } else {
-            window['shape-match'].playSound('wrong');
+            this.playSound('wrong');
             document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
           }
         }
-        touchDrag = null;
-      }, {passive:false});
-    }, 0);
-    // ודא שכפתור הסגירה תמיד מוצג
-    setTimeout(() => {
-      const closeBtn = document.querySelector('.close-button');
-      if(closeBtn) {
-        closeBtn.style.display = 'block';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '12px';
-        closeBtn.style.right = '12px';
-        closeBtn.style.zIndex = 1001;
-      }
-    }, 100);
+      }.bind(this), {passive:false});
+      
+      dragsContainer.appendChild(drag);
+    });
+    
+    board.appendChild(dragsContainer);
+    document.getElementById('shape-match-feedback').textContent = '';
+    document.getElementById('shape-next-stage').style.display = 'none';
   },
   nextStageButton() {
     const btn = document.getElementById('shape-next-stage');

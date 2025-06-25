@@ -302,6 +302,46 @@ class KidsApp {
 
             // וידוא שהגלילה חלקה
             document.body.style.webkitOverflowScrolling = 'touch';
+            
+            // מניעת בעיות גלילה במובייל
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            document.addEventListener('touchmove', function() {}, {passive: true});
+            document.addEventListener('touchend', function() {}, {passive: true});
+            
+            // וידוא שאין אלמנטים שמסתירים את הגלילה
+            const style = document.createElement('style');
+            style.textContent = `
+                * {
+                    -webkit-overflow-scrolling: touch !important;
+                }
+                body, html {
+                    overflow-x: hidden !important;
+                    position: relative !important;
+                }
+                .age-button, .game-card, .category-card {
+                    position: relative !important;
+                    z-index: 10 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // תיקון נוסף לגלילה במובייל
+            setTimeout(() => {
+                // וידוא שהדף נטען כראוי
+                document.body.style.height = 'auto';
+                document.body.style.minHeight = '100vh';
+                
+                // מניעת בעיות עם viewport
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                }
+                
+                // וידוא שהגלילה עובדת
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            }, 100);
         }
     }
 }

@@ -167,6 +167,16 @@ window['what-is-missing'] = {
     optsDiv.appendChild(row2);
     document.getElementById('missing-feedback').textContent = '';
     document.getElementById('missing-next-stage').style.display = 'none';
+    // התאמות מובייל: הקטן ריווחים, גובה, פונט
+    if (window.innerWidth < 600) {
+      bigBox.style.width = '98vw';
+      bigBox.style.height = '120px';
+      bigBox.style.marginBottom = '8px';
+      row1.style.gap = '8px';
+      row2.style.gap = '8px';
+      document.querySelector('.game-modal-body p').style.fontSize = '1.1rem';
+      document.querySelector('.game-modal-body p').style.marginBottom = '6px';
+    }
   },
   nextStageButton() {
     const btn = document.getElementById('missing-next-stage');

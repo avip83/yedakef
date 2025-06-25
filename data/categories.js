@@ -4,7 +4,7 @@ const KIDS_DATA = {
         {
             id: "2-3",
             name: "גיל 2-3",
-            description: "משחקים פשוטים וצבעוניים",
+            description: "משחקים פשוטים",
             color: "#ff9a9e"
         },
         {

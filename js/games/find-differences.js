@@ -58,16 +58,20 @@ window['find-differences'] = {
     img.style.display = 'block';
     img.style.position = 'relative';
     board.appendChild(img);
-    // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל)
+    // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל) עם קואורדינטות מדויקות
+    // left: 0 (שמאל קיצון), 1 (ימין קיצון)
+    // צד שמאל: left יחסי ל-0 עד 0.5, צד ימין: left יחסי ל-0.5 עד 1
+    // כל עיגול: [left, top, r] (left/top/radius יחסיים)
+    // ערכים מותאמים לפי התמונה שסיפקת
     const diffs = [
       // פרח
-      [ {left: 0.19, top: 0.36, r: 0.07}, {left: 0.69, top: 0.36, r: 0.07} ],
-      // יד
-      [ {left: 0.32, top: 0.56, r: 0.09}, {left: 0.82, top: 0.56, r: 0.09} ],
+      [ {left: 0.145, top: 0.19, r: 0.07}, {left: 0.645, top: 0.19, r: 0.07} ],
       // עין
-      [ {left: 0.29, top: 0.38, r: 0.055}, {left: 0.79, top: 0.38, r: 0.055} ],
+      [ {left: 0.23, top: 0.32, r: 0.045}, {left: 0.73, top: 0.32, r: 0.045} ],
+      // יד
+      [ {left: 0.32, top: 0.54, r: 0.09}, {left: 0.82, top: 0.54, r: 0.09} ],
       // נעליים
-      [ {left: 0.25, top: 0.82, r: 0.10}, {left: 0.75, top: 0.82, r: 0.10} ]
+      [ {left: 0.25, top: 0.82, r: 0.11}, {left: 0.75, top: 0.82, r: 0.11} ]
     ];
     // שכבת אינטראקציה
     const overlay = document.createElement('div');

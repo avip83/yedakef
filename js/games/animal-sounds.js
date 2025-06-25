@@ -53,19 +53,6 @@ window['animal-sounds'] = {
       </div>
     `;
     document.body.appendChild(modal);
-    setTimeout(() => {
-      const closeBtn = document.querySelector('.close-button');
-      if(closeBtn) {
-        closeBtn.style.display = 'block';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '12px';
-        closeBtn.style.right = '12px';
-        closeBtn.style.zIndex = 1001;
-        closeBtn.style.fontSize = '2.2rem';
-        closeBtn.style.width = '48px';
-        closeBtn.style.height = '48px';
-      }
-    }, 100);
   },
   renderGame() {
     // עדכון בר שלבים בראש המודאל

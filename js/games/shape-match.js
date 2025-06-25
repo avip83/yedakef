@@ -85,30 +85,33 @@ window['shape-match'] = {
     // בחר צורות
     const shapes = this.getShapesForStage(this.stage);
     this.currentShapes = shapes;
-    // מטרות (צלליות)
+    // מטרות (צלליות) וגרירות - שורות זוגיות
     const board = document.getElementById('shape-match-board');
     board.innerHTML = '';
     board.style.background = '#fffbe9';
     board.style.borderRadius = '24px';
     board.style.boxShadow = '0 8px 32px #0002';
-    board.style.padding = '32px 24px';
+    board.style.padding = '32px 12px';
     board.style.display = 'flex';
-    board.style.flexDirection = 'row';
-    board.style.justifyContent = 'space-between';
+    board.style.flexDirection = 'column';
+    board.style.justifyContent = 'center';
     board.style.alignItems = 'center';
-    board.style.gap = '32px';
-    
-    // מטרות - טור שמאל
-    const targetsContainer = document.createElement('div');
-    targetsContainer.style.display = 'flex';
-    targetsContainer.style.flexDirection = 'column';
-    targetsContainer.style.justifyContent = 'center';
-    targetsContainer.style.alignItems = 'center';
-    targetsContainer.style.gap = '18px';
-    shapes.forEach(shape => {
+    board.style.gap = '18px';
+
+    // ערבוב עצמאי לגרירות
+    const drags = shapes.slice().sort(() => Math.random() - 0.5);
+    shapes.forEach((shape, idx) => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.flexDirection = 'row';
+      row.style.justifyContent = 'center';
+      row.style.alignItems = 'center';
+      row.style.gap = '24px';
+      row.style.width = '100%';
+
+      // צל מימין
       const target = document.createElement('div');
       target.className = 'shape-target';
-      // הסר רקע ועיגול
       target.style.background = 'none';
       target.style.border = 'none';
       target.style.width = '76px';
@@ -116,12 +119,11 @@ window['shape-match'] = {
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 8px';
+      target.style.margin = '0';
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
       target.style.boxShadow = 'none';
       target.dataset.shape = shape;
-      // טען SVG שחור
       fetch(`shapes/black/${shape}.svg`).then(r => r.text()).then(svg => {
         svg = svg.replace('<svg ', "<svg style='pointer-events:none;' ");
         svg = svg.replace(/<path /g, "<path style='pointer-events:none;' ");
@@ -130,7 +132,6 @@ window['shape-match'] = {
       }).catch(() => {
         target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // Drag & Drop (desktop)
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
         const shapeId = e.dataTransfer.getData('shape');
@@ -156,27 +157,16 @@ window['shape-match'] = {
           document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
         }
       };
-      targetsContainer.appendChild(target);
-    });
-    // גרירות - טור ימין
-    const dragsContainer = document.createElement('div');
-    dragsContainer.id = 'shape-match-drags';
-    dragsContainer.style.display = 'flex';
-    dragsContainer.style.flexDirection = 'column';
-    dragsContainer.style.justifyContent = 'center';
-    dragsContainer.style.alignItems = 'center';
-    dragsContainer.style.gap = '18px';
-    dragsContainer.style.marginTop = '24px';
-    // ערבוב עצמאי לגרירות
-    const drags = shapes.slice().sort(() => Math.random() - 0.5);
-    drags.forEach(shape => {
+
+      // גרירה משמאל
+      const dragShape = drags[idx];
       const drag = document.createElement('div');
       drag.className = 'shape-drag';
       drag.style.background = '#fff';
       drag.style.width = '76px';
       drag.style.height = '76px';
       drag.style.borderRadius = '50%';
-      drag.style.margin = '0 8px';
+      drag.style.margin = '0';
       drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
@@ -185,19 +175,17 @@ window['shape-match'] = {
       drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
       drag.style.opacity = '1';
       drag.draggable = true;
-      drag.dataset.shape = shape;
-      // טען SVG צבעוני
-      fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+      drag.dataset.shape = dragShape;
+      fetch(`shapes/color/${dragShape}.svg`).then(r => r.text()).then(svg => {
         drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;pointer-events:none;'>${svg}</div>`;
       }).catch(() => {
         drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
       });
-      // אפקט hover/touch
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
         this.playSound('drag');
-        e.dataTransfer.setData('shape', shape);
+        e.dataTransfer.setData('shape', dragShape);
       };
       // touch לגרירה במובייל
       let touchGhost = null;
@@ -258,10 +246,12 @@ window['shape-match'] = {
           }
         }
       }, {passive:false});
-      dragsContainer.appendChild(drag);
+
+      // סדר: קודם הצל, אחר כך הגרירה
+      row.appendChild(target);
+      row.appendChild(drag);
+      board.appendChild(row);
     });
-    board.appendChild(targetsContainer);
-    board.appendChild(dragsContainer);
     document.getElementById('shape-match-feedback').textContent = '';
     document.getElementById('shape-next-stage').style.display = 'none';
   },

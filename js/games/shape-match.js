@@ -87,6 +87,10 @@ window['shape-match'] = {
     // מטרות (צלליות)
     const board = document.getElementById('shape-match-board');
     board.innerHTML = '';
+    board.style.background = '#fffbe9';
+    board.style.borderRadius = '24px';
+    board.style.boxShadow = '0 8px 32px #0002';
+    board.style.padding = '32px 0 24px 0';
     // מטרות - שורה עליונה
     const targetsContainer = document.createElement('div');
     targetsContainer.style.display = 'flex';

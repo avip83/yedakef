@@ -148,7 +148,10 @@ window['shape-match'] = {
           });
           document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
           const dragEl = document.querySelector(`.shape-drag[data-shape='${shape}']`);
-          if (dragEl) dragEl.remove();
+          if (dragEl) {
+            dragEl.style.visibility = 'hidden';
+            dragEl.style.pointerEvents = 'none';
+          }
           if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
             this.nextStageButton();
           }

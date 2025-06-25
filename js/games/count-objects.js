@@ -153,11 +153,16 @@ window['count-objects'] = {
         this.playSound('click');
         if (i === num) {
           document.getElementById('count-objects-feedback').textContent = 'כל הכבוד!';
+          document.getElementById('count-objects-feedback').style.color = '#43a047';
+          btn.style.border = '3px solid #43a047';
           this.playSound('success');
           this.nextStageButton();
         } else {
           document.getElementById('count-objects-feedback').textContent = 'נסה שוב!';
+          document.getElementById('count-objects-feedback').style.color = '#e53935';
+          btn.style.border = '3px solid #e53935';
           this.playSound('wrong');
+          setTimeout(() => { btn.style.border = '2px solid #90caf9'; }, 700);
         }
       };
       btns.appendChild(btn);

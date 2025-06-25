@@ -84,6 +84,7 @@ window['what-is-missing'] = {
           this.nextStageButton();
         } else {
           document.getElementById('missing-feedback').textContent = 'נסה שוב!';
+          document.getElementById('missing-feedback').style.color = '#e53935';
         }
       };
       optsDiv.appendChild(btn);

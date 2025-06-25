@@ -134,11 +134,16 @@ window['animal-sounds'] = {
         if (animal === correct) {
           if (!window.__globalMute) { this.sounds.success.currentTime = 0; this.sounds.success.play(); }
           feedbackText.textContent = 'כל הכבוד!';
+          feedbackText.style.color = '#43a047';
+          btn.style.border = '3px solid #43a047';
           document.getElementById('play-animal-sound').style.display = 'none';
           nextBtn.style.display = 'inline-block';
         } else {
           if (!window.__globalMute) { this.sounds.error.currentTime = 0; this.sounds.error.play(); }
           feedbackText.textContent = 'נסה שוב!';
+          feedbackText.style.color = '#e53935';
+          btn.style.border = '3px solid #e53935';
+          setTimeout(() => { btn.style.border = '2px solid #90caf9'; }, 700);
         }
       };
       board.appendChild(btn);

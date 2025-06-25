@@ -52,6 +52,7 @@ window['letter-recognition'] = {
           this.nextStageButton();
         } else {
           document.getElementById('letter-feedback').textContent = 'נסה שוב!';
+          document.getElementById('letter-feedback').style.color = '#e53935';
         }
       };
       optionsDiv.appendChild(btn);

@@ -141,6 +141,7 @@ window['color-match'] = {
         } else {
           this.playSound('error');
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
+          document.getElementById('color-match-feedback').style.color = '#e53935';
         }
       };
       board.appendChild(target);
@@ -232,6 +233,7 @@ window['color-match'] = {
           } else {
             window['color-match'].playSound('error');
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
+            document.getElementById('color-match-feedback').style.color = '#e53935';
           }
         }
       }, {passive:false});

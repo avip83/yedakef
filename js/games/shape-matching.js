@@ -63,6 +63,7 @@ window['shape-matching'] = {
           this.nextStageButton();
         } else {
           document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
+          document.getElementById('shape-match-feedback').style.color = '#e53935';
         }
       };
       board.appendChild(target);

@@ -53,6 +53,7 @@ window['find-differences'] = {
           this.nextStageButton();
         } else {
           document.getElementById('diff-feedback').textContent = 'נסה שוב!';
+          document.getElementById('diff-feedback').style.color = '#e53935';
         }
       };
       board.appendChild(btn);

@@ -59,6 +59,7 @@ window['simple-puzzle'] = {
           this.nextStageButton();
         } else {
           document.getElementById('puzzle-feedback').textContent = 'נסה שוב!';
+          document.getElementById('puzzle-feedback').style.color = '#e53935';
         }
       };
       board.appendChild(target);

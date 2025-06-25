@@ -96,18 +96,18 @@ window['shape-match'] = {
     shapes.forEach(shape => {
       const target = document.createElement('div');
       target.className = 'shape-target';
-      target.style.background = '#e3f2fd';
-      target.style.border = '3px dashed #bbb';
+      // הסר רקע ועיגול
+      target.style.background = 'none';
+      target.style.border = 'none';
       target.style.width = '76px';
       target.style.height = '76px';
-      target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
       target.style.margin = '0 8px';
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
-      target.style.boxShadow = '0 2px 8px #0001';
+      target.style.boxShadow = 'none';
       target.dataset.shape = shape;
       // טען SVG שחור
       fetch(`shapes/black/${shape}.svg`).then(r => r.text()).then(svg => {

@@ -84,8 +84,7 @@ window['color-match'] = {
     const shapes = [
       {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
       {name: 'square', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><rect x='10' y='10' width='40' height='40' rx='8' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'star', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 36,28 56,28 40,40 46,58 30,46 14,58 20,40 4,28 24,28' fill='white' stroke='white' stroke-width='2'/></svg>`}
+      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`}
     ];
     // בחר צבעים אקראיים מתוך כל הצבעים הזמינים
     const colorObjs = this.colors.slice().sort(() => Math.random() - 0.5).slice(0, shapes.length);

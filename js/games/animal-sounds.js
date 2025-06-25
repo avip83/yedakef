@@ -101,9 +101,7 @@ window['animal-sounds'] = {
     const options = [correct, ...others].sort(() => Math.random() - 0.5);
     // נגן קול אמיתי
     const playSound = () => {
-      if (window.__globalMute) return;
-      const audio = new Audio(`Animal-sounds/${correct.file}`);
-      audio.play();
+      this.playAnimalSound(correct.file);
     };
     // נבנה דינמית: אזור כפתור + טקסט פידבק
     let feedbackDiv = document.getElementById('animal-sound-feedback');
@@ -115,7 +113,7 @@ window['animal-sounds'] = {
         <div id="animal-feedback-text" style="margin-top:4px;"></div>
       </div>`;
     document.getElementById('play-animal-sound').onclick = () => {
-      playSound();
+      this.playAnimalSound(correct.file);
       document.getElementById('animal-sound-text').textContent = this.getSoundText(correct.file);
       setTimeout(() => { document.getElementById('animal-sound-text').textContent = ''; }, 1200);
     };
@@ -180,5 +178,10 @@ window['animal-sounds'] = {
       'bee.mp3': 'זמזום'
     };
     return sounds[file] || '';
+  },
+  playAnimalSound(file) {
+    if (window.__globalMute) return;
+    const audio = new Audio(`Animal-sounds/${file}`);
+    audio.play();
   }
 }; 

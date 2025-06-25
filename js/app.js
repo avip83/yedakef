@@ -100,12 +100,11 @@ class KidsApp {
         // הצג את כל המשחקים ברשימה אחת
         const gamesGrid = document.getElementById('gamesGrid');
         gamesGrid.innerHTML = allGames.map(game => {
-            // רק color-match, shape-match ו-animal-sounds עם וי, כל השאר מנעול
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
                 <div class="game-card" data-age="${ageId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
-                    <div class="game-status-icon" title="${isReady ? 'המשחק מוכן' : 'בקרוב'}">
-                        ${isReady ? '<span style=\'color:#2ecc40;font-size:2em;font-weight:bold\'>✔️</span>' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
+                    <div class="game-status-icon" title="${isReady ? '' : 'בקרוב'}">
+                        ${isReady ? '' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
                     </div>
                     <span class="game-icon"><span class="icon-circle">${game.icon}</span></span>
                     <h3 class="game-title">${game.name}</h3>
@@ -160,12 +159,11 @@ class KidsApp {
         const gamesGrid = document.getElementById('gamesGrid');
         const games = DataManager.getGamesForCategory(ageId, categoryId);
         gamesGrid.innerHTML = games.map(game => {
-            // רק color-match, shape-match ו-animal-sounds עם וי, כל השאר מנעול
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
                 <div class="game-card" data-age="${ageId}" data-category="${categoryId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
-                    <div class="game-status-icon" title="${isReady ? 'המשחק מוכן' : 'בקרוב'}">
-                        ${isReady ? '<span style=\'color:#2ecc40;font-size:2em;font-weight:bold\'>✔️</span>' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
+                    <div class="game-status-icon" title="${isReady ? '' : 'בקרוב'}">
+                        ${isReady ? '' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
                     </div>
                     <span class="game-icon"><span class="icon-circle">${game.icon}</span></span>
                     <h3 class="game-title">${game.name}</h3>

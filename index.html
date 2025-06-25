@@ -78,9 +78,9 @@
         } else if (games && games.style.display !== 'none') {
           btn.style.display = '';
           btn.onclick = function() {
-            games.style.display = 'none';
-            const categories = document.getElementById('categoriesContainer');
-            if (categories) categories.style.display = 'block';
+            if (window.app && typeof app.showAgeSelector === 'function') {
+              app.showAgeSelector();
+            }
             if (window.updateGlobalBackBtn) setTimeout(window.updateGlobalBackBtn, 0);
           };
         } else if (ageSelector && ageSelector.style.display !== 'none') {

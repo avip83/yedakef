@@ -349,6 +349,14 @@ body {
     .categories-list, .ages-list, #main, .main-container {
         margin-top: 32px !important;
     }
+    .volume-button {
+        top: 24px !important;
+        left: 12px !important;
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        z-index: 1001 !important;
+    }
 }
 
 html, body {

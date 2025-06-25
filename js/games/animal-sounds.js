@@ -101,6 +101,7 @@ window['animal-sounds'] = {
     const options = [correct, ...others].sort(() => Math.random() - 0.5);
     // נגן קול אמיתי
     const playSound = () => {
+      if (window.__globalMute) return;
       const audio = new Audio(`Animal-sounds/${correct.file}`);
       audio.play();
     };
@@ -120,7 +121,7 @@ window['animal-sounds'] = {
     };
     const nextBtn = document.getElementById('animal-next-stage');
     nextBtn.onclick = () => {
-      this.sounds.next.currentTime = 0; this.sounds.next.play();
+      if (!window.__globalMute) { this.sounds.next.currentTime = 0; this.sounds.next.play(); }
       this.stage++;
       if (this.stage < this.totalStages) {
         this.renderGame();
@@ -145,12 +146,12 @@ window['animal-sounds'] = {
       btn.onclick = () => {
         const feedbackText = document.getElementById('animal-feedback-text');
         if (animal === correct) {
-          this.sounds.success.currentTime = 0; this.sounds.success.play();
+          if (!window.__globalMute) { this.sounds.success.currentTime = 0; this.sounds.success.play(); }
           feedbackText.textContent = 'כל הכבוד!';
           document.getElementById('play-animal-sound').style.display = 'none';
           nextBtn.style.display = 'inline-block';
         } else {
-          this.sounds.error.currentTime = 0; this.sounds.error.play();
+          if (!window.__globalMute) { this.sounds.error.currentTime = 0; this.sounds.error.play(); }
           feedbackText.textContent = 'נסה שוב!';
         }
       };

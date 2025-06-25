@@ -25,6 +25,14 @@ class KidsApp {
             this.showCategories(this.currentAge);
             this.playSound('click');
         });
+
+        // הפעל את כפתור החזרה לקטגוריות
+        document.getElementById('backToCategoriesButton').onclick = () => this.showAgeSelector();
+        // הפעל את כפתור החץ חזרה לגילאים
+        const backToAgesArrow = document.getElementById('backToAgesArrow');
+        if (backToAgesArrow) {
+            backToAgesArrow.onclick = () => this.showAgeSelector();
+        }
     }
 
     showAgeSelector() {

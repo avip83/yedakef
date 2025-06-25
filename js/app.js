@@ -103,9 +103,7 @@ class KidsApp {
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
                 <div class="game-card" data-age="${ageId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
-                    <div class="game-status-icon" title="${isReady ? '' : 'בקרוב'}">
-                        ${isReady ? '' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
-                    </div>
+                    ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}
                     <span class="game-icon"><span class="icon-circle">${game.icon}</span></span>
                     <h3 class="game-title">${game.name}</h3>
                     <p class="game-description">${game.description}</p>
@@ -162,9 +160,7 @@ class KidsApp {
             const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds';
             return `
                 <div class="game-card" data-age="${ageId}" data-category="${categoryId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
-                    <div class="game-status-icon" title="${isReady ? '' : 'בקרוב'}">
-                        ${isReady ? '' : '<span style=\'color:#ff9800;font-size:2em;font-weight:bold\'>🔒</span>'}
-                    </div>
+                    ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}
                     <span class="game-icon"><span class="icon-circle">${game.icon}</span></span>
                     <h3 class="game-title">${game.name}</h3>
                     <p class="game-description">${game.description}</p>

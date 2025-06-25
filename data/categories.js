@@ -78,6 +78,7 @@ const KIDS_DATA = {
                     { id: 'shadow-match', name: 'התאם צל לצורה', description: 'גרור צורה לצל המתאים', icon: '🌑', difficulty: 'medium' },
                     { id: 'repeat-sound', name: 'הקשב וחזור', description: 'חזור על צליל/מילה שנשמעה', icon: '🔊', difficulty: 'easy' },
                     { id: 'category-drag', name: 'גרור לאן שייך', description: 'גרור פריט לקטגוריה הנכונה', icon: '🗂️', difficulty: 'medium' },
+                    { id: 'count-and-compare', name: 'ספור וקבע מי גדול/קטן', description: 'ספר והשווה כמויות', icon: '🔢', difficulty: 'medium' },
                 ]
             }
         ],
@@ -98,7 +99,6 @@ const KIDS_DATA = {
                     { id: 'chronological-order', name: 'סדר כרונולוגי', description: 'סדר תמונות לפי סדר הגיוני', icon: '⏳', difficulty: 'medium' },
                     { id: 'sound-to-letter', name: 'התאם צליל לאות', description: 'התאם צליל לאות המתאימה', icon: '🔊', difficulty: 'medium' },
                     { id: 'color-by-instruction', name: 'צביעת דמויות לפי הוראות', description: 'צבע דמות לפי הוראות קוליות/כתובות', icon: '🖍️', difficulty: 'medium' },
-                    { id: 'count-and-compare', name: 'ספור וקבע מי גדול/קטן', description: 'ספר והשווה כמויות', icon: '🔢', difficulty: 'medium' },
                 ]
             }
         ],

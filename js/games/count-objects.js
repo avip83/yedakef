@@ -102,6 +102,7 @@ window['count-objects'] = {
             const modal = modalContent.parentElement;
             if (modal) modal.remove();
             document.getElementById('gamesContainer').style.display = 'block';
+            if (window.updateGlobalBackBtn) window.updateGlobalBackBtn();
           };
           modalContent.appendChild(btn);
         }

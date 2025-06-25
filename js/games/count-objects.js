@@ -39,7 +39,6 @@ window['count-objects'] = {
       </div>
     `;
     document.body.appendChild(modal);
-    if (window.updateGlobalBackBtn) window.updateGlobalBackBtn();
   },
   toggleMute() {
     this.muted = !this.muted;
@@ -102,7 +101,6 @@ window['count-objects'] = {
             const modal = modalContent.parentElement;
             if (modal) modal.remove();
             document.getElementById('gamesContainer').style.display = 'block';
-            if (window.updateGlobalBackBtn) window.updateGlobalBackBtn();
           };
           modalContent.appendChild(btn);
         }

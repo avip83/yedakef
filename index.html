@@ -42,12 +42,6 @@
         <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
       </svg>
     </button>
-    <button class="volume-button" id="global-back-btn" title="חזור" style="position:fixed;top:18px;right:18px;z-index:2000;">
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-        <path d="M12 16h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M18 10l6 6-6 6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
     <script>
       function updateGlobalVolumeBtn() {
         const btn = document.getElementById('global-volume-btn');
@@ -60,39 +54,6 @@
         updateGlobalVolumeBtn();
       };
       updateGlobalVolumeBtn();
-
-      // --- BACK BUTTON LOGIC ---
-      function updateGlobalBackBtn() {
-        const btn = document.getElementById('global-back-btn');
-        if (!btn) return;
-        const ageSelector = document.getElementById('ageSelector');
-        const games = document.getElementById('gamesContainer');
-        const modal = document.querySelector('.game-modal');
-        if (modal) {
-          btn.style.display = '';
-          btn.onclick = function() {
-            modal.remove();
-            if (games) games.style.display = 'block';
-            if (window.updateGlobalBackBtn) setTimeout(window.updateGlobalBackBtn, 0);
-          };
-        } else if (games && games.style.display !== 'none') {
-          btn.style.display = '';
-          btn.onclick = function() {
-            if (window.app && typeof app.showAgeSelector === 'function') {
-              app.showAgeSelector();
-            }
-            if (window.updateGlobalBackBtn) setTimeout(window.updateGlobalBackBtn, 0);
-          };
-        } else if (ageSelector && ageSelector.style.display !== 'none') {
-          btn.style.display = 'none';
-        } else {
-          btn.style.display = '';
-          btn.onclick = function() { };
-        }
-      }
-      updateGlobalBackBtn();
-      // ניתן לקרוא לפונקציה זו בכל מקום בו משתנה תצוגה (פתיחת מודל, מעבר בין מסכים וכו')
-      // דוג' - הוספת קריאות updateGlobalBackBtn() בקוד JS של המשחקים במעברים
     </script>
     <div class="container">
         <header class="header">

@@ -51,7 +51,7 @@ window['shape-match'] = {
     const modal = document.createElement('div');
     modal.className = 'game-modal';
     modal.innerHTML = `
-      <div class="game-modal-content" style="position:relative;">
+      <div class="game-modal-content" style="position:relative; max-height:100vh; overflow-y:auto; box-sizing:border-box; padding-bottom:16px;">
         <div class="game-modal-header">
           <h2>התאמת צורות</h2>
         </div>

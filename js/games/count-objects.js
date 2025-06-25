@@ -4,6 +4,11 @@ window['count-objects'] = {
   objects: ['🍎','🍌','🍪','🍓','🍇','🧸','🚗','🦋','🐠','🌸','🍉','🍦','🦄','🐻','🦆','🍋','🍒','🍭','🧁','🐶'],
   get muted() { return !!window.__globalMute; },
   set muted(val) { window.__globalMute = !!val; },
+  sounds: {
+    success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
+    wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
+    click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
+  },
   playSound(type) {
     if (window.__globalMute) return;
     if (this.sounds && this.sounds[type]) {
@@ -22,12 +27,24 @@ window['count-objects'] = {
     window.scrollTo({top: 0, behavior: "auto"});
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.className = 'game-modal';
+    // חישוב התקדמות
+    const stageNum = this.stage + 1;
+    const total = this.totalStages;
+    const percent = Math.round((stageNum / total) * 100);
     modal.innerHTML = `
       <div class="game-modal-content">
         <div class="game-modal-header">
           <h2>ספור חפצים</h2>
+        </div>
+        <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 8px;">
+          <div style="font-size:1.1rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
+          <div style="width: 90%; height: 18px; background: #e0e0e0; border-radius: 9px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
+            <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 9px 0 0 9px; transition: width 0.3s;"></div>
+          </div>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
           <p>כמה חפצים יש בתמונה?</p>
@@ -133,11 +150,14 @@ window['count-objects'] = {
       btn.style.cursor = 'pointer';
       btn.style.margin = '0 8px';
       btn.onclick = () => {
+        this.playSound('click');
         if (i === num) {
           document.getElementById('count-objects-feedback').textContent = 'כל הכבוד!';
+          this.playSound('success');
           this.nextStageButton();
         } else {
           document.getElementById('count-objects-feedback').textContent = 'נסה שוב!';
+          this.playSound('wrong');
         }
       };
       btns.appendChild(btn);
@@ -149,6 +169,7 @@ window['count-objects'] = {
     const btn = document.getElementById('count-next-stage');
     btn.style.display = 'inline-block';
     btn.onclick = () => {
+      this.playSound('click');
       this.stage++;
       if (this.stage < this.totalStages) {
         this.renderGame();
@@ -156,5 +177,10 @@ window['count-objects'] = {
         document.querySelector('.game-modal-body').innerHTML = '<h3>סיימת את כל השלבים! כל הכבוד!</h3>';
       }
     };
+  },
+  closeModal() {
+    document.querySelectorAll('.game-modal').forEach(m => m.remove());
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
   }
 }; 

@@ -264,6 +264,27 @@ window['shape-match'] = {
     board.appendChild(dragsContainer);
     document.getElementById('shape-match-feedback').textContent = '';
     document.getElementById('shape-next-stage').style.display = 'none';
+
+    // ודא שכפתור הווליום קיים במודאל
+    setTimeout(() => {
+      if (!document.getElementById('shape-match-volume')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
+          btn.id = 'shape-match-volume';
+          btn.title = 'הפעל/השתק צלילים';
+          btn.onclick = () => window['shape-match'].toggleMute();
+          btn.innerHTML = `
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+            </svg>
+          `;
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
   },
 
   nextStageButton() {

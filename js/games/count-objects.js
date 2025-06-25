@@ -148,7 +148,7 @@ window['count-objects'] = {
       btn.style.background = '#fffbe9';
       btn.style.border = '2px solid #90caf9';
       btn.style.cursor = 'pointer';
-      btn.style.margin = '0 8px';
+      btn.style.margin = '0 4px';
       btn.onclick = () => {
         this.playSound('click');
         if (i === num) {

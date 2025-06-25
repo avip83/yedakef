@@ -6,6 +6,34 @@
     <title>ידעכיף - אתר משחקים ולמידה</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .close-button {
+            position: fixed !important;
+            top: 12px !important;
+            right: 12px !important;
+            z-index: 2000 !important;
+            font-size: 2.2rem !important;
+            width: 48px !important;
+            height: 48px !important;
+            background: #fff !important;
+            border: 2px solid #f44336 !important;
+            border-radius: 50% !important;
+            color: #f44336 !important;
+            box-shadow: 0 2px 8px #0002 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            outline: none !important;
+        }
+        @media (max-width: 600px) {
+            .close-button {
+                top: 24px !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <button class="volume-button" id="global-volume-btn" title="הפעל/השתק צלילים" style="position:fixed;top:18px;left:18px;z-index:2000;">

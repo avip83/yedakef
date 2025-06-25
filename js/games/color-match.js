@@ -89,25 +89,6 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
-    setTimeout(() => {
-      if (!document.getElementById('color-match-volume')) {
-        const modalContent = document.querySelector('.game-modal-content');
-        if (modalContent) {
-          const btn = document.createElement('button');
-          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
-          btn.id = 'color-match-volume';
-          btn.title = 'הפעל/השתק צלילים';
-          btn.onclick = () => window['color-match'].toggleMute();
-          btn.innerHTML = `
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
-              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
-            </svg>
-          `;
-          modalContent.appendChild(btn);
-        }
-      }
-    }, 0);
     // הגדרת צורות - SVG גדול, ממורכז, דומיננטי
     const shapes = [
       {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},

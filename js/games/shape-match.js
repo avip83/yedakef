@@ -149,6 +149,7 @@ window['shape-match'] = {
             target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
           });
           document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+          document.getElementById('shape-match-feedback').style.color = '#43a047';
           const dragEl = document.querySelector(`.shape-drag[data-shape='${shape}']`);
           if (dragEl) {
             dragEl.style.visibility = 'hidden';
@@ -242,6 +243,7 @@ window['shape-match'] = {
               targetDiv.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
             });
             document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
+            document.getElementById('shape-match-feedback').style.color = '#43a047';
             drag.remove();
             if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
               window['shape-match'].nextStageButton();

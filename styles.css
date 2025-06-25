@@ -309,6 +309,10 @@ body {
     .subtitle {
         font-size: 1rem;
     }
+    .age-selector h2,
+    .games-container h2 {
+        font-size: 2rem !important;
+    }
     .age-button, .category-card, .game-card {
         min-width: 120px;
         min-height: 80px;

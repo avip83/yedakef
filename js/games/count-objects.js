@@ -2,6 +2,17 @@ window['count-objects'] = {
   stage: 0,
   totalStages: 20,
   objects: ['🍎','🍌','🍪','🍓','🍇','🧸','🚗','🦋','🐠','🌸','🍉','🍦','🦄','🐻','🦆','🍋','🍒','🍭','🧁','🐶'],
+  get muted() { return !!window.__globalMute; },
+  set muted(val) { window.__globalMute = !!val; },
+  playSound(type) {
+    if (this.muted) return;
+    if (this.sounds && this.sounds[type]) {
+      try {
+        this.sounds[type].currentTime = 0;
+        this.sounds[type].play();
+      } catch (e) {}
+    }
+  },
   init() {
     this.stage = 0;
     this.showModal();
@@ -15,6 +26,12 @@ window['count-objects'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
+        <button class="volume-button${this.muted ? ' muted' : ''}" id="count-objects-volume" title="הפעל/השתק צלילים" onclick="window['count-objects'].toggleMute()">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+            <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+          </svg>
+        </button>
         <div class="game-modal-header">
           <h2>ספור חפצים</h2>
           <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
@@ -30,7 +47,34 @@ window['count-objects'] = {
     `;
     document.body.appendChild(modal);
   },
+  toggleMute() {
+    this.muted = !this.muted;
+    const btn = document.getElementById('count-objects-volume');
+    if (btn) {
+      if (this.muted) btn.classList.add('muted');
+      else btn.classList.remove('muted');
+    }
+  },
   renderGame() {
+    setTimeout(() => {
+      if (!document.getElementById('count-objects-volume')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
+          btn.id = 'count-objects-volume';
+          btn.title = 'הפעל/השתק צלילים';
+          btn.onclick = () => window['count-objects'].toggleMute();
+          btn.innerHTML = `
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+            </svg>
+          `;
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
     // בחר מספר אובייקטים (1-5) ושלב אקראי
     const num = 1 + Math.floor(Math.random() * 5);
     const obj = this.objects[Math.floor(Math.random() * this.objects.length)];

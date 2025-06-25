@@ -23,6 +23,8 @@ window['color-match'] = {
     error: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
     drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3')
   },
+  get muted() { return !!window.__globalMute; },
+  set muted(val) { window.__globalMute = !!val; },
   init() {
     this.stage = 0;
     this.showModal();
@@ -43,6 +45,12 @@ window['color-match'] = {
     const percent = Math.round((stageNum / total) * 100);
     modal.innerHTML = `
       <div class="game-modal-content" style="background: #fffbe9; max-width: 520px; width: 96vw; max-height: 100vh; height: auto; border-radius: 24px; box-shadow: 0 8px 32px #0002; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; padding: 18px 8px;">
+        <button class="volume-button${this.muted ? ' muted' : ''}" id="color-match-volume" title="הפעל/השתק צלילים" onclick="window['color-match'].toggleMute()">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+            <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+          </svg>
+        </button>
         <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 8px;">
           <div style="font-size:1.3rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
           <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
@@ -87,6 +95,25 @@ window['color-match'] = {
     return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
   },
   renderGame() {
+    setTimeout(() => {
+      if (!document.getElementById('color-match-volume')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
+          btn.id = 'color-match-volume';
+          btn.title = 'הפעל/השתק צלילים';
+          btn.onclick = () => window['color-match'].toggleMute();
+          btn.innerHTML = `
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+            </svg>
+          `;
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
     // הגדרת צורות - SVG גדול, ממורכז, דומיננטי
     const shapes = [
       {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
@@ -265,6 +292,7 @@ window['color-match'] = {
     };
   },
   playSound(type) {
+    if (this.muted) return;
     if (this.sounds[type]) {
       try {
         this.sounds[type].currentTime = 0;
@@ -272,6 +300,14 @@ window['color-match'] = {
       } catch (e) {
         console.error('שגיאה בהשמעת צליל:', type, e);
       }
+    }
+  },
+  toggleMute() {
+    this.muted = !this.muted;
+    const btn = document.getElementById('color-match-volume');
+    if (btn) {
+      if (this.muted) btn.classList.add('muted');
+      else btn.classList.remove('muted');
     }
   }
 }; 

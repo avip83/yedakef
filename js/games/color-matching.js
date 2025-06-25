@@ -1,6 +1,17 @@
 window['color-match'] = {
   stage: 0,
   totalStages: 20,
+  get muted() { return !!window.__globalMute; },
+  set muted(val) { window.__globalMute = !!val; },
+  playSound(type) {
+    if (this.muted) return;
+    if (this.sounds && this.sounds[type]) {
+      try {
+        this.sounds[type].currentTime = 0;
+        this.sounds[type].play();
+      } catch (e) {}
+    }
+  },
   init() {
     this.stage = 0;
     this.showModal();
@@ -11,6 +22,12 @@ window['color-match'] = {
     modal.className = 'game-modal';
     modal.innerHTML = `
       <div class="game-modal-content">
+        <button class="volume-button${this.muted ? ' muted' : ''}" id="color-matching-volume" title="הפעל/השתק צלילים" onclick="window['color-match'].toggleMute()">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+            <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+          </svg>
+        </button>
         <div class="game-modal-header">
           <h2>התאמת צבעים</h2>
           <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
@@ -25,7 +42,34 @@ window['color-match'] = {
     `;
     document.body.appendChild(modal);
   },
+  toggleMute() {
+    this.muted = !this.muted;
+    const btn = document.getElementById('color-matching-volume');
+    if (btn) {
+      if (this.muted) btn.classList.add('muted');
+      else btn.classList.remove('muted');
+    }
+  },
   renderGame() {
+    setTimeout(() => {
+      if (!document.getElementById('color-matching-volume')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'volume-button' + (this.muted ? ' muted' : '');
+          btn.id = 'color-matching-volume';
+          btn.title = 'הפעל/השתק צלילים';
+          btn.onclick = () => window['color-match'].toggleMute();
+          btn.innerHTML = `
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+              <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+            </svg>
+          `;
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
     const colors = [
       {color: '#e53935'},
       {color: '#1e88e5'},

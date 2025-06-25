@@ -8,6 +8,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <button class="volume-button" id="global-volume-btn" title="הפעל/השתק צלילים" style="position:fixed;top:18px;left:18px;z-index:2000;">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
+        <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
+      </svg>
+    </button>
+    <script>
+      function updateGlobalVolumeBtn() {
+        const btn = document.getElementById('global-volume-btn');
+        if (!btn) return;
+        if (window.__globalMute) btn.classList.add('muted');
+        else btn.classList.remove('muted');
+      }
+      document.getElementById('global-volume-btn').onclick = function() {
+        window.__globalMute = !window.__globalMute;
+        updateGlobalVolumeBtn();
+      };
+      updateGlobalVolumeBtn();
+    </script>
     <div class="container">
         <header class="header">
             <h1 class="title">🎮 ידעכיף 🎮</h1>

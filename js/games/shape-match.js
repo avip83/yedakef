@@ -66,9 +66,8 @@ window['shape-match'] = {
   },
 
   getShapesForStage(stage) {
-    // שלב 1: 3, שלב 2: 4 ... עד 9
-    const num = Math.min(3 + Math.floor(stage / 3), 9);
-    // בחר צורות אקראיות
+    // שלבים 0-3: 3 צורות, כל השאר: 4 צורות
+    const num = stage <= 3 ? 3 : 4;
     const shapes = this.allShapes.slice().sort(() => Math.random() - 0.5).slice(0, num);
     return shapes;
   },

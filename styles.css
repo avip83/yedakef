@@ -384,6 +384,7 @@ html, body {
     max-width: 100%;
     box-sizing: border-box;
     background: #fffbe9 !important;
+    position: relative;
 }
 .game-modal-header, .game-modal-body {
     width: 100% !important;

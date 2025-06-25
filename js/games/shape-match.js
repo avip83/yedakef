@@ -1,38 +1,45 @@
 window['shape-match'] = {
   stage: 0,
-  totalStages: 5,
+  totalStages: 20,
   sounds: {},
-  shapes: [
-    { id: 'circle', name: 'עיגול', color: '#e53935' },
-    { id: 'square', name: 'ריבוע', color: '#1e88e5' },
-    { id: 'triangle', name: 'משולש', color: '#43a047' },
-    { id: 'star', name: 'כוכב', color: '#ff9800' },
-    { id: 'heart', name: 'לב', color: '#e91e63' },
-    { id: 'diamond', name: 'יהלום', color: '#9c27b0' }
-  ],
-  
-  init() {
-    this.stage = 0;
+  allShapes: [],
+  currentShapes: [],
+
+  async init() {
+    await this.loadShapes();
     this.loadSounds();
+    this.stage = 0;
     this.showModal();
     this.renderGame();
   },
-  
+
+  async loadShapes() {
+    // Load all available shape names from the color SVGs directory
+    // We'll assume a fixed list for now, but you can replace with dynamic loading if needed
+    this.allShapes = [
+      'circle','square','triangle','star','heart','diamond','hexagon','pentagon','octagon','cross','moon','cloud','drop','flower','leaf','arrow','plus','minus','wave','zigzag','parallelogram','trapezoid','crescent','egg','bean','bolt','crown','key','puzzle','spiral','sun','umbrella','fish','cat','dog','bird','turtle','bee','butterfly','lion','elephant','dino','cube','cone','cylinder' // add more as needed
+    ];
+    // Filter only those that exist in both color and black folders (optional: implement existence check)
+  },
+
   loadSounds() {
     this.sounds = {
       success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
       wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
+      drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3'),
       click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
     };
   },
-  
-  playSound(name) {
-    if (this.sounds[name]) {
-      this.sounds[name].currentTime = 0;
-      this.sounds[name].play().catch(()=>{});
+
+  playSound(type) {
+    if (this.sounds[type]) {
+      try {
+        this.sounds[type].currentTime = 0;
+        this.sounds[type].play();
+      } catch (e) {}
     }
   },
-  
+
   showModal() {
     window.scrollTo({top: 0, behavior: "auto"});
     document.body.scrollTop = 0;
@@ -46,7 +53,8 @@ window['shape-match'] = {
           <button class="close-button" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
-          <p>גרור כל צורה למקום המתאים!</p>
+          <div id="shape-stage-bar" style="width:100%;margin-bottom:8px;"></div>
+          <p style="margin:0 0 10px 0; font-size:1.3em; color:#ff9800;">גרור כל צורה למקום המתאים!</p>
           <div id="shape-match-board" style="display: flex; flex-direction: column; gap: 32px; margin: 24px 0;"></div>
           <div id="shape-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px;"></div>
           <button id="shape-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
@@ -55,117 +63,75 @@ window['shape-match'] = {
     `;
     document.body.appendChild(modal);
   },
-  
-  renderGame() {
-    // בחר 3 צורות רנדומליות
-    const allShapes = [...this.shapes];
-    const stageShapes = [];
-    while (stageShapes.length < 3 && allShapes.length > 0) {
-      const idx = Math.floor(Math.random() * allShapes.length);
-      const shape = allShapes.splice(idx, 1)[0];
-      stageShapes.push(shape);
+
+  getShapesForStage(stage) {
+    // שלב 1: 3, שלב 2: 4 ... עד 9
+    const num = Math.min(3 + Math.floor(stage / 3), 9);
+    // בחר צורות אקראיות
+    const shapes = this.allShapes.slice().sort(() => Math.random() - 0.5).slice(0, num);
+    return shapes;
+  },
+
+  async renderGame() {
+    // עדכון בר שלבים
+    const bar = document.getElementById('shape-stage-bar');
+    if (bar) {
+      const percent = Math.round(((this.stage+1)/this.totalStages)*100);
+      bar.innerHTML = `<div style="width:100%;height:18px;background:#e0e0e0;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px #0001;margin-bottom:4px;">
+        <div style="width:${percent}%;height:100%;background:linear-gradient(90deg,#43a047,#00e676);border-radius:9px 0 0 9px;transition:width 0.3s;"></div>
+      </div>
+      <div style="font-size:1.1em;font-weight:700;color:#1976d2;margin-top:2px;">שלב ${this.stage+1} מתוך ${this.totalStages}</div>`;
     }
-    
-    // ערבוב סדר עצמאי למטרות ולגרירות
-    const targets = stageShapes.slice().sort(() => Math.random() - 0.5);
-    const drags = stageShapes.slice().sort(() => Math.random() - 0.5);
-    
+    // בחר צורות
+    const shapes = this.getShapesForStage(this.stage);
+    this.currentShapes = shapes;
+    // מטרות (צלליות)
     const board = document.getElementById('shape-match-board');
     board.innerHTML = '';
-    board.style.display = 'flex';
-    board.style.flexDirection = 'column';
-    board.style.alignItems = 'center';
-    board.style.justifyContent = 'center';
-    board.style.gap = '32px';
-    board.style.overflow = 'visible';
-    
-    // מטרות (צללים) - שורה עליונה
+    // מטרות - שורה עליונה
     const targetsContainer = document.createElement('div');
     targetsContainer.style.display = 'flex';
     targetsContainer.style.justifyContent = 'center';
     targetsContainer.style.alignItems = 'center';
-    targetsContainer.style.gap = '12px';
-    
-    targets.forEach((s, i) => {
+    targetsContainer.style.gap = '18px';
+    shapes.forEach(shape => {
       const target = document.createElement('div');
       target.className = 'shape-target';
       target.style.background = '#fff';
-      target.style.border = `4px dashed ${s.color}`;
+      target.style.border = '3px dashed #bbb';
       target.style.width = '76px';
       target.style.height = '76px';
       target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 12px';
+      target.style.margin = '0 8px';
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
       target.style.boxShadow = '0 2px 8px #0001';
-      target.dataset.shape = s.id;
-      target.dataset.color = s.color;
-      
-      // צור SVG outline פשוט
-      let outlineSvg = '';
-      switch(s.id) {
-        case 'circle':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><circle cx='30' cy='30' r='24' fill='none' stroke='${s.color}' stroke-width='4'/></svg>`;
-          break;
-        case 'square':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><rect x='10' y='10' width='40' height='40' rx='4' fill='none' stroke='${s.color}' stroke-width='4'/></svg>`;
-          break;
-        case 'triangle':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 52,50 8,50' fill='none' stroke='${s.color}' stroke-width='4'/></svg>`;
-          break;
-        case 'star':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,5 37,25 55,25 40,35 47,55 30,45 13,55 20,35 5,25 23,25' fill='none' stroke='${s.color}' stroke-width='2'/></svg>`;
-          break;
-        case 'heart':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><path d='M30,15 C30,15 20,5 10,15 C0,25 10,45 30,55 C50,45 60,25 50,15 C40,5 30,15 30,15' fill='none' stroke='${s.color}' stroke-width='3'/></svg>`;
-          break;
-        case 'diamond':
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 50,30 30,50 10,30' fill='none' stroke='${s.color}' stroke-width='4'/></svg>`;
-          break;
-        default:
-          outlineSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><text x='30' y='40' text-anchor='middle' font-size='24' fill='${s.color}'>?</text></svg>`;
-      }
-      target.innerHTML = outlineSvg;
-      
+      target.dataset.shape = shape;
+      // טען SVG שחור
+      fetch(`shapes/black/${shape}.svg`).then(r => r.text()).then(svg => {
+        target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+      }).catch(() => {
+        target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+      });
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
-        const shape = e.dataTransfer.getData('shape');
-        const color = e.dataTransfer.getData('color');
-        if (shape === s.id && color === s.color) {
+        const shapeId = e.dataTransfer.getData('shape');
+        if (shapeId === shape && !target.classList.contains('filled')) {
           this.playSound('success');
-          target.style.background = s.color;
-          target.style.border = '4px solid #fff';
-          // צור SVG צבעוני מלא
-          let filledSvg = '';
-          switch(s.id) {
-            case 'circle':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><circle cx='30' cy='30' r='24' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-              break;
-            case 'square':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><rect x='10' y='10' width='40' height='40' rx='4' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-              break;
-            case 'triangle':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 52,50 8,50' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-              break;
-            case 'star':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,5 37,25 55,25 40,35 47,55 30,45 13,55 20,35 5,25 23,25' fill='#fff' stroke='#fff' stroke-width='1'/></svg>`;
-              break;
-            case 'heart':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><path d='M30,15 C30,15 20,5 10,15 C0,25 10,45 30,55 C50,45 60,25 50,15 C40,5 30,15 30,15' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-              break;
-            case 'diamond':
-              filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 50,30 30,50 10,30' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-              break;
-          }
-          target.innerHTML = filledSvg;
           target.classList.add('filled');
+          // טען SVG צבעוני
+          fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+            target.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+          }).catch(() => {
+            target.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+          });
           document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
-          const dragEl = document.querySelector(`.shape-drag[data-shape='${shape}'][data-color='${color}']`);
+          const dragEl = document.querySelector(`.shape-drag[data-shape='${shape}']`);
           if (dragEl) dragEl.remove();
-          if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
+          if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
             this.nextStageButton();
           }
         } else {
@@ -175,24 +141,24 @@ window['shape-match'] = {
       };
       targetsContainer.appendChild(target);
     });
-    
-    // צורות לגרירה - שורה תחתונה
+    // גרירות - שורה תחתונה
     const dragsContainer = document.createElement('div');
     dragsContainer.id = 'shape-match-drags';
     dragsContainer.style.display = 'flex';
     dragsContainer.style.justifyContent = 'center';
     dragsContainer.style.alignItems = 'center';
-    dragsContainer.style.gap = '12px';
+    dragsContainer.style.gap = '18px';
     dragsContainer.style.marginTop = '24px';
-    
-    drags.forEach((s, i) => {
+    // ערבוב עצמאי לגרירות
+    const drags = shapes.slice().sort(() => Math.random() - 0.5);
+    drags.forEach(shape => {
       const drag = document.createElement('div');
       drag.className = 'shape-drag';
-      drag.style.background = s.color;
+      drag.style.background = '#fff';
       drag.style.width = '76px';
       drag.style.height = '76px';
       drag.style.borderRadius = '50%';
-      drag.style.margin = '0 12px';
+      drag.style.margin = '0 8px';
       drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
@@ -201,54 +167,25 @@ window['shape-match'] = {
       drag.style.transition = 'transform 0.15s, box-shadow 0.15s';
       drag.style.opacity = '1';
       drag.draggable = true;
-      drag.dataset.shape = s.id;
-      drag.dataset.color = s.color;
-      
-      // צור SVG צבעוני לגרירה
-      let filledSvg = '';
-      switch(s.id) {
-        case 'circle':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><circle cx='30' cy='30' r='24' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-          break;
-        case 'square':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><rect x='10' y='10' width='40' height='40' rx='4' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-          break;
-        case 'triangle':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 52,50 8,50' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-          break;
-        case 'star':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,5 37,25 55,25 40,35 47,55 30,45 13,55 20,35 5,25 23,25' fill='#fff' stroke='#fff' stroke-width='1'/></svg>`;
-          break;
-        case 'heart':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><path d='M30,15 C30,15 20,5 10,15 C0,25 10,45 30,55 C50,45 60,25 50,15 C40,5 30,15 30,15' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-          break;
-        case 'diamond':
-          filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 50,30 30,50 10,30' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-          break;
-      }
-      drag.innerHTML = filledSvg;
-      
+      drag.dataset.shape = shape;
+      // טען SVG צבעוני
+      fetch(`shapes/color/${shape}.svg`).then(r => r.text()).then(svg => {
+        drag.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+      }).catch(() => {
+        drag.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+      });
       // אפקט hover/touch
-      drag.onpointerdown = () => { 
-        drag.style.transform = 'scale(1.10)'; 
-        drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; 
-      };
-      drag.onpointerup = drag.onpointerleave = () => { 
-        drag.style.transform = ''; 
-        drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; 
-      };
-      
+      drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
+      drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
-        this.playSound('click');
-        e.dataTransfer.setData('shape', s.id);
-        e.dataTransfer.setData('color', s.color);
+        this.playSound('drag');
+        e.dataTransfer.setData('shape', shape);
       };
-      
-      // touch לגרירה במובייל - בדיוק כמו במשחק הצבעים
+      // Touch events
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
       drag.addEventListener('touchstart', function(ev) {
-        this.playSound('click');
+        window['shape-match'].playSound('drag');
         ev.preventDefault();
         const rect = drag.getBoundingClientRect();
         touchOffset.x = ev.touches[0].clientX - rect.left;
@@ -264,15 +201,13 @@ window['shape-match'] = {
         touchGhost.style.pointerEvents = 'none';
         touchGhost.style.transform = 'scale(1.10)';
         document.body.appendChild(touchGhost);
-      }.bind(this), {passive:false});
-      
+      }, {passive:false});
       drag.addEventListener('touchmove', function(ev) {
         if (!touchGhost) return;
         ev.preventDefault();
         touchGhost.style.left = (ev.touches[0].clientX - touchOffset.x) + 'px';
         touchGhost.style.top = (ev.touches[0].clientY - touchOffset.y) + 'px';
       }, {passive:false});
-      
       drag.addEventListener('touchend', function(ev) {
         if (!touchGhost) return;
         const dropX = ev.changedTouches[0].clientX;
@@ -282,57 +217,34 @@ window['shape-match'] = {
         const elem = document.elementFromPoint(dropX, dropY);
         const targetDiv = elem && elem.closest('.shape-target');
         if (targetDiv && !targetDiv.classList.contains('filled')) {
-          const shape = drag.dataset.shape;
-          const color = drag.dataset.color;
-          if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
+          const shapeId = drag.dataset.shape;
+          if (shapeId === targetDiv.dataset.shape) {
+            window['shape-match'].playSound('success');
             targetDiv.classList.add('filled');
-            targetDiv.style.background = color;
-            targetDiv.style.border = '4px solid #fff';
-            // צור SVG צבעוני מלא
-            let filledSvg = '';
-            switch(shape) {
-              case 'circle':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><circle cx='30' cy='30' r='24' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-                break;
-              case 'square':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><rect x='10' y='10' width='40' height='40' rx='4' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-                break;
-              case 'triangle':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 52,50 8,50' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-                break;
-              case 'star':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,5 37,25 55,25 40,35 47,55 30,45 13,55 20,35 5,25 23,25' fill='#fff' stroke='#fff' stroke-width='1'/></svg>`;
-                break;
-              case 'heart':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><path d='M30,15 C30,15 20,5 10,15 C0,25 10,45 30,55 C50,45 60,25 50,15 C40,5 30,15 30,15' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-                break;
-              case 'diamond':
-                filledSvg = `<svg width='56' height='56' viewBox='0 0 60 60'><polygon points='30,10 50,30 30,50 10,30' fill='#fff' stroke='#fff' stroke-width='2'/></svg>`;
-                break;
-            }
-            targetDiv.innerHTML = filledSvg;
-            this.playSound('success');
+            fetch(`shapes/color/${shapeId}.svg`).then(r => r.text()).then(svg => {
+              targetDiv.innerHTML = `<div style='width:60px;height:60px;display:flex;align-items:center;justify-content:center;'>${svg}</div>`;
+            }).catch(() => {
+              targetDiv.innerHTML = `<svg width='60' height='60'><text x='30' y='40' text-anchor='middle' font-size='40' fill='red'>×</text></svg>`;
+            });
             document.getElementById('shape-match-feedback').textContent = 'כל הכבוד!';
             drag.remove();
-            if (document.querySelectorAll('.shape-target.filled').length === targets.length) {
-              this.nextStageButton();
+            if (document.querySelectorAll('.shape-target.filled').length === shapes.length) {
+              window['shape-match'].nextStageButton();
             }
           } else {
-            this.playSound('wrong');
+            window['shape-match'].playSound('wrong');
             document.getElementById('shape-match-feedback').textContent = 'נסה שוב!';
           }
         }
-      }.bind(this), {passive:false});
-      
+      }, {passive:false});
       dragsContainer.appendChild(drag);
     });
-    
     board.appendChild(targetsContainer);
     board.appendChild(dragsContainer);
     document.getElementById('shape-match-feedback').textContent = '';
     document.getElementById('shape-next-stage').style.display = 'none';
   },
-  
+
   nextStageButton() {
     const btn = document.getElementById('shape-next-stage');
     btn.style.display = 'inline-block';

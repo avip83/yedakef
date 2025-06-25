@@ -60,9 +60,38 @@
         updateGlobalVolumeBtn();
       };
       updateGlobalVolumeBtn();
-      document.getElementById('global-back-btn').onclick = function() {
-        history.back();
-      };
+
+      // --- BACK BUTTON LOGIC ---
+      function updateGlobalBackBtn() {
+        const btn = document.getElementById('global-back-btn');
+        if (!btn) return;
+        const ageSelector = document.getElementById('ageSelector');
+        const games = document.getElementById('gamesContainer');
+        const modal = document.querySelector('.game-modal');
+        if (modal) {
+          btn.style.display = '';
+          btn.onclick = function() {
+            modal.remove();
+            if (games) games.style.display = 'block';
+            updateGlobalBackBtn();
+          };
+        } else if (games && games.style.display !== 'none') {
+          btn.style.display = '';
+          btn.onclick = function() {
+            games.style.display = 'none';
+            if (ageSelector) ageSelector.style.display = 'block';
+            updateGlobalBackBtn();
+          };
+        } else if (ageSelector && ageSelector.style.display !== 'none') {
+          btn.style.display = 'none';
+        } else {
+          btn.style.display = '';
+          btn.onclick = function() { history.back(); };
+        }
+      }
+      updateGlobalBackBtn();
+      // ניתן לקרוא לפונקציה זו בכל מקום בו משתנה תצוגה (פתיחת מודל, מעבר בין מסכים וכו')
+      // דוג' - הוספת קריאות updateGlobalBackBtn() בקוד JS של המשחקים במעברים
     </script>
     <div class="container">
         <header class="header">

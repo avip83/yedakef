@@ -11,7 +11,13 @@ window['color-match'] = {
     { color: '#ff1744', name: 'אדום' },
     { color: '#2979ff', name: 'כחול' },
     { color: '#ffd600', name: 'צהוב' },
-    { color: '#00e676', name: 'ירוק' }
+    { color: '#00e676', name: 'ירוק' },
+    { color: '#ab47bc', name: 'סגול' },
+    { color: '#ff9100', name: 'כתום' },
+    { color: '#757575', name: 'אפור' },
+    { color: '#000000', name: 'שחור' },
+    { color: '#8d6e63', name: 'חום' },
+    { color: '#f06292', name: 'ורוד' }
   ],
   drags: [],
   targets: [],
@@ -78,9 +84,12 @@ window['color-match'] = {
     const shapes = [
       {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
       {name: 'square', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><rect x='10' y='10' width='40' height='40' rx='8' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`}
+      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`},
+      {name: 'star', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 36,28 56,28 40,40 46,58 30,46 14,58 20,40 4,28 24,28' fill='white' stroke='white' stroke-width='2'/></svg>`}
     ];
-    const colors = ['#e53935', '#1e88e5', '#43a047'];
+    // בחר צבעים אקראיים מתוך כל הצבעים הזמינים
+    const colorObjs = this.colors.slice().sort(() => Math.random() - 0.5).slice(0, shapes.length);
+    const colors = colorObjs.map(c => c.color);
     // ערבוב סדר עצמאי למטרות ולגרירות
     const pairs = shapes.map((shape, i) => ({shape, color: colors[i]}));
     const targets = pairs.slice().sort(() => Math.random() - 0.5); // מטרות (שורה עליונה)

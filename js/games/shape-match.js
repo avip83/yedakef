@@ -63,6 +63,46 @@ window['shape-match'] = {
       </div>
     `;
     document.body.appendChild(modal);
+    if (window.updateGlobalBackBtn) window.updateGlobalBackBtn();
+
+    setTimeout(() => {
+      if (!document.getElementById('shape-match-back')) {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (modalContent) {
+          const btn = document.createElement('button');
+          btn.className = 'volume-button back-arrow-button';
+          btn.id = 'shape-match-back';
+          btn.title = 'חזור';
+          btn.style.position = 'absolute';
+          btn.style.top = '18px';
+          btn.style.right = '18px';
+          btn.style.left = '';
+          btn.style.zIndex = '2000';
+          btn.style.width = '54px';
+          btn.style.height = '54px';
+          btn.style.background = '#7c5b33';
+          btn.style.border = '2px solid #fff';
+          btn.style.borderRadius = '50%';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.style.padding = '0';
+          btn.innerHTML = `
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+              <path d="M12 16h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M18 10l6 6-6 6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          btn.onclick = function() {
+            const modal = modalContent.parentElement;
+            if (modal) modal.remove();
+            document.getElementById('gamesContainer').style.display = 'block';
+          };
+          modalContent.appendChild(btn);
+        }
+      }
+    }, 0);
   },
 
   getShapesForStage(stage) {
@@ -257,45 +297,6 @@ window['shape-match'] = {
     board.appendChild(dragsContainer);
     document.getElementById('shape-match-feedback').textContent = '';
     document.getElementById('shape-next-stage').style.display = 'none';
-
-    setTimeout(() => {
-      if (!document.getElementById('shape-match-back')) {
-        const modalContent = document.querySelector('.game-modal-content');
-        if (modalContent) {
-          const btn = document.createElement('button');
-          btn.className = 'volume-button back-arrow-button';
-          btn.id = 'shape-match-back';
-          btn.title = 'חזור';
-          btn.style.position = 'absolute';
-          btn.style.top = '18px';
-          btn.style.right = '18px';
-          btn.style.left = '';
-          btn.style.zIndex = '2000';
-          btn.style.width = '54px';
-          btn.style.height = '54px';
-          btn.style.background = '#7c5b33';
-          btn.style.border = '2px solid #fff';
-          btn.style.borderRadius = '50%';
-          btn.style.display = 'flex';
-          btn.style.alignItems = 'center';
-          btn.style.justifyContent = 'center';
-          btn.style.cursor = 'pointer';
-          btn.style.padding = '0';
-          btn.innerHTML = `
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-              <path d="M12 16h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-              <path d="M18 10l6 6-6 6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          btn.onclick = function() {
-            const modal = modalContent.parentElement;
-            if (modal) modal.remove();
-            document.getElementById('gamesContainer').style.display = 'block';
-          };
-          modalContent.appendChild(btn);
-        }
-      }
-    }, 0);
   },
 
   nextStageButton() {

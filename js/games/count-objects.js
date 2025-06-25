@@ -39,6 +39,7 @@ window['count-objects'] = {
       </div>
     `;
     document.body.appendChild(modal);
+    if (window.updateGlobalBackBtn) window.updateGlobalBackBtn();
   },
   toggleMute() {
     this.muted = !this.muted;

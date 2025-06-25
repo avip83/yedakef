@@ -63,38 +63,40 @@ window['shape-match'] = {
       </div>
     `;
     document.body.appendChild(modal);
-    // הוסף כפתור חץ דינמי
-    const modalContent = modal.querySelector('.game-modal-content');
-    if (modalContent) {
-      const backBtn = document.createElement('button');
-      backBtn.className = 'back-arrow-button';
-      backBtn.title = 'חזור לבחירת משחקים';
-      backBtn.style.position = 'absolute';
-      backBtn.style.top = '18px';
-      backBtn.style.right = '18px';
-      backBtn.style.zIndex = '2000';
-      backBtn.style.width = '54px';
-      backBtn.style.height = '54px';
-      backBtn.style.background = '#7c5b33';
-      backBtn.style.border = '2px solid #7c5b33';
-      backBtn.style.borderRadius = '50%';
-      backBtn.style.display = 'flex';
-      backBtn.style.alignItems = 'center';
-      backBtn.style.justifyContent = 'center';
-      backBtn.style.cursor = 'pointer';
-      backBtn.style.padding = '0';
-      backBtn.innerHTML = `
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="display:block;" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 16h12" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M18 10l4 6-4 6" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      `;
-      backBtn.onclick = function() {
-        modal.remove();
-        document.getElementById('gamesContainer').style.display = 'block';
-      };
-      modalContent.appendChild(backBtn);
-    }
+    // הוסף כפתור חץ דינמי אחרי שהמודל מוצג (כמו volume)
+    setTimeout(() => {
+      const modalContent = modal.querySelector('.game-modal-content');
+      if (modalContent && !modalContent.querySelector('.back-arrow-button')) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'back-arrow-button';
+        backBtn.title = 'חזור לבחירת משחקים';
+        backBtn.style.position = 'absolute';
+        backBtn.style.top = '18px';
+        backBtn.style.right = '18px';
+        backBtn.style.zIndex = '2000';
+        backBtn.style.width = '54px';
+        backBtn.style.height = '54px';
+        backBtn.style.background = '#7c5b33';
+        backBtn.style.border = '2px solid #7c5b33';
+        backBtn.style.borderRadius = '50%';
+        backBtn.style.display = 'flex';
+        backBtn.style.alignItems = 'center';
+        backBtn.style.justifyContent = 'center';
+        backBtn.style.cursor = 'pointer';
+        backBtn.style.padding = '0';
+        backBtn.innerHTML = `
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 16h12" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M18 10l4 6-4 6" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        backBtn.onclick = function() {
+          modal.remove();
+          document.getElementById('gamesContainer').style.display = 'block';
+        };
+        modalContent.appendChild(backBtn);
+      }
+    }, 0);
   },
 
   getShapesForStage(stage) {

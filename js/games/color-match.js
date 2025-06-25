@@ -45,12 +45,6 @@ window['color-match'] = {
     const percent = Math.round((stageNum / total) * 100);
     modal.innerHTML = `
       <div class="game-modal-content" style="background: #fffbe9; max-width: 520px; width: 96vw; max-height: 100vh; height: auto; border-radius: 24px; box-shadow: 0 8px 32px #0002; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; padding: 18px 8px;">
-        <button class="volume-button${this.muted ? ' muted' : ''}" id="color-match-volume" title="הפעל/השתק צלילים" onclick="window['color-match'].toggleMute()">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 12h6l8-7v22l-8-7H6z" fill="currentColor"/>
-            <line x1="8" y1="8" x2="24" y2="24" class="mute-line"/>
-          </svg>
-        </button>
         <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 8px;">
           <div style="font-size:1.3rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
           <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
@@ -292,14 +286,12 @@ window['color-match'] = {
     };
   },
   playSound(type) {
-    if (this.muted) return;
+    if (window.__globalMute) return;
     if (this.sounds[type]) {
       try {
         this.sounds[type].currentTime = 0;
         this.sounds[type].play();
-      } catch (e) {
-        console.error('שגיאה בהשמעת צליל:', type, e);
-      }
+      } catch (e) {}
     }
   },
   toggleMute() {

@@ -79,10 +79,10 @@ window['shape-match'] = {
     const bar = document.getElementById('shape-stage-bar');
     if (bar) {
       const percent = Math.round(((this.stage+1)/this.totalStages)*100);
-      bar.innerHTML = `<div style="width:100%;height:18px;background:#e0e0e0;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px #0001;margin-bottom:4px;">
-        <div style="width:${percent}%;height:100%;background:linear-gradient(90deg,#43a047,#00e676);border-radius:9px 0 0 9px;transition:width 0.3s;"></div>
-      </div>
-      <div style="font-size:1.1em;font-weight:700;color:#1976d2;margin-top:2px;">שלב ${this.stage+1} מתוך ${this.totalStages}</div>`;
+      bar.innerHTML = `<div style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${this.stage+1} מתוך ${this.totalStages}</div>
+        <div style="width:100%;height:18px;background:#e0e0e0;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px #0001;margin-bottom:4px;">
+          <div style="width:${percent}%;height:100%;background:linear-gradient(90deg,#43a047,#00e676);border-radius:9px 0 0 9px;transition:width 0.3s;"></div>
+        </div>`;
     }
     // בחר צורות
     const shapes = this.getShapesForStage(this.stage);

@@ -78,6 +78,7 @@ window['find-differences'] = {
       board.appendChild(coordsBox);
     }
     // כפתור כלי עזר - מעל המשפט הכתום
+    let debugMode = false;
     const debugBtn = document.createElement('button');
     debugBtn.textContent = 'הפעל כלי עזר';
     debugBtn.style.margin = '0 auto 12px auto';
@@ -96,6 +97,15 @@ window['find-differences'] = {
     if (modalBody) {
       modalBody.insertBefore(debugBtn, modalBody.firstChild);
     }
+    debugBtn.onclick = () => {
+      debugMode = !debugMode;
+      debugBtn.textContent = debugMode ? 'כבה כלי עזר' : 'הפעל כלי עזר';
+      if (!debugMode) {
+        // כיבוי: הסר עיגולים ותיבת קואורדינטות
+        document.querySelectorAll('.debug-circle').forEach(c => c.remove());
+        coordsBox.style.display = 'none';
+      }
+    };
     // פונקציה ליצירת עיגול עזר
     function createDebugCircle(leftP, topP, widthP, heightP) {
       coordsBox.style.display = 'block';
@@ -153,16 +163,28 @@ window['find-differences'] = {
         if (dir.includes('w')) h.style.left = '-8px'; else h.style.right = '-8px';
         debugCircle.appendChild(h);
       });
+      // עדכון קואורדינטות
+      function updateLabel() {
+        const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
+        const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
+        const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
+        coordsBox.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+      }
       // גרירה
       let drag = false, startX, startY, startLeft, startTop;
       debugCircle.onpointerdown = ev => {
-        if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) return;
+        if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) {
+          debugCircle.focus();
+          return;
+        }
         drag = true;
         startX = ev.clientX;
         startY = ev.clientY;
         startLeft = parseFloat(debugCircle.style.left);
         startTop = parseFloat(debugCircle.style.top);
         debugCircle.setPointerCapture(ev.pointerId);
+        // הצג קואורדינטות של עיגול זה
+        updateLabel();
       };
       debugCircle.onpointermove = ev => {
         if (drag) {
@@ -187,6 +209,7 @@ window['find-differences'] = {
           startW = parseFloat(debugCircle.style.width);
           startH = parseFloat(debugCircle.style.height);
           debugCircle.setPointerCapture(ev.pointerId);
+          updateLabel();
         };
       });
       debugCircle.onpointermove = ev => {
@@ -204,24 +227,18 @@ window['find-differences'] = {
         }
       };
       debugCircle.onpointerup = () => { resize = false; drag = false; };
-      // עדכון קואורדינטות
-      function updateLabel() {
-        const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
-        const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
-        const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-        coordsBox.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
-      }
+      // בלחיצה על עיגול – הצג את ערכיו
+      debugCircle.onclick = (ev) => {
+        if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) return;
+        updateLabel();
+      };
       updateLabel();
       // הוסף את העיגול ל-board (מעל התמונה)
       board.appendChild(debugCircle);
     }
-    // כפתור יוצר עיגול עזר רגיל
-    debugBtn.onclick = () => {
-      createDebugCircle();
-    };
-    // Shift+Click יוצר עיגול עזר נוסף במיקום הלחיצה
+    // Shift+Click יוצר עיגול עזר נוסף במיקום הלחיצה (רק אם debugMode פעיל)
     img.addEventListener('click', function(ev) {
-      if (ev.shiftKey) {
+      if (debugMode && ev.shiftKey) {
         const rect = img.getBoundingClientRect();
         const x = (ev.clientX - rect.left) / rect.width * 100;
         const y = (ev.clientY - rect.top) / rect.height * 100;

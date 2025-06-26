@@ -136,37 +136,22 @@ window['find-differences'] = {
     function createLinkedDebugCircles(leftP, topP, widthP, heightP) {
       coordsBox.style.display = 'block';
       // צור שני עיגולים
-      const circles = [];
-      // left side
-      circles.push(createDebugCircle({
+      createDebugCircle({
         left: (leftP || 30) / 2,
         top: topP || 30,
         w: (widthP || 10) / 2,
         h: heightP || 10
-      }, 0));
-      // right side
-      circles.push(createDebugCircle({
+      }, 'L');
+      createDebugCircle({
         left: 0.5 + (leftP || 30) / 2,
         top: topP || 30,
         w: (widthP || 10) / 2,
         h: heightP || 10
-      }, 1));
-      // קישור בין העיגולים
-      circles.forEach((c, idx) => {
-        c.onclick = (ev) => {
-          if (ev.target.classList.contains('debug-resize-handle') || ev.target.classList.contains('close-btn')) return;
-          // מחק סימון קודם
-          document.querySelectorAll('.debug-circle.selected').forEach(c2 => c2.classList.remove('selected'));
-          circles.forEach(c2 => c2.classList.add('selected'));
-          updateCoordsBox();
-        };
-      });
-      // עדכן תיבת קואורדינטות
+      }, 'R');
       updateCoordsBox();
     }
     // פונקציה ליצירת עיגול בודד (בשימוש פנימי בלבד)
-    function createDebugCircle(area, side) {
-      // ודא שה-board קיים
+    function createDebugCircle(area, sideLabel) {
       let board = document.getElementById('diff-board');
       if (!board) {
         board = document.querySelector('#diff-board');
@@ -177,6 +162,7 @@ window['find-differences'] = {
       }
       const debugCircle = document.createElement('div');
       debugCircle.className = 'debug-circle';
+      debugCircle.dataset.side = sideLabel;
       debugCircle.style.position = 'absolute';
       debugCircle.style.left = (area.left) * 100 + '%';
       debugCircle.style.top = (area.top) * 100 + '%';
@@ -188,13 +174,29 @@ window['find-differences'] = {
       debugCircle.style.pointerEvents = 'auto';
       debugCircle.style.zIndex = '200';
       debugCircle.style.boxShadow = '0 0 8px red';
-      debugCircle.style.background = 'rgba(255,0,0,0.15)'; // יותר בולט
+      debugCircle.style.background = 'rgba(255,0,0,0.15)';
       debugCircle.style.display = 'flex';
       debugCircle.style.alignItems = 'center';
       debugCircle.style.justifyContent = 'center';
       debugCircle.style.userSelect = 'none';
       debugCircle.style.minWidth = '2%';
       debugCircle.style.minHeight = '2%';
+      // תווית צד
+      const label = document.createElement('div');
+      label.textContent = sideLabel;
+      label.style.position = 'absolute';
+      label.style.top = '-18px';
+      label.style.left = '50%';
+      label.style.transform = 'translateX(-50%)';
+      label.style.background = '#fff';
+      label.style.color = 'red';
+      label.style.fontWeight = 'bold';
+      label.style.fontSize = '15px';
+      label.style.padding = '0 6px';
+      label.style.borderRadius = '8px';
+      label.style.boxShadow = '0 2px 8px #0002';
+      label.style.pointerEvents = 'none';
+      debugCircle.appendChild(label);
       // כפתור סגירה
       const closeBtn = document.createElement('button');
       closeBtn.textContent = '✖';
@@ -285,7 +287,6 @@ window['find-differences'] = {
       });
       debugCircle.addEventListener('pointerup', () => { resize = false; drag = false; });
       board.appendChild(debugCircle);
-      console.log('נוצר עיגול עזר', debugCircle.style.left, debugCircle.style.top, debugCircle.style.width, debugCircle.style.height);
       return debugCircle;
     }
     // עדכון תיבת קואורדינטות: מציג את כל העיגולים הקיימים
@@ -298,9 +299,10 @@ window['find-differences'] = {
         const ly = (parseFloat(c.style.top)/100).toFixed(3);
         const w = (parseFloat(c.style.width)/100).toFixed(3);
         const h = (parseFloat(c.style.height)/100).toFixed(3);
+        const side = c.dataset.side || '';
         const row = document.createElement('div');
         row.className = 'debug-coords-text';
-        row.textContent = `left: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
+        row.textContent = `${side === 'L' ? 'left' : side === 'R' ? 'right' : ''}: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
         list.appendChild(row);
       });
       coordsBox.style.display = document.querySelectorAll('.debug-circle').length ? 'block' : 'none';

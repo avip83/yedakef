@@ -154,7 +154,9 @@ window['color-match'] = {
     rowDrags.style.display = 'flex';
     rowDrags.style.justifyContent = 'center';
     rowDrags.style.gap = '32px';
-    drags.forEach(pair => {
+    // ערבוב רנדומלי לגרירות
+    const dragsShuffled = pairs.slice().sort(() => Math.random() - 0.5);
+    dragsShuffled.forEach(pair => {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
       drag.style.background = pair.color.color;

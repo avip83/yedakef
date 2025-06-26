@@ -64,14 +64,14 @@ window['find-differences'] = {
     // כל עיגול: [left, top, r] (left/top/radius יחסיים)
     // ערכים מותאמים לפי התמונה שסיפקת
     const diffs = [
-      // פרח
-      [ {left: 0.145, top: 0.19, r: 0.07}, {left: 0.645, top: 0.19, r: 0.07} ],
-      // עין
-      [ {left: 0.23, top: 0.32, r: 0.045}, {left: 0.73, top: 0.32, r: 0.045} ],
+      // נעליים
+      [ {left: 0.25, top: 0.82, r: 0.11}, {left: 0.75, top: 0.82, r: 0.11} ],
       // יד
       [ {left: 0.32, top: 0.54, r: 0.09}, {left: 0.82, top: 0.54, r: 0.09} ],
-      // נעליים
-      [ {left: 0.25, top: 0.82, r: 0.11}, {left: 0.75, top: 0.82, r: 0.11} ]
+      // עין
+      [ {left: 0.23, top: 0.32, r: 0.045}, {left: 0.73, top: 0.32, r: 0.045} ],
+      // פרח
+      [ {left: 0.145, top: 0.19, r: 0.07}, {left: 0.645, top: 0.19, r: 0.07} ]
     ];
     // שכבת אינטראקציה
     const overlay = document.createElement('div');

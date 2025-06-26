@@ -135,13 +135,8 @@ window['find-differences'] = {
     // פונקציה ליצירת זוג עיגולים מקושרים
     function createLinkedDebugCircles(leftP, topP, widthP, heightP) {
       coordsBox.style.display = 'block';
-      // מחק סימון קודם
-      document.querySelectorAll('.debug-circle.selected').forEach(c => c.classList.remove('selected'));
-      // מחק שורות קודמות
-      document.getElementById('debug-coords-list').innerHTML = '';
       // צור שני עיגולים
       const circles = [];
-      const coords = [];
       // left side
       circles.push(createDebugCircle({
         left: (leftP || 30) / 2,
@@ -156,19 +151,6 @@ window['find-differences'] = {
         w: (widthP || 10) / 2,
         h: heightP || 10
       }, 1));
-      // סימון זוג
-      circles.forEach(c => c.classList.add('selected'));
-      // עדכון שורות נתונים
-      circles.forEach((c, i) => {
-        const lx = (parseFloat(c.style.left)/100).toFixed(3);
-        const ly = (parseFloat(c.style.top)/100).toFixed(3);
-        const w = (parseFloat(c.style.width)/100).toFixed(3);
-        const h = (parseFloat(c.style.height)/100).toFixed(3);
-        const row = document.createElement('div');
-        row.className = 'debug-coords-text';
-        row.textContent = `left: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
-        document.getElementById('debug-coords-list').appendChild(row);
-      });
       // קישור בין העיגולים
       circles.forEach((c, idx) => {
         c.onclick = (ev) => {
@@ -176,20 +158,11 @@ window['find-differences'] = {
           // מחק סימון קודם
           document.querySelectorAll('.debug-circle.selected').forEach(c2 => c2.classList.remove('selected'));
           circles.forEach(c2 => c2.classList.add('selected'));
-          // עדכן שורות
-          document.getElementById('debug-coords-list').innerHTML = '';
-          circles.forEach((c3, i) => {
-            const lx = (parseFloat(c3.style.left)/100).toFixed(3);
-            const ly = (parseFloat(c3.style.top)/100).toFixed(3);
-            const w = (parseFloat(c3.style.width)/100).toFixed(3);
-            const h = (parseFloat(c3.style.height)/100).toFixed(3);
-            const row = document.createElement('div');
-            row.className = 'debug-coords-text';
-            row.textContent = `left: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
-            document.getElementById('debug-coords-list').appendChild(row);
-          });
+          updateCoordsBox();
         };
       });
+      // עדכן תיבת קואורדינטות
+      updateCoordsBox();
     }
     // פונקציה ליצירת עיגול בודד (בשימוש פנימי בלבד)
     function createDebugCircle(area, side) {
@@ -228,7 +201,7 @@ window['find-differences'] = {
       closeBtn.style.height = '28px';
       closeBtn.style.cursor = 'pointer';
       closeBtn.style.fontWeight = 'bold';
-      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); if (!document.querySelector('.debug-circle')) coordsBox.style.display = 'none'; document.getElementById('debug-coords-list').innerHTML = ''; };
+      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); updateCoordsBox(); };
       debugCircle.appendChild(closeBtn);
       // ידיות מתיחה (4 פינות)
       const handles = ['nw','ne','sw','se'];
@@ -269,6 +242,7 @@ window['find-differences'] = {
           const dy = (ev.clientY - startY) / imgRect.height * 100;
           debugCircle.style.left = (startLeft + dx) + '%';
           debugCircle.style.top = (startTop + dy) + '%';
+          updateCoordsBox();
         }
       });
       debugCircle.addEventListener('pointerup', () => { drag = false; });
@@ -297,11 +271,29 @@ window['find-differences'] = {
           let newH = Math.max(2, startH + dh);
           debugCircle.style.width = newW + '%';
           debugCircle.style.height = newH + '%';
+          updateCoordsBox();
         }
       });
       debugCircle.addEventListener('pointerup', () => { resize = false; drag = false; });
       board.appendChild(debugCircle);
       return debugCircle;
+    }
+    // עדכון תיבת קואורדינטות: מציג את כל העיגולים הקיימים
+    function updateCoordsBox() {
+      const list = document.getElementById('debug-coords-list');
+      if (!list) return;
+      list.innerHTML = '';
+      document.querySelectorAll('.debug-circle').forEach(c => {
+        const lx = (parseFloat(c.style.left)/100).toFixed(3);
+        const ly = (parseFloat(c.style.top)/100).toFixed(3);
+        const w = (parseFloat(c.style.width)/100).toFixed(3);
+        const h = (parseFloat(c.style.height)/100).toFixed(3);
+        const row = document.createElement('div');
+        row.className = 'debug-coords-text';
+        row.textContent = `left: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
+        list.appendChild(row);
+      });
+      coordsBox.style.display = document.querySelectorAll('.debug-circle').length ? 'block' : 'none';
     }
     // Shift+Click יוצר זוג עיגולים מקושרים במיקום הלחיצה (רק אם debugMode פעיל)
     img.addEventListener('click', function(ev) {

@@ -57,7 +57,7 @@ window['color-match'] = {
     const modal = document.createElement('div');
     modal.className = 'game-modal';
     modal.innerHTML = `
-      <div class="game-modal-content" style="position:relative; min-height:90vh; box-sizing:border-box; padding-bottom:32px;">
+      <div class="game-modal-content">
         <div class="game-modal-header">
           <h2>התאמת צבעים</h2>
         </div>

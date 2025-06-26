@@ -343,13 +343,8 @@ body {
         z-index: 2000 !important;
     }
     .game-modal-content {
-        width: 100% !important;
-        min-width: unset !important;
-        max-width: 100% !important;
         max-height: 100vh !important;
         overflow-y: auto !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
     }
     .game-modal-body {
         padding: 0 2vw !important;
@@ -436,13 +431,8 @@ html, body {
 }
 @media (max-width: 600px) {
     .game-modal-content {
-        width: 100% !important;
-        min-width: unset !important;
-        max-width: 100% !important;
         max-height: 100vh !important;
         overflow-y: auto !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
     }
     .close-button {
         top: 24px !important;
@@ -677,7 +667,11 @@ button, .game-card, .category-card {
 }
 
 .game-modal-content {
-    background: #fffbe9 !important;
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
 .volume-button {

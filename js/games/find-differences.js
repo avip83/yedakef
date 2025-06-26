@@ -57,6 +57,158 @@ window['find-differences'] = {
     img.style.boxShadow = '0 4px 24px #0001';
     img.style.display = 'block';
     img.style.position = 'relative';
+    // כפתור כלי עזר
+    const debugBtn = document.createElement('button');
+    debugBtn.textContent = 'הפעל כלי עזר';
+    debugBtn.style.margin = '8px auto 0 auto';
+    debugBtn.style.display = 'block';
+    debugBtn.style.background = '#fffbe9';
+    debugBtn.style.color = '#d32f2f';
+    debugBtn.style.fontWeight = 'bold';
+    debugBtn.style.fontSize = '1.1rem';
+    debugBtn.style.padding = '6px 18px';
+    debugBtn.style.borderRadius = '12px';
+    debugBtn.style.border = '2px solid #d32f2f';
+    debugBtn.style.cursor = 'pointer';
+    debugBtn.style.zIndex = '100';
+    debugBtn.onclick = () => {
+      // הסר עיגול עזר קודם אם קיים
+      const old = document.getElementById('debug-circle');
+      if (old) old.remove();
+      // צור עיגול עזר
+      const debugCircle = document.createElement('div');
+      debugCircle.id = 'debug-circle';
+      debugCircle.style.position = 'absolute';
+      debugCircle.style.left = '30%';
+      debugCircle.style.top = '30%';
+      debugCircle.style.width = '15%';
+      debugCircle.style.height = '15%';
+      debugCircle.style.transform = 'translate(-50%,-50%)';
+      debugCircle.style.borderRadius = '50%';
+      debugCircle.style.border = '3px solid red';
+      debugCircle.style.pointerEvents = 'auto';
+      debugCircle.style.zIndex = '200';
+      debugCircle.style.boxShadow = '0 0 8px red';
+      debugCircle.style.background = 'rgba(255,0,0,0.07)';
+      debugCircle.style.display = 'flex';
+      debugCircle.style.alignItems = 'center';
+      debugCircle.style.justifyContent = 'center';
+      debugCircle.style.userSelect = 'none';
+      debugCircle.style.minWidth = '40px';
+      debugCircle.style.minHeight = '40px';
+      // הודעה עם קואורדינטות
+      const label = document.createElement('div');
+      label.id = 'debug-coords-label';
+      label.style.position = 'absolute';
+      label.style.bottom = '-32px';
+      label.style.left = '50%';
+      label.style.transform = 'translateX(-50%)';
+      label.style.background = '#fff';
+      label.style.color = 'red';
+      label.style.fontWeight = 'bold';
+      label.style.fontSize = '15px';
+      label.style.padding = '2px 8px';
+      label.style.borderRadius = '8px';
+      label.style.boxShadow = '0 2px 8px #0002';
+      label.style.pointerEvents = 'none';
+      debugCircle.appendChild(label);
+      // כפתור סגירה
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '✖';
+      closeBtn.style.position = 'absolute';
+      closeBtn.style.top = '-18px';
+      closeBtn.style.right = '-18px';
+      closeBtn.style.background = '#fff';
+      closeBtn.style.color = 'red';
+      closeBtn.style.border = '2px solid red';
+      closeBtn.style.borderRadius = '50%';
+      closeBtn.style.width = '28px';
+      closeBtn.style.height = '28px';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.fontWeight = 'bold';
+      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); };
+      debugCircle.appendChild(closeBtn);
+      // ידיות מתיחה (4 פינות)
+      const handles = ['nw','ne','sw','se'];
+      handles.forEach(dir => {
+        const h = document.createElement('div');
+        h.className = 'debug-resize-handle';
+        h.dataset.dir = dir;
+        h.style.position = 'absolute';
+        h.style.width = '16px';
+        h.style.height = '16px';
+        h.style.background = '#fff';
+        h.style.border = '2px solid red';
+        h.style.borderRadius = '50%';
+        h.style.zIndex = '30';
+        h.style.cursor = dir+'-resize';
+        if (dir.includes('n')) h.style.top = '-8px'; else h.style.bottom = '-8px';
+        if (dir.includes('w')) h.style.left = '-8px'; else h.style.right = '-8px';
+        debugCircle.appendChild(h);
+      });
+      // גרירה
+      let drag = false, startX, startY, startLeft, startTop;
+      debugCircle.onpointerdown = ev => {
+        if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) return;
+        drag = true;
+        startX = ev.clientX;
+        startY = ev.clientY;
+        startLeft = parseFloat(debugCircle.style.left);
+        startTop = parseFloat(debugCircle.style.top);
+        debugCircle.setPointerCapture(ev.pointerId);
+      };
+      debugCircle.onpointermove = ev => {
+        if (drag) {
+          const imgRect = img.getBoundingClientRect();
+          const dx = (ev.clientX - startX) / imgRect.width * 100;
+          const dy = (ev.clientY - startY) / imgRect.height * 100;
+          debugCircle.style.left = (startLeft + dx) + '%';
+          debugCircle.style.top = (startTop + dy) / 100).toFixed(3);
+          updateLabel();
+        }
+      };
+      debugCircle.onpointerup = () => { drag = false; };
+      // מתיחה
+      let resize = false, resizeDir, startW, startH;
+      debugCircle.querySelectorAll('.debug-resize-handle').forEach(h => {
+        h.onpointerdown = ev => {
+          ev.stopPropagation();
+          resize = true;
+          resizeDir = h.dataset.dir;
+          startX = ev.clientX;
+          startY = ev.clientY;
+          startW = parseFloat(debugCircle.style.width);
+          startH = parseFloat(debugCircle.style.height);
+          debugCircle.setPointerCapture(ev.pointerId);
+        };
+      });
+      debugCircle.onpointermove = ev => {
+        if (resize) {
+          const imgRect = img.getBoundingClientRect();
+          let dw = (ev.clientX - startX) / imgRect.width * 100;
+          let dh = (ev.clientY - startY) / imgRect.height * 100;
+          if (resizeDir.includes('w')) dw = -dw;
+          if (resizeDir.includes('n')) dh = -dh;
+          let newW = Math.max(4, startW + dw);
+          let newH = Math.max(4, startH + dh);
+          debugCircle.style.width = newW + '%';
+          debugCircle.style.height = newH + '%';
+          updateLabel();
+        }
+      };
+      debugCircle.onpointerup = () => { resize = false; drag = false; };
+      // עדכון קואורדינטות
+      function updateLabel() {
+        const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
+        const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
+        const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
+        label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+      }
+      updateLabel();
+      // הוסף את העיגול ל-board (מעל התמונה)
+      board.appendChild(debugCircle);
+    };
+    board.appendChild(debugBtn);
     board.appendChild(img);
     // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל) עם קואורדינטות מדויקות
     // left: 0 (שמאל קיצון), 1 (ימין קיצון)
@@ -85,8 +237,6 @@ window['find-differences'] = {
     overlay.id = 'diff-overlay';
     board.style.position = 'relative';
     board.appendChild(overlay);
-    // הפוך את board ל-position:relative
-    board.style.position = 'relative';
     // הוסף אזורים אינטראקטיביים
     diffs.forEach((pair, diffIdx) => {
       pair.forEach((area, sideIdx) => {
@@ -102,6 +252,8 @@ window['find-differences'] = {
         btn.style.pointerEvents = 'auto';
         btn.style.background = 'rgba(0,0,0,0)';
         btn.onclick = (e) => {
+          // אם Shift לחוץ, אל תבצע כלום (כלי עזר פעיל)
+          if (e.shiftKey) return;
           e.stopPropagation();
           if (!this.found.includes(diffIdx)) {
             this.found.push(diffIdx);
@@ -139,161 +291,24 @@ window['find-differences'] = {
           overlay.style.zIndex = '2';
           img.parentElement.appendChild(overlay);
         }
-        // הסר עיגול עזר קודם אם קיים
-        const old = document.getElementById('debug-circle');
-        if (old) old.remove();
-        // צור עיגול עזר
-        const debugCircle = document.createElement('div');
-        debugCircle.id = 'debug-circle';
-        debugCircle.style.position = 'absolute';
-        debugCircle.style.left = (x * 100) + '%';
-        debugCircle.style.top = (y * 100) + '%';
-        debugCircle.style.width = '12%';
-        debugCircle.style.height = '12%';
-        debugCircle.style.transform = 'translate(-50%,-50%)';
-        debugCircle.style.borderRadius = '50%';
-        debugCircle.style.border = '3px solid red';
-        debugCircle.style.pointerEvents = 'auto';
-        debugCircle.style.zIndex = '20';
-        debugCircle.style.boxShadow = '0 0 8px red';
-        debugCircle.style.background = 'rgba(255,0,0,0.07)';
-        debugCircle.style.display = 'flex';
-        debugCircle.style.alignItems = 'center';
-        debugCircle.style.justifyContent = 'center';
-        debugCircle.style.userSelect = 'none';
-        // הודעה עם קואורדינטות
-        const label = document.createElement('div');
-        label.id = 'debug-coords-label';
-        label.style.position = 'absolute';
-        label.style.top = '-28px';
-        label.style.left = '50%';
-        label.style.transform = 'translateX(-50%)';
-        label.style.background = '#fff';
-        label.style.color = 'red';
-        label.style.fontWeight = 'bold';
-        label.style.fontSize = '15px';
-        label.style.padding = '2px 8px';
-        label.style.borderRadius = '8px';
-        label.style.boxShadow = '0 2px 8px #0002';
-        label.style.pointerEvents = 'none';
-        label.textContent = `left: ${x.toFixed(3)}, top: ${y.toFixed(3)}, r: ${(parseFloat(debugCircle.style.width)/100).toFixed(3)}`;
-        debugCircle.appendChild(label);
-        // הודעה ויזואלית בראש המסך
-        let msg = document.getElementById('debug-tool-msg');
-        if (!msg) {
-          msg = document.createElement('div');
-          msg.id = 'debug-tool-msg';
-          msg.style.position = 'fixed';
-          msg.style.top = '12px';
-          msg.style.left = '50%';
-          msg.style.transform = 'translateX(-50%)';
-          msg.style.background = '#fffbe9';
-          msg.style.color = '#d32f2f';
-          msg.style.fontWeight = 'bold';
-          msg.style.fontSize = '18px';
-          msg.style.padding = '8px 24px';
-          msg.style.borderRadius = '16px';
-          msg.style.boxShadow = '0 2px 12px #0002';
-          msg.style.zIndex = '9999';
-          msg.textContent = 'כלי עזר פעיל! גרור/מתח את העיגול, הקורדינטות מוצגות מעליו.';
-          document.body.appendChild(msg);
+        // בדוק אם נלחץ על אחד האזורים
+        let hit = false;
+        for (let pair of diffs) {
+          for (let a of pair) {
+            const dx = x - a.left;
+            const dy = y - a.top;
+            if (Math.sqrt(dx*dx + dy*dy) < a.r) {
+              hit = true;
+              break;
+            }
+          }
+          if (hit) break;
         }
-        // ידיות מתיחה (4 פינות)
-        const handles = ['nw','ne','sw','se'];
-        handles.forEach(dir => {
-          const h = document.createElement('div');
-          h.className = 'debug-resize-handle';
-          h.dataset.dir = dir;
-          h.style.position = 'absolute';
-          h.style.width = '16px';
-          h.style.height = '16px';
-          h.style.background = '#fff';
-          h.style.border = '2px solid red';
-          h.style.borderRadius = '50%';
-          h.style.zIndex = '30';
-          h.style.cursor = dir+'-resize';
-          if (dir.includes('n')) h.style.top = '-8px'; else h.style.bottom = '-8px';
-          if (dir.includes('w')) h.style.left = '-8px'; else h.style.right = '-8px';
-          debugCircle.appendChild(h);
-        });
-        // גרירה
-        let drag = false, startX, startY, startLeft, startTop;
-        debugCircle.onpointerdown = ev => {
-          if (ev.target.classList.contains('debug-resize-handle')) return;
-          drag = true;
-          startX = ev.clientX;
-          startY = ev.clientY;
-          startLeft = parseFloat(debugCircle.style.left);
-          startTop = parseFloat(debugCircle.style.top);
-          debugCircle.setPointerCapture(ev.pointerId);
-        };
-        debugCircle.onpointermove = ev => {
-          if (drag) {
-            const dx = (ev.clientX - startX) / rect.width * 100;
-            const dy = (ev.clientY - startY) / rect.height * 100;
-            debugCircle.style.left = (startLeft + dx) + '%';
-            debugCircle.style.top = (startTop + dy) + '%';
-            // עדכן קואורדינטות
-            const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
-            const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
-            const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-            label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
-          }
-        };
-        debugCircle.onpointerup = () => { drag = false; };
-        // מתיחה
-        let resize = false, resizeDir, startW, startH;
-        debugCircle.querySelectorAll('.debug-resize-handle').forEach(h => {
-          h.onpointerdown = ev => {
-            ev.stopPropagation();
-            resize = true;
-            resizeDir = h.dataset.dir;
-            startX = ev.clientX;
-            startY = ev.clientY;
-            startW = parseFloat(debugCircle.style.width);
-            startH = parseFloat(debugCircle.style.height);
-            debugCircle.setPointerCapture(ev.pointerId);
-          };
-        });
-        debugCircle.onpointermove = ev => {
-          if (resize) {
-            let dw = (ev.clientX - startX) / rect.width * 100;
-            let dh = (ev.clientY - startY) / rect.height * 100;
-            if (resizeDir.includes('w')) dw = -dw;
-            if (resizeDir.includes('n')) dh = -dh;
-            let newW = Math.max(4, startW + dw);
-            let newH = Math.max(4, startH + dh);
-            // שמור עיגול
-            debugCircle.style.width = newW + '%';
-            debugCircle.style.height = newH + '%';
-            // עדכן קואורדינטות
-            const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
-            const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
-            const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-            label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
-          }
-        };
-        debugCircle.onpointerup = () => { resize = false; drag = false; };
-        overlay.appendChild(debugCircle);
-        return;
-      }
-      // בדוק אם נלחץ על אחד האזורים
-      let hit = false;
-      for (let pair of diffs) {
-        for (let a of pair) {
-          const dx = x - a.left;
-          const dy = y - a.top;
-          if (Math.sqrt(dx*dx + dy*dy) < a.r) {
-            hit = true;
-            break;
-          }
+        if (!hit) {
+          document.getElementById('diff-feedback').textContent = 'נסה שוב!';
+          document.getElementById('diff-feedback').style.color = '#e53935';
+          this.playSound('wrong');
         }
-        if (hit) break;
-      }
-      if (!hit) {
-        document.getElementById('diff-feedback').textContent = 'נסה שוב!';
-        document.getElementById('diff-feedback').style.color = '#e53935';
-        this.playSound('wrong');
       }
     };
     // צייר עיגולים על ההבדלים שנמצאו

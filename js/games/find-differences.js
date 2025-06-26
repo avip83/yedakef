@@ -166,6 +166,15 @@ window['find-differences'] = {
     }
     // פונקציה ליצירת עיגול בודד (בשימוש פנימי בלבד)
     function createDebugCircle(area, side) {
+      // ודא שה-board קיים
+      let board = document.getElementById('diff-board');
+      if (!board) {
+        board = document.querySelector('#diff-board');
+        if (!board) {
+          console.error('לא נמצא board עבור עיגול עזר');
+          return null;
+        }
+      }
       const debugCircle = document.createElement('div');
       debugCircle.className = 'debug-circle';
       debugCircle.style.position = 'absolute';
@@ -179,7 +188,7 @@ window['find-differences'] = {
       debugCircle.style.pointerEvents = 'auto';
       debugCircle.style.zIndex = '200';
       debugCircle.style.boxShadow = '0 0 8px red';
-      debugCircle.style.background = 'rgba(255,0,0,0.07)';
+      debugCircle.style.background = 'rgba(255,0,0,0.15)'; // יותר בולט
       debugCircle.style.display = 'flex';
       debugCircle.style.alignItems = 'center';
       debugCircle.style.justifyContent = 'center';
@@ -276,6 +285,7 @@ window['find-differences'] = {
       });
       debugCircle.addEventListener('pointerup', () => { resize = false; drag = false; });
       board.appendChild(debugCircle);
+      console.log('נוצר עיגול עזר', debugCircle.style.left, debugCircle.style.top, debugCircle.style.width, debugCircle.style.height);
       return debugCircle;
     }
     // עדכון תיבת קואורדינטות: מציג את כל העיגולים הקיימים
@@ -354,7 +364,7 @@ window['find-differences'] = {
         btn.style.height = (mapped.h * 100) + '%';
         btn.style.transform = 'translate(-50%,-50%)';
         btn.style.borderRadius = '50%';
-        btn.style.cursor = 'pointer';
+      btn.style.cursor = 'pointer';
         btn.style.pointerEvents = 'auto';
         btn.style.background = 'rgba(0,0,0,0)';
         btn.onclick = (e) => {
@@ -367,9 +377,9 @@ window['find-differences'] = {
             pair.forEach((a, s) => this.drawCircle(mapArea(a, s)));
             this.playSound('success');
             if (this.found.length === diffs.length) {
-              document.getElementById('diff-feedback').textContent = 'כל הכבוד!';
+          document.getElementById('diff-feedback').textContent = 'כל הכבוד!';
               document.getElementById('diff-feedback').style.color = '#43a047';
-              this.nextStageButton();
+          this.nextStageButton();
             }
           }
         };

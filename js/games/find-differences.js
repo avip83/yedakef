@@ -71,10 +71,31 @@ window['find-differences'] = {
     debugBtn.style.border = '2px solid #d32f2f';
     debugBtn.style.cursor = 'pointer';
     debugBtn.style.zIndex = '100';
+    // תיבת קואורדינטות בפינה העליונה של הלוח
+    let coordsBox = document.getElementById('debug-coords-box');
+    if (!coordsBox) {
+      coordsBox = document.createElement('div');
+      coordsBox.id = 'debug-coords-box';
+      coordsBox.style.position = 'absolute';
+      coordsBox.style.top = '8px';
+      coordsBox.style.left = '8px';
+      coordsBox.style.background = '#fff';
+      coordsBox.style.color = 'red';
+      coordsBox.style.fontWeight = 'bold';
+      coordsBox.style.fontSize = '15px';
+      coordsBox.style.padding = '4px 12px';
+      coordsBox.style.borderRadius = '10px';
+      coordsBox.style.boxShadow = '0 2px 8px #0002';
+      coordsBox.style.pointerEvents = 'none';
+      coordsBox.style.zIndex = '300';
+      coordsBox.style.display = 'none';
+      board.appendChild(coordsBox);
+    }
     debugBtn.onclick = () => {
       // הסר עיגול עזר קודם אם קיים
       const old = document.getElementById('debug-circle');
       if (old) old.remove();
+      coordsBox.style.display = 'block';
       // צור עיגול עזר
       const debugCircle = document.createElement('div');
       debugCircle.id = 'debug-circle';
@@ -96,22 +117,6 @@ window['find-differences'] = {
       debugCircle.style.userSelect = 'none';
       debugCircle.style.minWidth = '40px';
       debugCircle.style.minHeight = '40px';
-      // הודעה עם קואורדינטות
-      const label = document.createElement('div');
-      label.id = 'debug-coords-label';
-      label.style.position = 'absolute';
-      label.style.bottom = '-32px';
-      label.style.left = '50%';
-      label.style.transform = 'translateX(-50%)';
-      label.style.background = '#fff';
-      label.style.color = 'red';
-      label.style.fontWeight = 'bold';
-      label.style.fontSize = '15px';
-      label.style.padding = '2px 8px';
-      label.style.borderRadius = '8px';
-      label.style.boxShadow = '0 2px 8px #0002';
-      label.style.pointerEvents = 'none';
-      debugCircle.appendChild(label);
       // כפתור סגירה
       const closeBtn = document.createElement('button');
       closeBtn.textContent = '✖';
@@ -126,7 +131,7 @@ window['find-differences'] = {
       closeBtn.style.height = '28px';
       closeBtn.style.cursor = 'pointer';
       closeBtn.style.fontWeight = 'bold';
-      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); };
+      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); coordsBox.style.display = 'none'; };
       debugCircle.appendChild(closeBtn);
       // ידיות מתיחה (4 פינות)
       const handles = ['nw','ne','sw','se'];
@@ -162,8 +167,8 @@ window['find-differences'] = {
           const imgRect = img.getBoundingClientRect();
           const dx = (ev.clientX - startX) / imgRect.width * 100;
           const dy = (ev.clientY - startY) / imgRect.height * 100;
-          debugCircle.style.left = (startLeft + dx) + '%';
-          debugCircle.style.top = (startTop + dy) / 100).toFixed(3);
+          debugCircle.style.left = (startLeft + dx) / 100 + '%';
+          debugCircle.style.top = (startTop + dy) / 100 + '%';
           updateLabel();
         }
       };
@@ -202,7 +207,7 @@ window['find-differences'] = {
         const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
         const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
         const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-        label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+        coordsBox.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
       }
       updateLabel();
       // הוסף את העיגול ל-board (מעל התמונה)
@@ -252,7 +257,7 @@ window['find-differences'] = {
         btn.style.pointerEvents = 'auto';
         btn.style.background = 'rgba(0,0,0,0)';
         btn.onclick = (e) => {
-          // אם Shift לחוץ, אל תבצע כלום (כלי עזר פעיל)
+          // אם Shift לחוץ – אל תעשה כלום (כלי עזר פעיל)
           if (e.shiftKey) return;
           e.stopPropagation();
           if (!this.found.includes(diffIdx)) {
@@ -309,8 +314,8 @@ window['find-differences'] = {
           document.getElementById('diff-feedback').style.color = '#e53935';
           this.playSound('wrong');
         }
-      }
-    };
+        }
+      };
     // צייר עיגולים על ההבדלים שנמצאו
     this.found.forEach(diffIdx => diffs[diffIdx].forEach(a => this.drawCircle(a)));
     document.getElementById('diff-feedback').textContent = '';

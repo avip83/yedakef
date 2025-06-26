@@ -123,6 +123,27 @@ window['find-differences'] = {
       const rect = img.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
+      // כלי עזר: Shift+Click מציג קואורדינטות ומצייר עיגול אדום זמני
+      if (e.shiftKey) {
+        console.log(`left: ${x.toFixed(3)}, top: ${y.toFixed(3)}`);
+        // עיגול אדום זמני
+        const debugCircle = document.createElement('div');
+        debugCircle.style.position = 'absolute';
+        debugCircle.style.left = (x * 100) + '%';
+        debugCircle.style.top = (y * 100) + '%';
+        debugCircle.style.width = '8%';
+        debugCircle.style.height = '8%';
+        debugCircle.style.transform = 'translate(-50%,-50%)';
+        debugCircle.style.borderRadius = '50%';
+        debugCircle.style.border = '3px solid red';
+        debugCircle.style.pointerEvents = 'none';
+        debugCircle.style.zIndex = '10';
+        debugCircle.style.boxShadow = '0 0 8px red';
+        const overlay = document.getElementById('diff-overlay');
+        overlay.appendChild(debugCircle);
+        setTimeout(() => debugCircle.remove(), 1200);
+        return;
+      }
       // בדוק אם נלחץ על אחד האזורים
       let hit = false;
       for (let pair of diffs) {

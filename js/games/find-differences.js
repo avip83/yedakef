@@ -37,6 +37,13 @@ window['find-differences'] = {
           <div id="diff-board" style="display: flex; justify-content: center; align-items: center; margin: 24px 0; position:relative;"></div>
           <div id="diff-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700;"></div>
           <button id="diff-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
+          <div id="diff-progress-bar" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 8px;">
+            <div id="diff-progress-label" style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;"></div>
+            <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
+              <div id="diff-progress-bar-inner" style="width: 0%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
+            </div>
+          </div>
+          <div id="diff-found-counter" style="font-size: 1.2rem; font-weight: bold; color: #1976d2; margin: 0 0 8px 0; text-align: center;"></div>
         </div>
       </div>
     `;
@@ -334,12 +341,29 @@ window['find-differences'] = {
         board.appendChild(btn);
       });
     });
+    // עדכון בר שלבים
+    const percent = Math.round((this.stage+1)/this.totalStages*100);
+    document.getElementById('diff-progress-label').textContent = `שלב ${this.stage+1} מתוך ${this.totalStages}`;
+    document.getElementById('diff-progress-bar-inner').style.width = percent + '%';
+    // מונה הצלחות מעל התמונה
+    let foundCounter = document.getElementById('diff-found-counter');
+    if (!foundCounter) {
+      foundCounter = document.createElement('div');
+      foundCounter.id = 'diff-found-counter';
+      foundCounter.style.fontSize = '1.2rem';
+      foundCounter.style.fontWeight = 'bold';
+      foundCounter.style.color = '#1976d2';
+      foundCounter.style.margin = '0 0 8px 0';
+      foundCounter.style.textAlign = 'center';
+      img.parentElement.insertBefore(foundCounter, img);
+    }
+    foundCounter.textContent = `${this.found.length} מתוך ${diffs.length}`;
     // לחיצה על אזור לא נכון
     img.onclick = (e) => {
       const rect = img.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-      // כלי עזר: Shift+Click מציג קואורדינטות, עיגול עזר גריר ומתוח
+      // כלי עזר
       if (e.shiftKey) {
         // צור overlay אם לא קיים
         let overlay = document.getElementById('diff-overlay');
@@ -361,7 +385,9 @@ window['find-differences'] = {
           for (let a of pair) {
             const dx = x - a.left;
             const dy = y - a.top;
-            if (Math.sqrt(dx*dx + dy*dy) < a.w) {
+            // בדיקת פגיעה באליפסה
+            const rx = a.w/2, ry = a.h/2;
+            if (((dx)/rx)**2 + ((dy)/ry)**2 < 1) {
               hit = true;
               break;
             }
@@ -372,9 +398,46 @@ window['find-differences'] = {
           document.getElementById('diff-feedback').textContent = 'נסה שוב!';
           document.getElementById('diff-feedback').style.color = '#e53935';
           this.playSound('wrong');
+          // פידבק איקס במיקום הלחיצה
+          const wrongX = document.createElement('div');
+          wrongX.style.position = 'absolute';
+          wrongX.style.left = (x * 100) + '%';
+          wrongX.style.top = (y * 100) + '%';
+          wrongX.style.transform = 'translate(-50%,-50%)';
+          wrongX.style.width = '64px';
+          wrongX.style.height = '64px';
+          wrongX.style.borderRadius = '50%';
+          wrongX.style.background = 'rgba(233,68,68,0.92)';
+          wrongX.style.display = 'flex';
+          wrongX.style.alignItems = 'center';
+          wrongX.style.justifyContent = 'center';
+          wrongX.style.zIndex = '999';
+          wrongX.style.boxShadow = '0 2px 12px #0003';
+          wrongX.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" fill="none" stroke="#fff" stroke-width="3"/><line x1="12" y1="12" x2="24" y2="24" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="12" x2="12" y2="24" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>';
+          overlay.appendChild(wrongX);
+          setTimeout(() => wrongX.remove(), 2000);
         }
+        return;
+      }
+      // בדוק אם נלחץ על אחד האזורים
+      let hit = false;
+      for (let pair of diffs) {
+        for (let a of pair) {
+          const dx = x - a.left;
+          const dy = y - a.top;
+          if (Math.sqrt(dx*dx + dy*dy) < a.w) {
+            hit = true;
+            break;
+          }
         }
-      };
+        if (hit) break;
+      }
+      if (!hit) {
+        document.getElementById('diff-feedback').textContent = 'נסה שוב!';
+        document.getElementById('diff-feedback').style.color = '#e53935';
+        this.playSound('wrong');
+      }
+    };
     // צייר עיגולים על ההבדלים שנמצאו
     this.found.forEach(diffIdx => diffs[diffIdx].forEach(a => this.drawCircle(a)));
     document.getElementById('diff-feedback').textContent = '';

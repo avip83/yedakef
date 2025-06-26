@@ -125,10 +125,23 @@ window['find-differences'] = {
       const y = (e.clientY - rect.top) / rect.height;
       // כלי עזר: Shift+Click מציג קואורדינטות, עיגול עזר גריר ומתוח
       if (e.shiftKey) {
+        // צור overlay אם לא קיים
+        let overlay = document.getElementById('diff-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'diff-overlay';
+          overlay.style.position = 'absolute';
+          overlay.style.left = '0';
+          overlay.style.top = '0';
+          overlay.style.width = '100%';
+          overlay.style.height = '100%';
+          overlay.style.pointerEvents = 'auto';
+          overlay.style.zIndex = '2';
+          img.parentElement.appendChild(overlay);
+        }
         // הסר עיגול עזר קודם אם קיים
         const old = document.getElementById('debug-circle');
         if (old) old.remove();
-        const overlay = document.getElementById('diff-overlay');
         // צור עיגול עזר
         const debugCircle = document.createElement('div');
         debugCircle.id = 'debug-circle';
@@ -165,6 +178,26 @@ window['find-differences'] = {
         label.style.pointerEvents = 'none';
         label.textContent = `left: ${x.toFixed(3)}, top: ${y.toFixed(3)}, r: ${(parseFloat(debugCircle.style.width)/100).toFixed(3)}`;
         debugCircle.appendChild(label);
+        // הודעה ויזואלית בראש המסך
+        let msg = document.getElementById('debug-tool-msg');
+        if (!msg) {
+          msg = document.createElement('div');
+          msg.id = 'debug-tool-msg';
+          msg.style.position = 'fixed';
+          msg.style.top = '12px';
+          msg.style.left = '50%';
+          msg.style.transform = 'translateX(-50%)';
+          msg.style.background = '#fffbe9';
+          msg.style.color = '#d32f2f';
+          msg.style.fontWeight = 'bold';
+          msg.style.fontSize = '18px';
+          msg.style.padding = '8px 24px';
+          msg.style.borderRadius = '16px';
+          msg.style.boxShadow = '0 2px 12px #0002';
+          msg.style.zIndex = '9999';
+          msg.textContent = 'כלי עזר פעיל! גרור/מתח את העיגול, הקורדינטות מוצגות מעליו.';
+          document.body.appendChild(msg);
+        }
         // ידיות מתיחה (4 פינות)
         const handles = ['nw','ne','sw','se'];
         handles.forEach(dir => {

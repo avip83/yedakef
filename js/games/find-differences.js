@@ -107,15 +107,16 @@ window['find-differences'] = {
       }
     };
     // פונקציה ליצירת עיגול עזר
-    function createDebugCircle(leftP, topP, widthP, heightP) {
+    function createDebugCircle(leftP, topP, sizeP) {
       coordsBox.style.display = 'block';
       const debugCircle = document.createElement('div');
       debugCircle.className = 'debug-circle';
       debugCircle.style.position = 'absolute';
       debugCircle.style.left = (leftP || 30) + '%';
       debugCircle.style.top = (topP || 30) + '%';
-      debugCircle.style.width = (widthP || 15) + '%';
-      debugCircle.style.height = (heightP || 15) + '%';
+      const size = sizeP || 10;
+      debugCircle.style.width = size + '%';
+      debugCircle.style.height = size + '%';
       debugCircle.style.transform = 'translate(-50%,-50%)';
       debugCircle.style.borderRadius = '50%';
       debugCircle.style.border = '3px solid red';
@@ -172,7 +173,7 @@ window['find-differences'] = {
       }
       // גרירה
       let drag = false, startX, startY, startLeft, startTop;
-      debugCircle.onpointerdown = ev => {
+      debugCircle.addEventListener('pointerdown', ev => {
         if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) {
           debugCircle.focus();
           return;
@@ -183,10 +184,9 @@ window['find-differences'] = {
         startLeft = parseFloat(debugCircle.style.left);
         startTop = parseFloat(debugCircle.style.top);
         debugCircle.setPointerCapture(ev.pointerId);
-        // הצג קואורדינטות של עיגול זה
         updateLabel();
-      };
-      debugCircle.onpointermove = ev => {
+      });
+      debugCircle.addEventListener('pointermove', ev => {
         if (drag) {
           const imgRect = img.getBoundingClientRect();
           const dx = (ev.clientX - startX) / imgRect.width * 100;
@@ -195,45 +195,45 @@ window['find-differences'] = {
           debugCircle.style.top = (startTop + dy) + '%';
           updateLabel();
         }
-      };
-      debugCircle.onpointerup = () => { drag = false; };
-      // מתיחה
-      let resize = false, resizeDir, startW, startH;
+      });
+      debugCircle.addEventListener('pointerup', () => { drag = false; });
+      // מתיחה (רק עיגול מושלם)
+      let resize = false, resizeDir, startSize;
       debugCircle.querySelectorAll('.debug-resize-handle').forEach(h => {
-        h.onpointerdown = ev => {
+        h.addEventListener('pointerdown', ev => {
           ev.stopPropagation();
           resize = true;
           resizeDir = h.dataset.dir;
           startX = ev.clientX;
           startY = ev.clientY;
-          startW = parseFloat(debugCircle.style.width);
-          startH = parseFloat(debugCircle.style.height);
+          startSize = parseFloat(debugCircle.style.width);
           debugCircle.setPointerCapture(ev.pointerId);
           updateLabel();
-        };
+        });
       });
-      debugCircle.onpointermove = ev => {
+      debugCircle.addEventListener('pointermove', ev => {
         if (resize) {
           const imgRect = img.getBoundingClientRect();
-          let dw = (ev.clientX - startX) / imgRect.width * 100;
-          let dh = (ev.clientY - startY) / imgRect.height * 100;
-          if (resizeDir.includes('w')) dw = -dw;
-          if (resizeDir.includes('n')) dh = -dh;
-          let newW = Math.max(2, startW + dw);
-          let newH = Math.max(2, startH + dh);
-          debugCircle.style.width = newW + '%';
-          debugCircle.style.height = newH + '%';
+          let d = Math.max(
+            (ev.clientX - startX) / imgRect.width * 100,
+            (ev.clientY - startY) / imgRect.height * 100
+          );
+          if (resizeDir === 'nw' || resizeDir === 'sw' || resizeDir === 'ne' || resizeDir === 'se') {
+            if (resizeDir.includes('w') || resizeDir.includes('n')) d = -d;
+          }
+          let newSize = Math.max(2, startSize + d);
+          debugCircle.style.width = newSize + '%';
+          debugCircle.style.height = newSize + '%';
           updateLabel();
         }
-      };
-      debugCircle.onpointerup = () => { resize = false; drag = false; };
+      });
+      debugCircle.addEventListener('pointerup', () => { resize = false; drag = false; });
       // בלחיצה על עיגול – הצג את ערכיו
       debugCircle.onclick = (ev) => {
         if (ev.target.classList.contains('debug-resize-handle') || ev.target === closeBtn) return;
         updateLabel();
       };
       updateLabel();
-      // הוסף את העיגול ל-board (מעל התמונה)
       board.appendChild(debugCircle);
     }
     // Shift+Click יוצר עיגול עזר נוסף במיקום הלחיצה (רק אם debugMode פעיל)
@@ -242,7 +242,7 @@ window['find-differences'] = {
         const rect = img.getBoundingClientRect();
         const x = (ev.clientX - rect.left) / rect.width * 100;
         const y = (ev.clientY - rect.top) / rect.height * 100;
-        createDebugCircle(x, y, 10, 10);
+        createDebugCircle(x, y, 10);
       }
     });
     board.appendChild(img);

@@ -1,12 +1,8 @@
 window['color-match'] = {
   stage: 0,
   totalStages: 20,
-  shapes: [
-    { name: 'circle', label: 'עיגול', svg: '<svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="COLOR"/></svg>' },
-    { name: 'square', label: 'ריבוע', svg: '<svg width="60" height="60" viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="10" fill="COLOR"/></svg>' },
-    { name: 'triangle', label: 'משולש', svg: '<svg width="60" height="60" viewBox="0 0 60 60"><polygon points="30,10 52,50 8,50" fill="COLOR"/></svg>' },
-    { name: 'star', label: 'כוכב', svg: '<svg width="60" height="60" viewBox="0 0 60 60"><polygon points="30,10 36,28 56,28 40,40 46,58 30,46 14,58 20,40 4,28 24,28" fill="COLOR"/></svg>' }
-  ],
+  sounds: {},
+  muted: false,
   colors: [
     { color: '#ff1744', name: 'אדום' },
     { color: '#2979ff', name: 'כחול' },
@@ -19,159 +15,153 @@ window['color-match'] = {
     { color: '#8d6e63', name: 'חום' },
     { color: '#f06292', name: 'ורוד' }
   ],
-  drags: [],
-  targets: [],
-  dragsState: [],
-  targetsState: [],
-  draggedPair: null,
-  sounds: {
-    success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
-    error: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
-    drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3')
+  shapes: [
+    { name: 'circle', svg: `<svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="COLOR"/></svg>` },
+    { name: 'square', svg: `<svg width="60" height="60" viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="10" fill="COLOR"/></svg>` },
+    { name: 'triangle', svg: `<svg width="60" height="60" viewBox="0 0 60 60"><polygon points="30,10 52,50 8,50" fill="COLOR"/></svg>` }
+  ],
+
+  loadSounds() {
+    this.sounds = {
+      success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
+      wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
+      drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3'),
+      click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
+    };
+    for (const k in this.sounds) this.sounds[k].volume = 1;
   },
-  get muted() { return !!window.__globalMute; },
-  set muted(val) { window.__globalMute = !!val; },
+
+  playSound(type) {
+    if (window.__globalMute) return;
+    if (this.sounds[type]) {
+      try {
+        this.sounds[type].currentTime = 0;
+        this.sounds[type].play();
+      } catch (e) {}
+    }
+  },
+
   init() {
+    this.loadSounds();
     this.stage = 0;
     this.showModal();
     this.renderGame();
   },
+
   showModal() {
     window.scrollTo({top: 0, behavior: "auto"});
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-    document.querySelectorAll('.game-modal').forEach(m => m.remove());
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.className = 'game-modal';
-    // חישוב התקדמות
-    const stageNum = this.stage + 1;
-    const total = this.totalStages;
-    const percent = Math.round((stageNum / total) * 100);
     modal.innerHTML = `
-      <div class="game-modal-content" style="background: #fffbe9; max-width: 520px; width: 96vw; height: auto; border-radius: 24px; box-shadow: 0 8px 32px #0002; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; box-sizing: border-box; padding: 18px 8px 24px 8px;">
-        <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 8px;">
-          <div style="font-size:1.3rem; font-weight:900; color:#388e3c; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${stageNum} מתוך ${total}</div>
-          <div style="width: 90%; height: 22px; background: #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; margin-bottom: 4px;">
-            <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg,#43a047,#00e676); border-radius: 12px 0 0 12px; transition: width 0.3s;"></div>
-          </div>
+      <div class="game-modal-content" style="position:relative; box-sizing:border-box; padding-bottom:16px;">
+        <div class="game-modal-header">
+          <h2>התאמת צבעים</h2>
         </div>
-        <div class="game-modal-header" style="width:100%; display:flex; justify-content: center; align-items:center; margin-bottom: 8px;">
-          <h2 style="font-size:2.2rem; font-family: 'Baloo 2', 'Heebo', sans-serif; margin:0; text-align:center;">התאמת צבעים</h2>
-        </div>
-        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; width:100%; justify-content: center; overflow-x:hidden; box-sizing:border-box;">
-          <p style="font-size:1.2rem; font-weight:700; margin: 0 0 10px 0; text-align:center;">גרור כל צורה צבעונית למקום המתאים</p>
-          <div id="color-match-board" style="display: flex; gap: 3vw; margin: 10px 0 10px 0; justify-content: center; flex-wrap:wrap; width:100%; overflow-x:hidden; box-sizing:border-box;"></div>
-          <div id="color-match-drags" style="display: flex; gap: 2vw; margin: 10px 0 10px 0; justify-content: center; flex-wrap:wrap; width:100%; overflow-x:hidden; box-sizing:border-box;"></div>
-          <div id="color-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 28px; margin-bottom: 6px; font-weight:700; text-align:center;"></div>
-          <button id="color-next-stage" style="display:none; margin-top:12px; padding:14px 28px; font-size:1.1rem; border-radius:16px; border:none; background:#43a047; color:#fff; cursor:pointer; font-weight:900; box-shadow:0 2px 8px #0001;">לשלב הבא</button>
+        <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
+          <div id="color-stage-bar" style="width:100%;margin-bottom:8px;"></div>
+          <p style="margin:0 0 10px 0; font-size:1.3em; color:#ff9800;">גרור כל צורה צבעונית למקום המתאים!</p>
+          <div id="color-match-board" style="display: flex; flex-direction: column; gap: 32px; margin: 24px 0;"></div>
+          <div id="color-match-feedback" style="font-size: 1.2rem; color: #388e3c; min-height: 32px; font-weight: 700;"></div>
+          <button id="color-next-stage" style="display:none; margin-top:16px; padding:10px 24px; font-size:1.1rem; border-radius:12px; border:none; background:#1976d2; color:#fff; cursor:pointer;">לשלב הבא</button>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
   },
-  closeModal() {
-    document.querySelectorAll('.game-modal').forEach(m => m.remove());
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
+
+  getColorsForStage(stage) {
+    // שלבים 0-3: 3 צבעים, כל השאר: 4 צבעים
+    const num = stage <= 3 ? 3 : 4;
+    return this.colors.slice().sort(() => Math.random() - 0.5).slice(0, num);
   },
-  shuffle(arr) {
-    return arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
-  },
+
   renderGame() {
     // עדכון בר שלבים
-    const stageNum = this.stage + 1;
-    const total = this.totalStages;
-    const percent = Math.round((stageNum / total) * 100);
-    const progressLabel = document.querySelector('.game-modal-content div[style*="font-size:1.3rem"]');
-    const progressBar = document.querySelector('.game-modal-content div[style*="background: linear-gradient"]');
-    if (progressLabel) {
-      progressLabel.textContent = `שלב ${stageNum} מתוך ${total}`;
+    const bar = document.getElementById('color-stage-bar');
+    if (bar) {
+      const percent = Math.round(((this.stage+1)/this.totalStages)*100);
+      bar.innerHTML = `<div style="font-size:1.3rem; font-weight:900; color:#43a047; margin-bottom:6px; font-family:'Baloo 2','Heebo',sans-serif;">שלב ${this.stage+1} מתוך ${this.totalStages}</div>
+        <div style="width:100%;height:18px;background:#e0e0e0;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px #0001;margin-bottom:4px;">
+          <div style="width:${percent}%;height:100%;background:linear-gradient(90deg,#43a047,#00e676);border-radius:9px 0 0 9px;transition:width 0.3s;"></div>
+        </div>`;
     }
-    if (progressBar) {
-      progressBar.style.width = percent + '%';
-    }
-    
-    // הגדרת צורות - SVG גדול, ממורכז, דומיננטי
-    const shapes = [
-      {name: 'circle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><circle cx='30' cy='30' r='24' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'square', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><rect x='10' y='10' width='40' height='40' rx='8' fill='white' stroke='white' stroke-width='2'/></svg>`},
-      {name: 'triangle', svg: `<svg width='56' height='56' viewBox='0 0 60 60' style='display:block;'><polygon points='30,10 52,50 8,50' fill='white' stroke='white' stroke-width='2'/></svg>`}
-    ];
-    // בחר צבעים אקראיים מתוך כל הצבעים הזמינים
-    const colorObjs = this.colors.slice().sort(() => Math.random() - 0.5).slice(0, shapes.length);
-    const colors = colorObjs.map(c => c.color);
-    // ערבוב סדר עצמאי למטרות ולגרירות
-    const pairs = shapes.map((shape, i) => ({shape, color: colors[i]}));
-    const targets = pairs.slice().sort(() => Math.random() - 0.5); // מטרות (שורה עליונה)
-    const drags = pairs.slice().sort(() => Math.random() - 0.5);   // לגרירה (שורה תחתונה)
-    // מטרות (עיגולים ריקים)
+    // בחר צבעים
+    const colors = this.getColorsForStage(this.stage);
+    // בחר צורות (תמיד 3)
+    const shapes = this.shapes.slice(0, 3);
+    // ערבוב עצמאי לגרירות
+    const pairs = shapes.map((shape, i) => ({ shape, color: colors[i] }));
+    const drags = pairs.slice().sort(() => Math.random() - 0.5);
+    // מטרות (outline)
     const board = document.getElementById('color-match-board');
     board.innerHTML = '';
-    targets.forEach((pair, i) => {
+    const rowTargets = document.createElement('div');
+    rowTargets.style.display = 'flex';
+    rowTargets.style.justifyContent = 'center';
+    rowTargets.style.gap = '32px';
+    pairs.forEach(pair => {
       const target = document.createElement('div');
       target.className = 'color-target';
-      target.style.background = '#fff';
-      target.style.border = `4px dashed ${pair.color}`;
       target.style.width = '76px';
       target.style.height = '76px';
       target.style.borderRadius = '50%';
       target.style.display = 'flex';
       target.style.alignItems = 'center';
       target.style.justifyContent = 'center';
-      target.style.margin = '0 12px';
+      target.style.margin = '0';
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
-      // Show only the outline of the shape in the target
-      let outlineSvg = pair.shape.svg
-        .replace(/fill=['"][^'"]*['"]/g, "fill='none'")
-        .replace(/stroke=['"][^'"]*['"]/g, `stroke='${pair.color}'`)
-        .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='4'");
+      target.style.border = `4px dashed ${pair.color.color}`;
+      // outline svg
+      let outlineSvg = pair.shape.svg.replace('fill="COLOR"', 'fill="none"').replace('stroke="COLOR"', `stroke="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
       target.innerHTML = outlineSvg;
       target.dataset.shape = pair.shape.name;
-      target.dataset.color = pair.color;
+      target.dataset.color = pair.color.color;
       target.ondragover = e => e.preventDefault();
       target.ondrop = e => {
         const shape = e.dataTransfer.getData('shape');
         const color = e.dataTransfer.getData('color');
-        if (shape === pair.shape.name && color === pair.color) {
+        if (shape === pair.shape.name && color === pair.color.color && !target.classList.contains('filled')) {
           this.playSound('success');
-          target.style.background = pair.color;
-          target.style.border = '4px solid #fff';
-          let svg = pair.shape.svg
-            .replace(/fill=['"][^'"]*['"]/g, `fill='#fff'`)
-            .replace(/stroke=['"][^'"]*['"]/g, `stroke='#fff'`)
-            .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='2'");
-          target.innerHTML = svg;
           target.classList.add('filled');
+          let svg = pair.shape.svg.replace('fill="COLOR"', `fill="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
+          target.innerHTML = svg;
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
           document.getElementById('color-match-feedback').style.color = '#43a047';
           const dragEl = document.querySelector(`.color-drag[data-shape='${shape}'][data-color='${color}']`);
-          if (dragEl) dragEl.remove();
-          if (document.querySelectorAll('.color-target.filled').length === targets.length) {
+          if (dragEl) {
+            dragEl.style.visibility = 'hidden';
+            dragEl.style.pointerEvents = 'none';
+          }
+          if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
             this.nextStageButton();
           }
         } else {
-          this.playSound('error');
+          this.playSound('wrong');
           document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
           document.getElementById('color-match-feedback').style.color = '#e53935';
         }
       };
-      board.appendChild(target);
+      rowTargets.appendChild(target);
     });
-    
-    // עיגולים לגרירה
-    const dragsContainer = document.getElementById('color-match-drags');
-    dragsContainer.innerHTML = '';
-    drags.forEach((pair, i) => {
+    board.appendChild(rowTargets);
+    // שורת גרירות
+    const rowDrags = document.createElement('div');
+    rowDrags.style.display = 'flex';
+    rowDrags.style.justifyContent = 'center';
+    rowDrags.style.gap = '32px';
+    drags.forEach(pair => {
       const drag = document.createElement('div');
       drag.className = 'color-drag';
-      drag.style.background = pair.color;
+      drag.style.background = pair.color.color;
       drag.style.width = '76px';
       drag.style.height = '76px';
       drag.style.borderRadius = '50%';
-      drag.style.margin = '0 12px';
+      drag.style.margin = '0';
       drag.style.cursor = 'grab';
       drag.style.display = 'flex';
       drag.style.alignItems = 'center';
@@ -181,17 +171,16 @@ window['color-match'] = {
       drag.style.opacity = '1';
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
-      drag.dataset.color = pair.color;
-      drag.innerHTML = pair.shape.svg; // הצורה תמיד מוצגת
-      // אפקט hover/touch
+      drag.dataset.color = pair.color.color;
+      drag.innerHTML = pair.shape.svg.replace('fill="COLOR"', `fill="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
         this.playSound('drag');
         e.dataTransfer.setData('shape', pair.shape.name);
-        e.dataTransfer.setData('color', pair.color);
+        e.dataTransfer.setData('color', pair.color.color);
       };
-      // touch לגרירה במובייל
+      // תמיכה בגרירה במובייל
       let touchGhost = null;
       let touchOffset = {x:0, y:0};
       drag.addEventListener('touchstart', function(ev) {
@@ -232,37 +221,33 @@ window['color-match'] = {
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
             window['color-match'].playSound('success');
             targetDiv.classList.add('filled');
-            targetDiv.style.background = color;
-            targetDiv.style.border = '4px solid #fff';
-            let svg = pair.shape.svg
-              .replace(/fill=['"][^'"]*['"]/g, `fill='#fff'`)
-              .replace(/stroke=['"][^'"]*['"]/g, `stroke='#fff'`)
-              .replace(/stroke-width=['"][^'"]*['"]/g, "stroke-width='2'");
+            let svg = pair.shape.svg.replace('fill="COLOR"', `fill="${color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
             targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             document.getElementById('color-match-feedback').style.color = '#43a047';
             drag.remove();
-            if (document.querySelectorAll('.color-target.filled').length === targets.length) {
-              this.nextStageButton();
+            if (document.querySelectorAll('.color-target.filled').length === pairs.length) {
+              window['color-match'].nextStageButton();
             }
           } else {
+            window['color-match'].playSound('wrong');
             document.getElementById('color-match-feedback').textContent = 'נסה שוב!';
             document.getElementById('color-match-feedback').style.color = '#e53935';
-            this.playSound('error');
           }
         }
       }, {passive:false});
-      dragsContainer.appendChild(drag);
+      rowDrags.appendChild(drag);
     });
-    
+    board.appendChild(rowDrags);
     document.getElementById('color-match-feedback').textContent = '';
     document.getElementById('color-next-stage').style.display = 'none';
   },
+
   nextStageButton() {
     const btn = document.getElementById('color-next-stage');
     btn.style.display = 'inline-block';
     btn.onclick = () => {
-      this.playSound('drag');
+      this.playSound('click');
       this.stage++;
       if (this.stage < this.totalStages) {
         this.renderGame();
@@ -271,15 +256,7 @@ window['color-match'] = {
       }
     };
   },
-  playSound(type) {
-    if (window.__globalMute) return;
-    if (this.sounds[type]) {
-      try {
-        this.sounds[type].currentTime = 0;
-        this.sounds[type].play();
-      } catch (e) {}
-    }
-  },
+
   toggleMute() {
     this.muted = !this.muted;
     const btn = document.getElementById('color-match-volume');
@@ -288,4 +265,4 @@ window['color-match'] = {
       else btn.classList.remove('muted');
     }
   }
-}; 
+};

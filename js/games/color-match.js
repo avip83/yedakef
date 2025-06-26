@@ -116,8 +116,10 @@ window['color-match'] = {
       target.style.boxSizing = 'border-box';
       target.style.opacity = '1';
       target.style.border = `4px dashed ${pair.color.color}`;
-      // outline svg
-      let outlineSvg = pair.shape.svg.replace('fill="COLOR"', 'fill="none"').replace('stroke="COLOR"', `stroke="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
+      // תמיד outline svg
+      let outlineSvg = pair.shape.svg
+        .replace('fill="COLOR"', 'fill="none"')
+        .replace('<svg ', `<svg style='pointer-events:none;' stroke='${pair.color.color}' stroke-width='4' `);
       target.innerHTML = outlineSvg;
       target.dataset.shape = pair.shape.name;
       target.dataset.color = pair.color.color;
@@ -128,7 +130,10 @@ window['color-match'] = {
         if (shape === pair.shape.name && color === pair.color.color && !target.classList.contains('filled')) {
           this.playSound('success');
           target.classList.add('filled');
-          let svg = pair.shape.svg.replace('fill="COLOR"', `fill="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
+          // svg מלא בצבע
+          let svg = pair.shape.svg
+            .replace('fill="COLOR"', `fill="${pair.color.color}"`)
+            .replace('<svg ', `<svg style='pointer-events:none;' `);
           target.innerHTML = svg;
           document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
           document.getElementById('color-match-feedback').style.color = '#43a047';
@@ -174,7 +179,10 @@ window['color-match'] = {
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
       drag.dataset.color = pair.color.color;
-      drag.innerHTML = pair.shape.svg.replace('fill="COLOR"', `fill="${pair.color.color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
+      // תמיד svg מלא בצבע
+      drag.innerHTML = pair.shape.svg
+        .replace('fill="COLOR"', `fill="${pair.color.color}"`)
+        .replace('<svg ', `<svg style='pointer-events:none;' `);
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {
@@ -223,7 +231,9 @@ window['color-match'] = {
           if (shape === targetDiv.dataset.shape && color === targetDiv.dataset.color) {
             window['color-match'].playSound('success');
             targetDiv.classList.add('filled');
-            let svg = pair.shape.svg.replace('fill="COLOR"', `fill="${color}"`).replace('<svg ', `<svg style='pointer-events:none;' `);
+            let svg = pair.shape.svg
+              .replace('fill="COLOR"', `fill="${color}"`)
+              .replace('<svg ', `<svg style='pointer-events:none;' `);
             targetDiv.innerHTML = svg;
             document.getElementById('color-match-feedback').textContent = 'כל הכבוד!';
             document.getElementById('color-match-feedback').style.color = '#43a047';

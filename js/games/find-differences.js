@@ -57,20 +57,6 @@ window['find-differences'] = {
     img.style.boxShadow = '0 4px 24px #0001';
     img.style.display = 'block';
     img.style.position = 'relative';
-    // כפתור כלי עזר
-    const debugBtn = document.createElement('button');
-    debugBtn.textContent = 'הפעל כלי עזר';
-    debugBtn.style.margin = '8px auto 0 auto';
-    debugBtn.style.display = 'block';
-    debugBtn.style.background = '#fffbe9';
-    debugBtn.style.color = '#d32f2f';
-    debugBtn.style.fontWeight = 'bold';
-    debugBtn.style.fontSize = '1.1rem';
-    debugBtn.style.padding = '6px 18px';
-    debugBtn.style.borderRadius = '12px';
-    debugBtn.style.border = '2px solid #d32f2f';
-    debugBtn.style.cursor = 'pointer';
-    debugBtn.style.zIndex = '100';
     // תיבת קואורדינטות בפינה העליונה של הלוח
     let coordsBox = document.getElementById('debug-coords-box');
     if (!coordsBox) {
@@ -91,19 +77,35 @@ window['find-differences'] = {
       coordsBox.style.display = 'none';
       board.appendChild(coordsBox);
     }
-    debugBtn.onclick = () => {
-      // הסר עיגול עזר קודם אם קיים
-      const old = document.getElementById('debug-circle');
-      if (old) old.remove();
+    // כפתור כלי עזר - מעל המשפט הכתום
+    const debugBtn = document.createElement('button');
+    debugBtn.textContent = 'הפעל כלי עזר';
+    debugBtn.style.margin = '0 auto 12px auto';
+    debugBtn.style.display = 'block';
+    debugBtn.style.background = '#fffbe9';
+    debugBtn.style.color = '#d32f2f';
+    debugBtn.style.fontWeight = 'bold';
+    debugBtn.style.fontSize = '1.1rem';
+    debugBtn.style.padding = '6px 18px';
+    debugBtn.style.borderRadius = '12px';
+    debugBtn.style.border = '2px solid #d32f2f';
+    debugBtn.style.cursor = 'pointer';
+    debugBtn.style.zIndex = '100';
+    // הוסף את הכפתור לפני המשפט הכתום
+    const modalBody = document.querySelector('.game-modal-body');
+    if (modalBody) {
+      modalBody.insertBefore(debugBtn, modalBody.firstChild);
+    }
+    // פונקציה ליצירת עיגול עזר
+    function createDebugCircle(leftP, topP, widthP, heightP) {
       coordsBox.style.display = 'block';
-      // צור עיגול עזר
       const debugCircle = document.createElement('div');
-      debugCircle.id = 'debug-circle';
+      debugCircle.className = 'debug-circle';
       debugCircle.style.position = 'absolute';
-      debugCircle.style.left = '30%';
-      debugCircle.style.top = '30%';
-      debugCircle.style.width = '15%';
-      debugCircle.style.height = '15%';
+      debugCircle.style.left = (leftP || 30) + '%';
+      debugCircle.style.top = (topP || 30) + '%';
+      debugCircle.style.width = (widthP || 15) + '%';
+      debugCircle.style.height = (heightP || 15) + '%';
       debugCircle.style.transform = 'translate(-50%,-50%)';
       debugCircle.style.borderRadius = '50%';
       debugCircle.style.border = '3px solid red';
@@ -115,8 +117,8 @@ window['find-differences'] = {
       debugCircle.style.alignItems = 'center';
       debugCircle.style.justifyContent = 'center';
       debugCircle.style.userSelect = 'none';
-      debugCircle.style.minWidth = '40px';
-      debugCircle.style.minHeight = '40px';
+      debugCircle.style.minWidth = '2%';
+      debugCircle.style.minHeight = '2%';
       // כפתור סגירה
       const closeBtn = document.createElement('button');
       closeBtn.textContent = '✖';
@@ -131,7 +133,7 @@ window['find-differences'] = {
       closeBtn.style.height = '28px';
       closeBtn.style.cursor = 'pointer';
       closeBtn.style.fontWeight = 'bold';
-      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); coordsBox.style.display = 'none'; };
+      closeBtn.onclick = (ev) => { ev.stopPropagation(); debugCircle.remove(); if (!document.querySelector('.debug-circle')) coordsBox.style.display = 'none'; };
       debugCircle.appendChild(closeBtn);
       // ידיות מתיחה (4 פינות)
       const handles = ['nw','ne','sw','se'];
@@ -167,8 +169,8 @@ window['find-differences'] = {
           const imgRect = img.getBoundingClientRect();
           const dx = (ev.clientX - startX) / imgRect.width * 100;
           const dy = (ev.clientY - startY) / imgRect.height * 100;
-          debugCircle.style.left = (startLeft + dx) / 100 + '%';
-          debugCircle.style.top = (startTop + dy) / 100 + '%';
+          debugCircle.style.left = (startLeft + dx) + '%';
+          debugCircle.style.top = (startTop + dy) + '%';
           updateLabel();
         }
       };
@@ -194,8 +196,8 @@ window['find-differences'] = {
           let dh = (ev.clientY - startY) / imgRect.height * 100;
           if (resizeDir.includes('w')) dw = -dw;
           if (resizeDir.includes('n')) dh = -dh;
-          let newW = Math.max(4, startW + dw);
-          let newH = Math.max(4, startH + dh);
+          let newW = Math.max(2, startW + dw);
+          let newH = Math.max(2, startH + dh);
           debugCircle.style.width = newW + '%';
           debugCircle.style.height = newH + '%';
           updateLabel();
@@ -212,8 +214,20 @@ window['find-differences'] = {
       updateLabel();
       // הוסף את העיגול ל-board (מעל התמונה)
       board.appendChild(debugCircle);
+    }
+    // כפתור יוצר עיגול עזר רגיל
+    debugBtn.onclick = () => {
+      createDebugCircle();
     };
-    board.appendChild(debugBtn);
+    // Shift+Click יוצר עיגול עזר נוסף במיקום הלחיצה
+    img.addEventListener('click', function(ev) {
+      if (ev.shiftKey) {
+        const rect = img.getBoundingClientRect();
+        const x = (ev.clientX - rect.left) / rect.width * 100;
+        const y = (ev.clientY - rect.top) / rect.height * 100;
+        createDebugCircle(x, y, 10, 10);
+      }
+    });
     board.appendChild(img);
     // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל) עם קואורדינטות מדויקות
     // left: 0 (שמאל קיצון), 1 (ימין קיצון)

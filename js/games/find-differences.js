@@ -57,14 +57,15 @@ window['find-differences'] = {
     img.style.boxShadow = '0 4px 24px #0001';
     img.style.display = 'block';
     img.style.position = 'relative';
-    // תיבת קואורדינטות בפינה העליונה של הלוח
+    // תיבת קואורדינטות מוצגת מעל התמונה (מחוץ ללוח)
     let coordsBox = document.getElementById('debug-coords-box');
     if (!coordsBox) {
       coordsBox = document.createElement('div');
       coordsBox.id = 'debug-coords-box';
-      coordsBox.style.position = 'absolute';
-      coordsBox.style.top = '8px';
-      coordsBox.style.left = '8px';
+      coordsBox.style.position = 'fixed';
+      coordsBox.style.top = '16px';
+      coordsBox.style.left = '50%';
+      coordsBox.style.transform = 'translateX(-50%)';
       coordsBox.style.background = '#fff';
       coordsBox.style.color = 'red';
       coordsBox.style.fontWeight = 'bold';
@@ -73,7 +74,7 @@ window['find-differences'] = {
       coordsBox.style.borderRadius = '10px';
       coordsBox.style.boxShadow = '0 2px 8px #0002';
       coordsBox.style.pointerEvents = 'auto';
-      coordsBox.style.zIndex = '300';
+      coordsBox.style.zIndex = '9999';
       coordsBox.style.display = 'none';
       // כפתור העתקה
       const copyBtn = document.createElement('button');
@@ -100,7 +101,7 @@ window['find-differences'] = {
       const coordsText = document.createElement('span');
       coordsText.id = 'debug-coords-text';
       coordsBox.appendChild(coordsText);
-      board.appendChild(coordsBox);
+      document.body.appendChild(coordsBox);
     }
     // כפתור כלי עזר - מעל המשפט הכתום
     let debugMode = false;
@@ -131,17 +132,16 @@ window['find-differences'] = {
         coordsBox.style.display = 'none';
       }
     };
-    // פונקציה ליצירת עיגול עזר
-    function createDebugCircle(leftP, topP, sizeP) {
+    // פונקציה ליצירת עיגול עזר (עכשיו אליפסה)
+    function createDebugCircle(leftP, topP, widthP, heightP) {
       coordsBox.style.display = 'block';
       const debugCircle = document.createElement('div');
       debugCircle.className = 'debug-circle';
       debugCircle.style.position = 'absolute';
       debugCircle.style.left = (leftP || 30) + '%';
       debugCircle.style.top = (topP || 30) + '%';
-      const size = sizeP || 10;
-      debugCircle.style.width = size + '%';
-      debugCircle.style.height = size + '%';
+      debugCircle.style.width = (widthP || 10) + '%';
+      debugCircle.style.height = (heightP || 10) + '%';
       debugCircle.style.transform = 'translate(-50%,-50%)';
       debugCircle.style.borderRadius = '50%';
       debugCircle.style.border = '3px solid red';
@@ -193,8 +193,9 @@ window['find-differences'] = {
       function updateLabel() {
         const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
         const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
-        const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-        document.getElementById('debug-coords-text').textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+        const w = (parseFloat(debugCircle.style.width)/100).toFixed(3);
+        const h = (parseFloat(debugCircle.style.height)/100).toFixed(3);
+        document.getElementById('debug-coords-text').textContent = `left: ${lx}, top: ${ly}, w: ${w}, h: ${h}`;
       }
       // גרירה
       let drag = false, startX, startY, startLeft, startTop;
@@ -222,8 +223,8 @@ window['find-differences'] = {
         }
       });
       debugCircle.addEventListener('pointerup', () => { drag = false; });
-      // מתיחה (רק עיגול מושלם)
-      let resize = false, resizeDir, startSize;
+      // מתיחה (אליפסה)
+      let resize = false, resizeDir, startW, startH;
       debugCircle.querySelectorAll('.debug-resize-handle').forEach(h => {
         h.addEventListener('pointerdown', ev => {
           ev.stopPropagation();
@@ -231,7 +232,8 @@ window['find-differences'] = {
           resizeDir = h.dataset.dir;
           startX = ev.clientX;
           startY = ev.clientY;
-          startSize = parseFloat(debugCircle.style.width);
+          startW = parseFloat(debugCircle.style.width);
+          startH = parseFloat(debugCircle.style.height);
           debugCircle.setPointerCapture(ev.pointerId);
           updateLabel();
         });
@@ -239,16 +241,14 @@ window['find-differences'] = {
       debugCircle.addEventListener('pointermove', ev => {
         if (resize) {
           const imgRect = img.getBoundingClientRect();
-          let d = Math.max(
-            (ev.clientX - startX) / imgRect.width * 100,
-            (ev.clientY - startY) / imgRect.height * 100
-          );
-          if (resizeDir === 'nw' || resizeDir === 'sw' || resizeDir === 'ne' || resizeDir === 'se') {
-            if (resizeDir.includes('w') || resizeDir.includes('n')) d = -d;
-          }
-          let newSize = Math.max(2, startSize + d);
-          debugCircle.style.width = newSize + '%';
-          debugCircle.style.height = newSize + '%';
+          let dw = (ev.clientX - startX) / imgRect.width * 100;
+          let dh = (ev.clientY - startY) / imgRect.height * 100;
+          if (resizeDir.includes('w')) dw = -dw;
+          if (resizeDir.includes('n')) dh = -dh;
+          let newW = Math.max(2, startW + dw);
+          let newH = Math.max(2, startH + dh);
+          debugCircle.style.width = newW + '%';
+          debugCircle.style.height = newH + '%';
           updateLabel();
         }
       });
@@ -267,7 +267,7 @@ window['find-differences'] = {
         const rect = img.getBoundingClientRect();
         const x = (ev.clientX - rect.left) / rect.width * 100;
         const y = (ev.clientY - rect.top) / rect.height * 100;
-        createDebugCircle(x, y, 10);
+        createDebugCircle(x, y, 10, 10);
       }
     });
     board.appendChild(img);

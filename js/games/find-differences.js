@@ -72,9 +72,34 @@ window['find-differences'] = {
       coordsBox.style.padding = '4px 12px';
       coordsBox.style.borderRadius = '10px';
       coordsBox.style.boxShadow = '0 2px 8px #0002';
-      coordsBox.style.pointerEvents = 'none';
+      coordsBox.style.pointerEvents = 'auto';
       coordsBox.style.zIndex = '300';
       coordsBox.style.display = 'none';
+      // כפתור העתקה
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = '📋';
+      copyBtn.title = 'העתק נתונים';
+      copyBtn.style.marginRight = '8px';
+      copyBtn.style.background = '#fff';
+      copyBtn.style.color = 'red';
+      copyBtn.style.border = '1px solid #d32f2f';
+      copyBtn.style.borderRadius = '6px';
+      copyBtn.style.cursor = 'pointer';
+      copyBtn.style.fontSize = '15px';
+      copyBtn.style.padding = '2px 6px';
+      copyBtn.style.verticalAlign = 'middle';
+      copyBtn.onclick = function(e) {
+        e.stopPropagation();
+        const text = coordsBox.textContent;
+        navigator.clipboard.writeText(text);
+        copyBtn.textContent = '✔️';
+        setTimeout(() => { copyBtn.textContent = '📋'; }, 900);
+      };
+      coordsBox.appendChild(copyBtn);
+      // תוכן הנתונים
+      const coordsText = document.createElement('span');
+      coordsText.id = 'debug-coords-text';
+      coordsBox.appendChild(coordsText);
       board.appendChild(coordsBox);
     }
     // כפתור כלי עזר - מעל המשפט הכתום
@@ -169,7 +194,7 @@ window['find-differences'] = {
         const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
         const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
         const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
-        coordsBox.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+        document.getElementById('debug-coords-text').textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
       }
       // גרירה
       let drag = false, startX, startY, startLeft, startTop;

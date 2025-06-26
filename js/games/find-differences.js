@@ -274,17 +274,17 @@ window['find-differences'] = {
     // הגדר הבדלים: כל הבדל הוא זוג אזורים (ימין/שמאל) עם קואורדינטות מדויקות
     // left: 0 (שמאל קיצון), 1 (ימין קיצון)
     // צד שמאל: left יחסי ל-0 עד 0.5, צד ימין: left יחסי ל-0.5 עד 1
-    // כל עיגול: [left, top, r] (left/top/radius יחסיים)
-    // ערכים מותאמים לפי התמונה שסיפקת
+    // כל עיגול: {left, top, w, h} (left/top/w/h יחסיים)
+    // ערכים מעודכנים לפי כלי העזר
     const diffs = [
-      // פרח
-      [ {left: 0.13, top: 0.15, r: 0.07}, {left: 0.63, top: 0.15, r: 0.07} ],
-      // עין
-      [ {left: 0.22, top: 0.29, r: 0.045}, {left: 0.72, top: 0.29, r: 0.045} ],
-      // יד
-      [ {left: 0.36, top: 0.48, r: 0.09}, {left: 0.86, top: 0.48, r: 0.09} ],
-      // נעליים
-      [ {left: 0.28, top: 0.83, r: 0.10}, {left: 0.78, top: 0.83, r: 0.10} ]
+      // 1
+      [ {left: 0.140, top: 0.257, w: 0.062, h: 0.086}, {left: 0.650, top: 0.196, w: 0.074, h: 0.107} ],
+      // 2
+      [ {left: 0.867, top: 0.418, w: 0.088, h: 0.204}, {left: 0.867, top: 0.418, w: 0.088, h: 0.204} ],
+      // 3
+      [ {left: 0.729, top: 0.904, w: 0.217, h: 0.096}, {left: 0.729, top: 0.904, w: 0.217, h: 0.096} ],
+      // 4
+      [ {left: 0.650, top: 0.196, w: 0.074, h: 0.107}, {left: 0.140, top: 0.257, w: 0.062, h: 0.086} ]
     ];
     // שכבת אינטראקציה
     const overlay = document.createElement('div');
@@ -305,8 +305,8 @@ window['find-differences'] = {
         btn.style.position = 'absolute';
         btn.style.left = (area.left * 100) + '%';
         btn.style.top = (area.top * 100) + '%';
-        btn.style.width = (area.r * 2 * 100) + '%';
-        btn.style.height = (area.r * 2 * 100) + '%';
+        btn.style.width = (area.w * 2 * 100) + '%';
+        btn.style.height = (area.h * 2 * 100) + '%';
         btn.style.transform = 'translate(-50%,-50%)';
         btn.style.borderRadius = '50%';
         btn.style.cursor = 'pointer';
@@ -358,7 +358,7 @@ window['find-differences'] = {
           for (let a of pair) {
             const dx = x - a.left;
             const dy = y - a.top;
-            if (Math.sqrt(dx*dx + dy*dy) < a.r) {
+            if (Math.sqrt(dx*dx + dy*dy) < a.w) {
               hit = true;
               break;
             }
@@ -384,8 +384,8 @@ window['find-differences'] = {
     circle.style.position = 'absolute';
     circle.style.left = (area.left * 100) + '%';
     circle.style.top = (area.top * 100) + '%';
-    circle.style.width = (area.r * 2 * 100) + '%';
-    circle.style.height = (area.r * 2 * 100) + '%';
+    circle.style.width = (area.w * 2 * 100) + '%';
+    circle.style.height = (area.h * 2 * 100) + '%';
     circle.style.transform = 'translate(-50%,-50%)';
     circle.style.borderRadius = '50%';
     circle.style.border = '4px solid #43a047';

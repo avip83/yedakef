@@ -123,25 +123,125 @@ window['find-differences'] = {
       const rect = img.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-      // כלי עזר: Shift+Click מציג קואורדינטות ומצייר עיגול אדום זמני
+      // כלי עזר: Shift+Click מציג קואורדינטות, עיגול עזר גריר ומתוח
       if (e.shiftKey) {
-        console.log(`left: ${x.toFixed(3)}, top: ${y.toFixed(3)}`);
-        // עיגול אדום זמני
+        // הסר עיגול עזר קודם אם קיים
+        const old = document.getElementById('debug-circle');
+        if (old) old.remove();
+        const overlay = document.getElementById('diff-overlay');
+        // צור עיגול עזר
         const debugCircle = document.createElement('div');
+        debugCircle.id = 'debug-circle';
         debugCircle.style.position = 'absolute';
         debugCircle.style.left = (x * 100) + '%';
         debugCircle.style.top = (y * 100) + '%';
-        debugCircle.style.width = '8%';
-        debugCircle.style.height = '8%';
+        debugCircle.style.width = '12%';
+        debugCircle.style.height = '12%';
         debugCircle.style.transform = 'translate(-50%,-50%)';
         debugCircle.style.borderRadius = '50%';
         debugCircle.style.border = '3px solid red';
-        debugCircle.style.pointerEvents = 'none';
-        debugCircle.style.zIndex = '10';
+        debugCircle.style.pointerEvents = 'auto';
+        debugCircle.style.zIndex = '20';
         debugCircle.style.boxShadow = '0 0 8px red';
-        const overlay = document.getElementById('diff-overlay');
+        debugCircle.style.background = 'rgba(255,0,0,0.07)';
+        debugCircle.style.display = 'flex';
+        debugCircle.style.alignItems = 'center';
+        debugCircle.style.justifyContent = 'center';
+        debugCircle.style.userSelect = 'none';
+        // הודעה עם קואורדינטות
+        const label = document.createElement('div');
+        label.id = 'debug-coords-label';
+        label.style.position = 'absolute';
+        label.style.top = '-28px';
+        label.style.left = '50%';
+        label.style.transform = 'translateX(-50%)';
+        label.style.background = '#fff';
+        label.style.color = 'red';
+        label.style.fontWeight = 'bold';
+        label.style.fontSize = '15px';
+        label.style.padding = '2px 8px';
+        label.style.borderRadius = '8px';
+        label.style.boxShadow = '0 2px 8px #0002';
+        label.style.pointerEvents = 'none';
+        label.textContent = `left: ${x.toFixed(3)}, top: ${y.toFixed(3)}, r: ${(parseFloat(debugCircle.style.width)/100).toFixed(3)}`;
+        debugCircle.appendChild(label);
+        // ידיות מתיחה (4 פינות)
+        const handles = ['nw','ne','sw','se'];
+        handles.forEach(dir => {
+          const h = document.createElement('div');
+          h.className = 'debug-resize-handle';
+          h.dataset.dir = dir;
+          h.style.position = 'absolute';
+          h.style.width = '16px';
+          h.style.height = '16px';
+          h.style.background = '#fff';
+          h.style.border = '2px solid red';
+          h.style.borderRadius = '50%';
+          h.style.zIndex = '30';
+          h.style.cursor = dir+'-resize';
+          if (dir.includes('n')) h.style.top = '-8px'; else h.style.bottom = '-8px';
+          if (dir.includes('w')) h.style.left = '-8px'; else h.style.right = '-8px';
+          debugCircle.appendChild(h);
+        });
+        // גרירה
+        let drag = false, startX, startY, startLeft, startTop;
+        debugCircle.onpointerdown = ev => {
+          if (ev.target.classList.contains('debug-resize-handle')) return;
+          drag = true;
+          startX = ev.clientX;
+          startY = ev.clientY;
+          startLeft = parseFloat(debugCircle.style.left);
+          startTop = parseFloat(debugCircle.style.top);
+          debugCircle.setPointerCapture(ev.pointerId);
+        };
+        debugCircle.onpointermove = ev => {
+          if (drag) {
+            const dx = (ev.clientX - startX) / rect.width * 100;
+            const dy = (ev.clientY - startY) / rect.height * 100;
+            debugCircle.style.left = (startLeft + dx) + '%';
+            debugCircle.style.top = (startTop + dy) + '%';
+            // עדכן קואורדינטות
+            const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
+            const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
+            const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
+            label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+          }
+        };
+        debugCircle.onpointerup = () => { drag = false; };
+        // מתיחה
+        let resize = false, resizeDir, startW, startH;
+        debugCircle.querySelectorAll('.debug-resize-handle').forEach(h => {
+          h.onpointerdown = ev => {
+            ev.stopPropagation();
+            resize = true;
+            resizeDir = h.dataset.dir;
+            startX = ev.clientX;
+            startY = ev.clientY;
+            startW = parseFloat(debugCircle.style.width);
+            startH = parseFloat(debugCircle.style.height);
+            debugCircle.setPointerCapture(ev.pointerId);
+          };
+        });
+        debugCircle.onpointermove = ev => {
+          if (resize) {
+            let dw = (ev.clientX - startX) / rect.width * 100;
+            let dh = (ev.clientY - startY) / rect.height * 100;
+            if (resizeDir.includes('w')) dw = -dw;
+            if (resizeDir.includes('n')) dh = -dh;
+            let newW = Math.max(4, startW + dw);
+            let newH = Math.max(4, startH + dh);
+            // שמור עיגול
+            debugCircle.style.width = newW + '%';
+            debugCircle.style.height = newH + '%';
+            // עדכן קואורדינטות
+            const lx = (parseFloat(debugCircle.style.left)/100).toFixed(3);
+            const ly = (parseFloat(debugCircle.style.top)/100).toFixed(3);
+            const r = (parseFloat(debugCircle.style.width)/100).toFixed(3);
+            label.textContent = `left: ${lx}, top: ${ly}, r: ${r}`;
+          }
+        };
+        debugCircle.onpointerup = () => { resize = false; drag = false; };
         overlay.appendChild(debugCircle);
-        setTimeout(() => debugCircle.remove(), 1200);
         return;
       }
       // בדוק אם נלחץ על אחד האזורים

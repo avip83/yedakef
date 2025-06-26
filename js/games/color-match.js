@@ -179,10 +179,10 @@ window['color-match'] = {
       drag.draggable = true;
       drag.dataset.shape = pair.shape.name;
       drag.dataset.color = pair.color.color;
-      // תמיד svg מלא בצבע
+      // svg עם fill=color, stroke=white
       drag.innerHTML = pair.shape.svg
         .replace('fill="COLOR"', `fill="${pair.color.color}"`)
-        .replace('<svg ', `<svg style='pointer-events:none;' `);
+        .replace('<svg ', `<svg style='pointer-events:none;' stroke='white' stroke-width='4' `);
       drag.onpointerdown = () => { drag.style.transform = 'scale(1.10)'; drag.style.boxShadow = '0 12px 32px rgba(0,0,0,0.28)'; };
       drag.onpointerup = drag.onpointerleave = () => { drag.style.transform = ''; drag.style.boxShadow = '0 8px 24px rgba(0,0,0,0.22)'; };
       drag.ondragstart = e => {

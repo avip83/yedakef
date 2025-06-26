@@ -299,14 +299,25 @@ window['find-differences'] = {
     board.style.position = 'relative';
     board.appendChild(overlay);
     // הוסף אזורים אינטראקטיביים
+    // מיפוי קואורדינטות לכל צד
+    function mapArea(area, side) {
+      // side: 0 = שמאל, 1 = ימין
+      return {
+        left: side === 0 ? area.left / 2 : 0.5 + area.left / 2,
+        top: area.top,
+        w: area.w / 2,
+        h: area.h
+      };
+    }
     diffs.forEach((pair, diffIdx) => {
       pair.forEach((area, sideIdx) => {
+        const mapped = mapArea(area, sideIdx);
         const btn = document.createElement('div');
         btn.style.position = 'absolute';
-        btn.style.left = (area.left * 100) + '%';
-        btn.style.top = (area.top * 100) + '%';
-        btn.style.width = (area.w * 100) + '%';
-        btn.style.height = (area.h * 100) + '%';
+        btn.style.left = (mapped.left * 100) + '%';
+        btn.style.top = (mapped.top * 100) + '%';
+        btn.style.width = (mapped.w * 100) + '%';
+        btn.style.height = (mapped.h * 100) + '%';
         btn.style.transform = 'translate(-50%,-50%)';
         btn.style.borderRadius = '50%';
         btn.style.cursor = 'pointer';
@@ -319,7 +330,7 @@ window['find-differences'] = {
           if (!this.found.includes(diffIdx)) {
             this.found.push(diffIdx);
             // סמן עיגול ירוק בשני הצדדים
-            pair.forEach(a => this.drawCircle(a));
+            pair.forEach((a, s) => this.drawCircle(mapArea(a, s)));
             this.playSound('success');
             if (this.found.length === diffs.length) {
               document.getElementById('diff-feedback').textContent = 'כל הכבוד!';

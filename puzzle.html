@@ -280,7 +280,7 @@
                 this.boardSize = 360;
                 this.pieces = [];
                 this.connectedPieces = 0;
-                this.currentImage = 'puzzle/1.png';
+                this.currentImage = 'puzzle/6.png';
                 this.sounds = {};
                 // יצירת מפת חיבורים לוגית
                 this.edgeMap = this.generateEdgeMap();
@@ -467,6 +467,7 @@
                 };
                 
                 const shape = pieceShapes[pieceIndex];
+                console.log(`Piece ${pieceIndex} (${row},${col}):`, shape);
                 let path = `M 0,0`;
                 
                 // צד עליון

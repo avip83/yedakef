@@ -2,16 +2,12 @@ window['simple-puzzle'] = {
   stage: 0,
   totalStages: 10,
   sounds: {},
-  currentImage: 'puzzle/1.png', // תמונה קבועה מהתיקייה החדשה
-  gridSize: 3, // 3x4 = 12 חלקים
-  gridCols: 4,
-  gridRows: 3,
-  pieceSize: 90,
-  boardSize: 360, // 4*90
-  boardHeight: 270, // 3*90
+  currentImage: 'puzzle/1.png',
+  gridSize: 3, // 3x3 = 9 חלקים פשוטים
+  pieceSize: 100,
+  boardSize: 300, // 3*100
   pieces: [],
   correctPieces: 0,
-  connectedGroups: [], // קבוצות של חלקים מחוברים
   draggedPiece: null,
   
   // גבולות אזור הגרירה
@@ -36,8 +32,7 @@ window['simple-puzzle'] = {
       drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3'),
       click: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
       complete: new Audio('sounds/game-level-complete-143022.mp3'),
-      connect: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
-      snap: new Audio('sounds/mouse-click-290204.mp3') // סאונד של חיבור
+      snap: new Audio('sounds/mouse-click-290204.mp3')
     };
     for (const k in this.sounds) this.sounds[k].volume = 0.6;
   },
@@ -64,13 +59,13 @@ window['simple-puzzle'] = {
     modal.innerHTML = `
       <div class="game-modal-content" style="position:relative; max-height:100vh; overflow-y:auto; box-sizing:border-box; padding:16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div class="game-modal-header">
-          <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🧩 פאזל אמיתי - 12 חלקים</h2>
+          <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🧩 פאזל פשוט - 9 חלקים</h2>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
           <div id="puzzle-progress" style="width:100%; max-width: 500px; margin-bottom:20px;"></div>
           <div id="puzzle-instructions" style="color: white; font-size: 1.1rem; margin-bottom: 16px; text-align: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px;">
-            🎯 גרור חלקי הפאזל ושחרר אותם קרוב לחלקים שצריכים להתחבר!<br>
-            ✨ חלקים סמוכים יתחברו אוטומטית!
+            🎯 גרור כל חלק למקום הנכון בלוח!<br>
+            ✨ כשחלק יהיה קרוב למקום הנכון הוא יקפוץ אליו!
           </div>
           <div id="puzzle-main-area" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
           <div id="puzzle-feedback" style="font-size: 1.4rem; color: #ffeb3b; min-height: 40px; font-weight: 700; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin-top: 16px;"></div>
@@ -81,7 +76,6 @@ window['simple-puzzle'] = {
     `;
     document.body.appendChild(modal);
     
-    // הוספת עיצוב CSS עבור הפאזל
     this.addPuzzleStyles();
   },
 
@@ -91,9 +85,11 @@ window['simple-puzzle'] = {
       .puzzle-piece {
         position: absolute;
         cursor: grab;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         filter: drop-shadow(3px 3px 8px rgba(0,0,0,0.4));
         z-index: 1;
+        border-radius: 8px;
+        overflow: hidden;
       }
       
       .puzzle-piece:hover {
@@ -103,9 +99,10 @@ window['simple-puzzle'] = {
       }
       
       .puzzle-piece.dragging {
-        transform: scale(1.1) rotate(5deg);
+        transform: scale(1.1);
         z-index: 100;
         filter: drop-shadow(6px 6px 16px rgba(0,0,0,0.8));
+        cursor: grabbing;
       }
       
       .puzzle-piece.connected {
@@ -113,11 +110,11 @@ window['simple-puzzle'] = {
         filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.3));
       }
       
-      .puzzle-piece.connecting {
-        animation: connectPulse 0.4s ease-out;
+      .puzzle-piece.snapping {
+        animation: snapEffect 0.3s ease-out;
       }
       
-      @keyframes connectPulse {
+      @keyframes snapEffect {
         0% { transform: scale(1); }
         50% { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(76,175,80,0.8)); }
         100% { transform: scale(1); }
@@ -128,27 +125,42 @@ window['simple-puzzle'] = {
         background: rgba(255,255,255,0.05);
         border: 3px solid rgba(255,255,255,0.2);
         border-radius: 20px;
-        padding: 20px;
+        padding: 30px;
         backdrop-filter: blur(5px);
         box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        width: 700px;
+        height: 500px;
       }
       
       .puzzle-board {
         position: relative;
         background: rgba(255,255,255,0.1);
         border: 3px dashed rgba(255,255,255,0.3);
-        border-radius: 20px;
+        border-radius: 15px;
         backdrop-filter: blur(10px);
       }
       
       .puzzle-pieces-area {
         background: rgba(255,255,255,0.05);
-        border-radius: 20px;
+        border-radius: 15px;
         padding: 20px;
         backdrop-filter: blur(5px);
         border: 2px solid rgba(255,255,255,0.1);
         position: relative;
-        overflow: hidden;
+      }
+      
+      .puzzle-slot {
+        position: absolute;
+        border: 2px dashed rgba(255,255,255,0.4);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        transition: all 0.2s ease;
+      }
+      
+      .puzzle-slot.highlight {
+        border-color: rgba(76,175,80,0.8);
+        background: rgba(76,175,80,0.1);
+        box-shadow: 0 0 15px rgba(76,175,80,0.3);
       }
       
       .progress-bar {
@@ -184,10 +196,6 @@ window['simple-puzzle'] = {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(100%); }
       }
-      
-      .puzzle-piece svg {
-        pointer-events: none;
-      }
     `;
     document.head.appendChild(style);
   },
@@ -196,10 +204,10 @@ window['simple-puzzle'] = {
     // עדכון בר התקדמות
     const progress = document.getElementById('puzzle-progress');
     if (progress) {
-      const percent = Math.round((this.correctPieces / 12) * 100);
+      const percent = Math.round((this.correctPieces / 9) * 100);
       progress.innerHTML = `
         <div style="color: white; font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; text-align: center;">
-          🧩 פאזל ${this.stage + 1} - ${this.correctPieces}/12 חלקים
+          🧩 פאזל ${this.stage + 1} - ${this.correctPieces}/9 חלקים
         </div>
         <div class="progress-bar">
           <div class="progress-fill" style="width: ${percent}%;"></div>
@@ -217,24 +225,20 @@ window['simple-puzzle'] = {
     // איפוס משתנים
     this.pieces = [];
     this.correctPieces = 0;
-    this.connectedGroups = [];
     
-    // יצירת מכל הפאזל עם גבולות
+    // יצירת מכל הפאזל
     const puzzleContainer = document.createElement('div');
     puzzleContainer.className = 'puzzle-container';
-    puzzleContainer.style.width = '800px';
-    puzzleContainer.style.height = '500px';
-    puzzleContainer.style.position = 'relative';
     puzzleContainer.id = 'puzzle-container';
     
-    // יצירת לוח הפאזל
+    // יצירת לוח הפאזל (שמאל)
     const boardContainer = document.createElement('div');
     boardContainer.style.position = 'absolute';
-    boardContainer.style.top = '50px';
-    boardContainer.style.left = '50px';
+    boardContainer.style.top = '30px';
+    boardContainer.style.left = '30px';
 
     const boardTitle = document.createElement('div');
-    boardTitle.innerHTML = '🎯 לוח הפאזל';
+    boardTitle.innerHTML = '🎯 בנה כאן את הפאזל';
     boardTitle.style.color = 'white';
     boardTitle.style.fontSize = '1.1rem';
     boardTitle.style.fontWeight = 'bold';
@@ -247,15 +251,15 @@ window['simple-puzzle'] = {
     puzzleBoard.id = 'puzzle-board';
     puzzleBoard.className = 'puzzle-board';
     puzzleBoard.style.width = this.boardSize + 'px';
-    puzzleBoard.style.height = this.boardHeight + 'px';
+    puzzleBoard.style.height = this.boardSize + 'px';
     puzzleBoard.style.position = 'relative';
     boardContainer.appendChild(puzzleBoard);
 
-    // יצירת אזור החלקים
+    // יצירת אזור החלקים (ימין)
     const piecesContainer = document.createElement('div');
     piecesContainer.style.position = 'absolute';
-    piecesContainer.style.top = '50px';
-    piecesContainer.style.right = '50px';
+    piecesContainer.style.top = '30px';
+    piecesContainer.style.right = '30px';
 
     const piecesTitle = document.createElement('div');
     piecesTitle.innerHTML = '🧩 חלקי הפאזל';
@@ -270,8 +274,8 @@ window['simple-puzzle'] = {
     const piecesArea = document.createElement('div');
     piecesArea.id = 'puzzle-pieces-area';
     piecesArea.className = 'puzzle-pieces-area';
-    piecesArea.style.width = '300px';
-    piecesArea.style.height = '350px';
+    piecesArea.style.width = '280px';
+    piecesArea.style.height = '320px';
     piecesArea.style.position = 'relative';
     piecesContainer.appendChild(piecesArea);
 
@@ -283,12 +287,15 @@ window['simple-puzzle'] = {
     this.dragBounds = {
       minX: 10,
       minY: 10,
-      maxX: 800 - this.pieceSize - 10,
+      maxX: 700 - this.pieceSize - 10,
       maxY: 500 - this.pieceSize - 10
     };
 
+    // יצירת המשבצות בלוח
+    this.createPuzzleSlots(puzzleBoard);
+    
     // יצירת חלקי הפאזל
-    this.createPuzzlePieces(puzzleBoard, piecesArea);
+    this.createPuzzlePieces(piecesArea);
     
     // הוספת event listeners לכפתורים
     document.getElementById('puzzle-restart').onclick = () => {
@@ -297,28 +304,41 @@ window['simple-puzzle'] = {
     };
   },
 
-  createPuzzlePieces(board, piecesArea) {
-    const pieceWidth = this.boardSize / this.gridCols;
-    const pieceHeight = this.boardHeight / this.gridRows;
+  createPuzzleSlots(board) {
+    const pieceSize = this.boardSize / this.gridSize;
+    
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const slot = document.createElement('div');
+        slot.className = 'puzzle-slot';
+        slot.style.left = (col * pieceSize) + 'px';
+        slot.style.top = (row * pieceSize) + 'px';
+        slot.style.width = pieceSize + 'px';
+        slot.style.height = pieceSize + 'px';
+        slot.dataset.row = row;
+        slot.dataset.col = col;
+        board.appendChild(slot);
+      }
+    }
+  },
 
-    // יצירת 12 חלקי פאזל (3x4)
-    for (let row = 0; row < this.gridRows; row++) {
-      for (let col = 0; col < this.gridCols; col++) {
-        const pieceIndex = row * this.gridCols + col;
-        const piece = this.createPuzzlePiece(pieceIndex, row, col, pieceWidth, pieceHeight);
+  createPuzzlePieces(piecesArea) {
+    const pieceSize = this.boardSize / this.gridSize;
+
+    // יצירת 9 חלקי פאזל (3x3)
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const pieceIndex = row * this.gridSize + col;
+        const piece = this.createPuzzlePiece(pieceIndex, row, col, pieceSize);
         
-        // מיקום מתאים בלוח (מיקום נכון יחסית ללוח)
-        piece.correctX = col * pieceWidth;
-        piece.correctY = row * pieceHeight;
-        piece.boardRow = row;
-        piece.boardCol = col;
+        // מיקום נכון יחסית ללוח
+        piece.correctRow = row;
+        piece.correctCol = col;
+        piece.connected = false;
         
         // מיקום ראשוני באזור החלקים (אקראי)
-        const containerRect = document.getElementById('puzzle-container').getBoundingClientRect();
-        const piecesAreaRect = piecesArea.getBoundingClientRect();
-        
-        const randomX = (piecesAreaRect.left - containerRect.left) + Math.random() * (280 - this.pieceSize);
-        const randomY = (piecesAreaRect.top - containerRect.top) + Math.random() * (330 - this.pieceSize);
+        const randomX = Math.random() * (260 - this.pieceSize);
+        const randomY = Math.random() * (300 - this.pieceSize);
         
         piece.style.left = randomX + 'px';
         piece.style.top = randomY + 'px';
@@ -332,10 +352,10 @@ window['simple-puzzle'] = {
       }
     }
     
-    this.showFeedback('🎯 התחל לבנות את הפאזל! גרור חלקים קרוב זה לזה', '#ffeb3b');
+    this.showFeedback('🎯 גרור כל חלק למקום הנכון!', '#ffeb3b');
   },
 
-  createPuzzlePiece(index, row, col, width, height) {
+  createPuzzlePiece(index, row, col, size) {
     const piece = document.createElement('div');
     piece.className = 'puzzle-piece';
     piece.dataset.index = index;
@@ -344,126 +364,13 @@ window['simple-puzzle'] = {
     piece.style.width = this.pieceSize + 'px';
     piece.style.height = this.pieceSize + 'px';
     piece.style.position = 'absolute';
-    piece.connected = false;
-    piece.connectedGroup = null;
-    
-    // יצירת SVG עם צורת פאזל ותמונה
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', this.pieceSize);
-    svg.setAttribute('height', this.pieceSize);
-    svg.setAttribute('viewBox', `0 0 ${this.pieceSize} ${this.pieceSize}`);
-    
-    // יצירת defs עבור התמונה
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-    pattern.setAttribute('id', `img-${index}`);
-    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-    pattern.setAttribute('width', this.pieceSize);
-    pattern.setAttribute('height', this.pieceSize);
-    
-    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-    image.setAttribute('href', this.currentImage);
-    image.setAttribute('width', this.boardSize);
-    image.setAttribute('height', this.boardHeight);
-    image.setAttribute('x', -col * (this.boardSize / this.gridCols));
-    image.setAttribute('y', -row * (this.boardHeight / this.gridRows));
-    
-    pattern.appendChild(image);
-    defs.appendChild(pattern);
-    svg.appendChild(defs);
-    
-    // יצירת צורת הפאזל
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', this.generatePuzzleShape(row, col));
-    path.setAttribute('fill', `url(#img-${index})`);
-    path.setAttribute('stroke', '#ffffff');
-    path.setAttribute('stroke-width', '2');
-    path.setAttribute('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))');
-    
-    svg.appendChild(path);
-    piece.appendChild(svg);
+    piece.style.backgroundImage = `url(${this.currentImage})`;
+    piece.style.backgroundSize = `${this.boardSize}px ${this.boardSize}px`;
+    piece.style.backgroundPosition = `-${col * size}px -${row * size}px`;
+    piece.style.border = '2px solid white';
+    piece.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.2)';
     
     return piece;
-  },
-
-  generatePuzzleShape(row, col) {
-    // יצירת צורת פאזל בסיסית עם בליטות וחורים
-    const size = this.pieceSize;
-    const knobSize = 15;
-    const knobDepth = 8;
-    
-    let path = `M 10,10`;
-    
-    // צד עליון
-    if (row === 0) {
-      path += ` L ${size-10},10`; // קו ישר
-    } else {
-      const knobOut = Math.random() > 0.5;
-      const knobPos = size * 0.5;
-      path += ` L ${knobPos - knobSize},10`;
-      if (knobOut) {
-        path += ` Q ${knobPos - knobSize},${10 - knobDepth} ${knobPos},${10 - knobDepth}`;
-        path += ` Q ${knobPos + knobSize},${10 - knobDepth} ${knobPos + knobSize},10`;
-      } else {
-        path += ` Q ${knobPos - knobSize},${10 + knobDepth} ${knobPos},${10 + knobDepth}`;
-        path += ` Q ${knobPos + knobSize},${10 + knobDepth} ${knobPos + knobSize},10`;
-      }
-      path += ` L ${size-10},10`;
-    }
-    
-    // צד ימין
-    if (col === this.gridCols - 1) {
-      path += ` L ${size-10},${size-10}`; // קו ישר
-    } else {
-      const knobOut = Math.random() > 0.5;
-      const knobPos = size * 0.5;
-      path += ` L ${size-10},${knobPos - knobSize}`;
-      if (knobOut) {
-        path += ` Q ${size-10+knobDepth},${knobPos - knobSize} ${size-10+knobDepth},${knobPos}`;
-        path += ` Q ${size-10+knobDepth},${knobPos + knobSize} ${size-10},${knobPos + knobSize}`;
-      } else {
-        path += ` Q ${size-10-knobDepth},${knobPos - knobSize} ${size-10-knobDepth},${knobPos}`;
-        path += ` Q ${size-10-knobDepth},${knobPos + knobSize} ${size-10},${knobPos + knobSize}`;
-      }
-      path += ` L ${size-10},${size-10}`;
-    }
-    
-    // צד תחתון
-    if (row === this.gridRows - 1) {
-      path += ` L 10,${size-10}`; // קו ישר
-    } else {
-      const knobOut = Math.random() > 0.5;
-      const knobPos = size * 0.5;
-      path += ` L ${knobPos + knobSize},${size-10}`;
-      if (knobOut) {
-        path += ` Q ${knobPos + knobSize},${size-10+knobDepth} ${knobPos},${size-10+knobDepth}`;
-        path += ` Q ${knobPos - knobSize},${size-10+knobDepth} ${knobPos - knobSize},${size-10}`;
-      } else {
-        path += ` Q ${knobPos + knobSize},${size-10-knobDepth} ${knobPos},${size-10-knobDepth}`;
-        path += ` Q ${knobPos - knobSize},${size-10-knobDepth} ${knobPos - knobSize},${size-10}`;
-      }
-      path += ` L 10,${size-10}`;
-    }
-    
-    // צד שמאל
-    if (col === 0) {
-      path += ` L 10,10`; // קו ישר
-    } else {
-      const knobOut = Math.random() > 0.5;
-      const knobPos = size * 0.5;
-      path += ` L 10,${knobPos + knobSize}`;
-      if (knobOut) {
-        path += ` Q ${10-knobDepth},${knobPos + knobSize} ${10-knobDepth},${knobPos}`;
-        path += ` Q ${10-knobDepth},${knobPos - knobSize} 10,${knobPos - knobSize}`;
-      } else {
-        path += ` Q ${10+knobDepth},${knobPos + knobSize} ${10+knobDepth},${knobPos}`;
-        path += ` Q ${10+knobDepth},${knobPos - knobSize} 10,${knobPos - knobSize}`;
-      }
-      path += ` L 10,10`;
-    }
-    
-    path += ` Z`;
-    return path;
   },
 
   addPieceEvents(piece) {
@@ -504,6 +411,9 @@ window['simple-puzzle'] = {
       piece.style.left = newX + 'px';
       piece.style.top = newY + 'px';
       
+      // הדגשת המשבצת הנכונה
+      this.highlightCorrectSlot(piece);
+      
       e.preventDefault();
     };
     
@@ -513,8 +423,13 @@ window['simple-puzzle'] = {
       isDragging = false;
       piece.classList.remove('dragging');
       
-      // בדיקה אם החלק קרוב למיקום הנכון או לחלקים אחרים
-      this.checkPieceConnections(piece);
+      // הסרת כל ההדגשות
+      document.querySelectorAll('.puzzle-slot').forEach(slot => {
+        slot.classList.remove('highlight');
+      });
+      
+      // בדיקה אם החלק קרוב למקום הנכון
+      this.checkPieceConnection(piece);
       
       e.preventDefault();
     };
@@ -530,113 +445,78 @@ window['simple-puzzle'] = {
     document.addEventListener('touchend', endDrag, {passive: false});
   },
 
-  checkPieceConnections(piece) {
+  highlightCorrectSlot(piece) {
+    // הסרת הדגשות קודמות
+    document.querySelectorAll('.puzzle-slot').forEach(slot => {
+      slot.classList.remove('highlight');
+    });
+    
+    // הדגשת המשבצת הנכונה אם החלק קרוב
     const board = document.getElementById('puzzle-board');
     const boardRect = board.getBoundingClientRect();
     const containerRect = document.getElementById('puzzle-container').getBoundingClientRect();
-    const pieceRect = piece.getBoundingClientRect();
-    
-    // חישוב מיקום יחסית ללוח
-    const boardX = (boardRect.left - containerRect.left);
-    const boardY = (boardRect.top - containerRect.top);
     const pieceX = parseInt(piece.style.left);
     const pieceY = parseInt(piece.style.top);
     
-    const correctX = boardX + piece.correctX;
-    const correctY = boardY + piece.correctY;
+    const boardX = boardRect.left - containerRect.left;
+    const boardY = boardRect.top - containerRect.top;
+    const pieceSize = this.boardSize / this.gridSize;
     
-    // בדיקה אם החלק קרוב למיקום הנכון
-    const tolerance = 50;
-    const isCloseToCorrect = Math.abs(pieceX - correctX) < tolerance && 
-                           Math.abs(pieceY - correctY) < tolerance;
+    const correctX = boardX + (piece.correctCol * pieceSize);
+    const correctY = boardY + (piece.correctRow * pieceSize);
     
-    // בדיקה אם יש חלקים מחוברים בקרבת מקום
-    let nearbyConnectedPieces = [];
-    this.pieces.forEach(otherPiece => {
-      if (otherPiece !== piece && otherPiece.connected) {
-        const otherX = parseInt(otherPiece.style.left);
-        const otherY = parseInt(otherPiece.style.top);
-        const distance = Math.sqrt(Math.pow(pieceX - otherX, 2) + Math.pow(pieceY - otherY, 2));
-        
-        if (distance < this.pieceSize * 1.2) {
-          // בדיקה אם החלקים אמורים להיות סמוכים
-          if (this.shouldBeAdjacent(piece, otherPiece)) {
-            nearbyConnectedPieces.push(otherPiece);
-          }
-        }
+    const tolerance = 60;
+    if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
+      const correctSlot = document.querySelector(`.puzzle-slot[data-row="${piece.correctRow}"][data-col="${piece.correctCol}"]`);
+      if (correctSlot) {
+        correctSlot.classList.add('highlight');
       }
-    });
-    
-    if (isCloseToCorrect || nearbyConnectedPieces.length > 0) {
-      this.connectPiece(piece, nearbyConnectedPieces);
     }
   },
 
-  shouldBeAdjacent(piece1, piece2) {
-    const row1 = piece1.boardRow, col1 = piece1.boardCol;
-    const row2 = piece2.boardRow, col2 = piece2.boardCol;
-    
-    // בדיקה אם החלקים סמוכים בגריד
-    const rowDiff = Math.abs(row1 - row2);
-    const colDiff = Math.abs(col1 - col2);
-    
-    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
-  },
-
-  connectPiece(piece, nearbyPieces) {
-    this.playSound('snap');
-    
-    // אנימציה של חיבור
-    piece.classList.add('connecting');
-    setTimeout(() => piece.classList.remove('connecting'), 400);
-    
-    piece.connected = true;
-    piece.classList.add('connected');
-    
+  checkPieceConnection(piece) {
     const board = document.getElementById('puzzle-board');
     const boardRect = board.getBoundingClientRect();
     const containerRect = document.getElementById('puzzle-container').getBoundingClientRect();
+    const pieceX = parseInt(piece.style.left);
+    const pieceY = parseInt(piece.style.top);
     
-    const boardX = (boardRect.left - containerRect.left);
-    const boardY = (boardRect.top - containerRect.top);
+    const boardX = boardRect.left - containerRect.left;
+    const boardY = boardRect.top - containerRect.top;
+    const pieceSize = this.boardSize / this.gridSize;
     
-    if (nearbyPieces.length > 0) {
-      // התחברות לקבוצה קיימת
-      const referenceGroup = nearbyPieces[0].connectedGroup;
-      piece.connectedGroup = referenceGroup;
-      
-      // מציאת החלק הראשון בקבוצה למיקום יחסי
-      let referencePiece = nearbyPieces[0];
-      const offsetX = piece.correctX - referencePiece.correctX;
-      const offsetY = piece.correctY - referencePiece.correctY;
-      
-      const refX = parseInt(referencePiece.style.left);
-      const refY = parseInt(referencePiece.style.top);
-      
-      piece.style.left = (refX + offsetX) + 'px';
-      piece.style.top = (refY + offsetY) + 'px';
-      
-      // הוספה לקבוצה
-      if (referenceGroup) {
-        referenceGroup.push(piece);
-      }
-    } else {
-      // חיבור למיקום הנכון בלוח
-      piece.style.left = (boardX + piece.correctX) + 'px';
-      piece.style.top = (boardY + piece.correctY) + 'px';
-      
-      // יצירת קבוצה חדשה
-      const newGroup = [piece];
-      piece.connectedGroup = newGroup;
-      this.connectedGroups.push(newGroup);
+    const correctX = boardX + (piece.correctCol * pieceSize);
+    const correctY = boardY + (piece.correctRow * pieceSize);
+    
+    // בדיקה אם החלק קרוב למקום הנכון
+    const tolerance = 50;
+    const isClose = Math.abs(pieceX - correctX) < tolerance && 
+                   Math.abs(pieceY - correctY) < tolerance;
+    
+    if (isClose) {
+      this.connectPiece(piece, correctX, correctY);
     }
+  },
+
+  connectPiece(piece, correctX, correctY) {
+    this.playSound('snap');
+    
+    // אנימציה של חיבור
+    piece.classList.add('snapping');
+    setTimeout(() => piece.classList.remove('snapping'), 300);
+    
+    // מיקום החלק במקום הנכון
+    piece.style.left = correctX + 'px';
+    piece.style.top = correctY + 'px';
+    piece.connected = true;
+    piece.classList.add('connected');
     
     this.correctPieces++;
-    this.showFeedback(`🎉 מצוין! ${this.correctPieces}/12 חלקים`, '#4caf50');
+    this.showFeedback(`🎉 מצוין! ${this.correctPieces}/9 חלקים`, '#4caf50');
     this.renderGame(); // עדכון בר התקדמות
     
     // בדיקה אם הפאזל הושלם
-    if (this.correctPieces === 12) {
+    if (this.correctPieces === 9) {
       setTimeout(() => this.completePuzzle(), 500);
     }
   },
@@ -648,8 +528,8 @@ window['simple-puzzle'] = {
         const piecesArea = document.getElementById('puzzle-pieces-area');
         const piecesAreaRect = piecesArea.getBoundingClientRect();
         
-        const randomX = (piecesAreaRect.left - containerRect.left) + Math.random() * (280 - this.pieceSize);
-        const randomY = (piecesAreaRect.top - containerRect.top) + Math.random() * (330 - this.pieceSize);
+        const randomX = (piecesAreaRect.left - containerRect.left) + Math.random() * (260 - this.pieceSize);
+        const randomY = (piecesAreaRect.top - containerRect.top) + Math.random() * (300 - this.pieceSize);
         
         piece.style.left = randomX + 'px';
         piece.style.top = randomY + 'px';
@@ -683,10 +563,8 @@ window['simple-puzzle'] = {
       this.stage++;
       if (this.stage < this.totalStages) {
         this.correctPieces = 0;
-        this.connectedGroups = [];
         this.pieces.forEach(p => {
           p.connected = false;
-          p.connectedGroup = null;
           p.classList.remove('connected');
         });
         this.shufflePieces();

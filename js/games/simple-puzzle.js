@@ -1,20 +1,39 @@
 window['simple-puzzle'] = {
   stage: 0,
-  totalStages: 20,
+  totalStages: 10,
   sounds: {},
-  currentImage: '',
-  currentGrid: 2, // מתחיל ב-2x2
-  pieceSize: 80,
+  currentImage: 'puzzle/1.png', // תמונה קבועה מהתיקייה החדשה
+  gridSize: 4, // 4x4 = 16 חלקים
+  pieceSize: 90,
+  boardSize: 400,
+  pieces: [],
+  correctPieces: 0,
+  draggedPiece: null,
   
-  // תמונות הפירות
-  images: [
-    'fruits/apple.jpg',
-    'fruits/banana.jpg', 
-    'fruits/strawberry.jpg',
-    'fruits/orange.jpeg',
-    'fruits/lemon.jpg',
-    'fruits/pear.jpg',
-    'fruits/water melon.jpg'
+  // מערך של צורות פאזל אמיתיות - בליטות וחורים
+  puzzleShapes: [
+    // שורה 1
+    'M0,0 L80,0 Q85,15 80,30 L80,60 Q65,65 50,60 Q35,65 20,60 L0,60 Z', // פינה שמאל עליון
+    'M0,0 L60,0 Q65,15 60,30 L60,60 Q45,55 30,60 Q15,65 0,60 Z', // עליון מרכז
+    'M0,0 L60,0 Q65,15 60,30 L60,60 Q45,55 30,60 Q15,65 0,60 Z', // עליון מרכז
+    'M0,0 L80,0 L80,60 Q65,65 50,60 Q35,55 20,60 L0,60 Q5,45 0,30 Z', // פינה ימין עליון
+    
+    // שורה 2-3 (מרכז) - צורות מורכבות יותר
+    'M0,0 Q15,5 30,0 L60,0 Q65,15 60,30 L60,60 Q45,65 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    
+    'M0,0 Q15,5 30,0 L60,0 Q65,15 60,30 L60,60 Q45,65 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 Q45,55 30,60 L0,60 Q5,45 0,30 Z',
+    
+    // שורה 4 (תחתון)
+    'M0,0 Q15,5 30,0 L60,0 Q65,15 60,30 L60,60 L0,60 Q5,45 0,30 Z', // פינה שמאל תחתון  
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 L0,60 Q5,45 0,30 Z', // תחתון מרכז
+    'M0,0 Q15,5 30,0 L60,0 Q55,15 60,30 L60,60 L0,60 Q5,45 0,30 Z', // תחתון מרכז
+    'M0,0 Q15,5 30,0 L60,0 L60,60 L0,60 Q5,45 0,30 Z' // פינה ימין תחתון
   ],
 
   async init() {
@@ -30,9 +49,10 @@ window['simple-puzzle'] = {
       wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
       drag: new Audio('sounds/plop-sound-made-with-my-mouth-100690 (mp3cut.net).mp3'),
       click: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
-      complete: new Audio('sounds/game-level-complete-143022.mp3')
+      complete: new Audio('sounds/game-level-complete-143022.mp3'),
+      connect: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
     };
-    for (const k in this.sounds) this.sounds[k].volume = 0.7;
+    for (const k in this.sounds) this.sounds[k].volume = 0.6;
   },
 
   playSound(type) {
@@ -55,310 +75,515 @@ window['simple-puzzle'] = {
     const modal = document.createElement('div');
     modal.className = 'game-modal';
     modal.innerHTML = `
-      <div class="game-modal-content" style="position:relative; max-height:100vh; overflow-y:auto; box-sizing:border-box; padding-bottom:16px;">
+      <div class="game-modal-content" style="position:relative; max-height:100vh; overflow-y:auto; box-sizing:border-box; padding:16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div class="game-modal-header">
-          <h2>🧩 פאזל תמונות יפות</h2>
+          <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🧩 פאזל אמיתי - 16 חלקים</h2>
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
-          <div id="puzzle-stage-bar" style="width:100%;margin-bottom:16px;"></div>
-          <div id="puzzle-preview" style="margin-bottom:16px;"></div>
-          <p style="margin:0 0 16px 0; font-size:1.2em; color:#ff9800;">🎯 גרור את החלקים למקום הנכון!</p>
-          <div id="puzzle-container" style="display: flex; gap: 24px; align-items: flex-start; margin: 16px 0; flex-wrap: wrap; justify-content: center;"></div>
-          <div id="puzzle-feedback" style="font-size: 1.3rem; color: #388e3c; min-height: 32px; font-weight: 700; text-align: center;"></div>
-          <button id="puzzle-next-stage" style="display:none; margin-top:20px; padding:12px 28px; font-size:1.2rem; border-radius:16px; border:none; background:#43a047; color:#fff; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🎉 לשלב הבא</button>
+          <div id="puzzle-progress" style="width:100%; max-width: 500px; margin-bottom:20px;"></div>
+          <div id="puzzle-instructions" style="color: white; font-size: 1.1rem; margin-bottom: 16px; text-align: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px;">
+            🎯 גרור חלקי הפאזל ושחרר אותם קרוב לחלקים שצריכים להתחבר!
+          </div>
+          <div id="puzzle-main-area" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
+          <div id="puzzle-feedback" style="font-size: 1.4rem; color: #ffeb3b; min-height: 40px; font-weight: 700; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin-top: 16px;"></div>
+          <button id="puzzle-restart" style="margin-top:20px; padding:12px 28px; font-size:1.1rem; border-radius:16px; border:none; background:#f44336; color:#fff; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🔄 פזר מחדש</button>
+          <button id="puzzle-next-stage" style="display:none; margin-top:20px; padding:12px 28px; font-size:1.2rem; border-radius:16px; border:none; background:#4caf50; color:#fff; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🎉 הבא!</button>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
+    
+    // הוספת עיצוב CSS עבור הפאזל
+    this.addPuzzleStyles();
   },
 
-  getGridSize() {
-    // שלבים 0-4: 2x2, 5-9: 2x3, 10+: 3x3
-    if (this.stage <= 4) return 2;
-    if (this.stage <= 9) return 3; // 2x3
-    return 3; // 3x3
+  addPuzzleStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .puzzle-piece {
+        position: absolute;
+        cursor: grab;
+        transition: all 0.3s ease;
+        filter: drop-shadow(3px 3px 8px rgba(0,0,0,0.4));
+        z-index: 1;
+      }
+      
+      .puzzle-piece:hover {
+        transform: scale(1.05);
+        filter: drop-shadow(4px 4px 12px rgba(0,0,0,0.6));
+        z-index: 10;
+      }
+      
+      .puzzle-piece.dragging {
+        transform: scale(1.1) rotate(5deg);
+        z-index: 100;
+        filter: drop-shadow(6px 6px 16px rgba(0,0,0,0.8));
+      }
+      
+      .puzzle-piece.connected {
+        cursor: default;
+        filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.3));
+      }
+      
+      .puzzle-board {
+        position: relative;
+        background: rgba(255,255,255,0.1);
+        border: 3px dashed rgba(255,255,255,0.3);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+      }
+      
+      .puzzle-pieces-area {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255,255,255,0.1);
+      }
+      
+      .progress-bar {
+        width: 100%;
+        height: 25px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50, #8bc34a);
+        border-radius: 15px;
+        transition: width 0.5s ease;
+        position: relative;
+      }
+      
+      .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+      }
+      
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      
+      .puzzle-piece svg {
+        pointer-events: none;
+      }
+    `;
+    document.head.appendChild(style);
   },
 
   renderGame() {
-    // עדכון בר שלבים
-    const bar = document.getElementById('puzzle-stage-bar');
-    if (bar) {
-      const percent = Math.round(((this.stage+1)/this.totalStages)*100);
-      bar.innerHTML = `
-        <div style="font-size:1.4rem; font-weight:900; color:#ff6f00; margin-bottom:8px; font-family:'Baloo 2','Heebo',sans-serif;">
-          🧩 שלב ${this.stage+1} מתוך ${this.totalStages}
+    // עדכון בר התקדמות
+    const progress = document.getElementById('puzzle-progress');
+    if (progress) {
+      const percent = Math.round((this.correctPieces / 16) * 100);
+      progress.innerHTML = `
+        <div style="color: white; font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; text-align: center;">
+          🧩 פאזל ${this.stage + 1} - ${this.correctPieces}/16 חלקים
         </div>
-        <div style="width:100%;height:20px;background:#ffe0b2;border-radius:10px;overflow:hidden;box-shadow:0 3px 12px rgba(255,111,0,0.3);margin-bottom:8px;">
-          <div style="width:${percent}%;height:100%;background:linear-gradient(90deg,#ff6f00,#ff8f00);border-radius:10px 0 0 10px;transition:width 0.5s ease;"></div>
-        </div>`;
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${percent}%;"></div>
+        </div>
+      `;
     }
-
-    // בחירת תמונה וגודל רשת
-    this.currentImage = this.images[this.stage % this.images.length];
-    this.currentGrid = this.getGridSize();
-    
-    // תצוגה מקדימה של התמונה השלמה
-    const preview = document.getElementById('puzzle-preview');
-    preview.innerHTML = `
-      <div style="text-align: center; margin-bottom: 12px;">
-        <div style="font-size: 1.1rem; color: #666; margin-bottom: 8px;">התמונה השלמה:</div>
-        <img src="${this.currentImage}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
-        <div style="font-size: 0.9rem; color: #999; margin-top: 6px;">פאזל ${this.currentGrid}×${this.currentGrid}</div>
-      </div>
-    `;
 
     this.createPuzzle();
   },
 
   createPuzzle() {
-    const container = document.getElementById('puzzle-container');
-    container.innerHTML = '';
+    const mainArea = document.getElementById('puzzle-main-area');
+    mainArea.innerHTML = '';
     
-    // יצירת לוח הפאזל ואזור החלקים
-    const boardArea = document.createElement('div');
-    boardArea.style.display = 'flex';
-    boardArea.style.flexDirection = 'column';
-    boardArea.style.alignItems = 'center';
-    boardArea.style.gap = '16px';
+    // איפוס משתנים
+    this.pieces = [];
+    this.correctPieces = 0;
+    
+    // יצירת לוח הפאזל
+    const boardContainer = document.createElement('div');
+    boardContainer.style.display = 'flex';
+    boardContainer.style.flexDirection = 'column';
+    boardContainer.style.alignItems = 'center';
+    boardContainer.style.gap = '16px';
 
-    // כותרת לוח הפאזל
     const boardTitle = document.createElement('div');
     boardTitle.innerHTML = '🎯 לוח הפאזל';
-    boardTitle.style.fontSize = '1.1rem';
+    boardTitle.style.color = 'white';
+    boardTitle.style.fontSize = '1.2rem';
     boardTitle.style.fontWeight = 'bold';
-    boardTitle.style.color = '#1976d2';
-    boardArea.appendChild(boardTitle);
+    boardTitle.style.textShadow = '2px 2px 4px rgba(0,0,0,0.7)';
+    boardContainer.appendChild(boardTitle);
 
-    // לוח הפאזל (מטרות)
     const puzzleBoard = document.createElement('div');
     puzzleBoard.id = 'puzzle-board';
-    puzzleBoard.style.display = 'grid';
-    puzzleBoard.style.gridTemplateColumns = `repeat(${this.currentGrid}, ${this.pieceSize}px)`;
-    puzzleBoard.style.gridTemplateRows = `repeat(${this.currentGrid}, ${this.pieceSize}px)`;
-    puzzleBoard.style.gap = '2px';
-    puzzleBoard.style.background = '#e3f2fd';
-    puzzleBoard.style.padding = '12px';
-    puzzleBoard.style.borderRadius = '16px';
-    puzzleBoard.style.boxShadow = '0 6px 20px rgba(25,118,210,0.3)';
-    boardArea.appendChild(puzzleBoard);
+    puzzleBoard.className = 'puzzle-board';
+    puzzleBoard.style.width = this.boardSize + 'px';
+    puzzleBoard.style.height = this.boardSize + 'px';
+    puzzleBoard.style.position = 'relative';
+    boardContainer.appendChild(puzzleBoard);
 
-    // אזור החלקים
-    const piecesArea = document.createElement('div');
-    piecesArea.style.display = 'flex';
-    piecesArea.style.flexDirection = 'column';
-    piecesArea.style.alignItems = 'center';
-    piecesArea.style.gap = '16px';
+    // יצירת אזור החלקים
+    const piecesContainer = document.createElement('div');
+    piecesContainer.style.display = 'flex';
+    piecesContainer.style.flexDirection = 'column';
+    piecesContainer.style.alignItems = 'center';
+    piecesContainer.style.gap = '16px';
 
-    // כותרת אזור החלקים
     const piecesTitle = document.createElement('div');
     piecesTitle.innerHTML = '🧩 חלקי הפאזל';
-    piecesTitle.style.fontSize = '1.1rem';
+    piecesTitle.style.color = 'white';
+    piecesTitle.style.fontSize = '1.2rem';
     piecesTitle.style.fontWeight = 'bold';
-    piecesTitle.style.color = '#43a047';
-    piecesArea.appendChild(piecesTitle);
+    piecesTitle.style.textShadow = '2px 2px 4px rgba(0,0,0,0.7)';
+    piecesContainer.appendChild(piecesTitle);
 
-    // אזור החלקים לגרירה
-    const piecesContainer = document.createElement('div');
-    piecesContainer.id = 'puzzle-pieces';
-    piecesContainer.style.display = 'flex';
-    piecesContainer.style.flexWrap = 'wrap';
-    piecesContainer.style.gap = '8px';
-    piecesContainer.style.justifyContent = 'center';
-    piecesContainer.style.background = '#e8f5e8';
-    piecesContainer.style.padding = '16px';
-    piecesContainer.style.borderRadius = '16px';
-    piecesContainer.style.boxShadow = '0 6px 20px rgba(67,160,71,0.3)';
-    piecesContainer.style.maxWidth = `${(this.pieceSize + 8) * 4}px`;
-    piecesArea.appendChild(piecesContainer);
+    const piecesArea = document.createElement('div');
+    piecesArea.id = 'puzzle-pieces-area';
+    piecesArea.className = 'puzzle-pieces-area';
+    piecesArea.style.width = '400px';
+    piecesArea.style.minHeight = '300px';
+    piecesArea.style.position = 'relative';
+    piecesContainer.appendChild(piecesArea);
 
-    container.appendChild(boardArea);
-    container.appendChild(piecesArea);
+    mainArea.appendChild(boardContainer);
+    mainArea.appendChild(piecesContainer);
 
     // יצירת חלקי הפאזל
-    this.createPuzzlePieces(puzzleBoard, piecesContainer);
+    this.createPuzzlePieces(puzzleBoard, piecesArea);
+    
+    // הוספת event listeners לכפתורים
+    document.getElementById('puzzle-restart').onclick = () => {
+      this.playSound('click');
+      this.shufflePieces();
+    };
   },
 
-  createPuzzlePieces(board, piecesContainer) {
-    const totalPieces = this.currentGrid * this.currentGrid;
-    const pieces = [];
-    
-    // יצירת כל החלקים
-    for(let row = 0; row < this.currentGrid; row++) {
-      for(let col = 0; col < this.currentGrid; col++) {
-        const pieceIndex = row * this.currentGrid + col;
-        pieces.push({ row, col, index: pieceIndex });
+  createPuzzlePieces(board, piecesArea) {
+    const piecesPerRow = this.gridSize;
+    const pieceWidth = this.boardSize / piecesPerRow;
+    const pieceHeight = this.boardSize / piecesPerRow;
+
+    // יצירת 16 חלקי פאזל
+    for (let row = 0; row < piecesPerRow; row++) {
+      for (let col = 0; col < piecesPerRow; col++) {
+        const pieceIndex = row * piecesPerRow + col;
+        const piece = this.createPuzzlePiece(pieceIndex, row, col, pieceWidth, pieceHeight);
+        
+        // מיקום מתאים בלוח (מיקום נכון)
+        piece.correctX = col * pieceWidth;
+        piece.correctY = row * pieceHeight;
+        
+        // מיקום ראשוני באזור החלקים (אקראי)
+        const randomX = Math.random() * (380 - this.pieceSize);
+        const randomY = Math.random() * (280 - this.pieceSize);
+        piece.style.left = randomX + 'px';
+        piece.style.top = randomY + 'px';
+        
+        piecesArea.appendChild(piece);
+        this.pieces.push(piece);
+        
+        // הוספת event listeners
+        this.addPieceEvents(piece);
       }
     }
-
-    // יצירת מטרות בלוח
-    pieces.forEach(piece => {
-      const target = document.createElement('div');
-      target.className = 'puzzle-target';
-      target.dataset.row = piece.row;
-      target.dataset.col = piece.col;
-      target.dataset.index = piece.index;
-      target.style.width = this.pieceSize + 'px';
-      target.style.height = this.pieceSize + 'px';
-      target.style.background = '#fff';
-      target.style.border = '2px dashed #90caf9';
-      target.style.borderRadius = '8px';
-      target.style.display = 'flex';
-      target.style.alignItems = 'center';
-      target.style.justifyContent = 'center';
-      target.style.fontSize = '2rem';
-      target.style.color = '#1976d2';
-      target.style.transition = 'all 0.3s ease';
-      target.innerHTML = '📍';
-      
-      // אירועי גרירה
-      target.ondragover = e => {
-        e.preventDefault();
-        target.style.background = '#e3f2fd';
-        target.style.transform = 'scale(1.05)';
-      };
-      
-      target.ondragleave = () => {
-        if (!target.classList.contains('filled')) {
-          target.style.background = '#fff';
-          target.style.transform = 'scale(1)';
-        }
-      };
-      
-      target.ondrop = e => {
-        e.preventDefault();
-        const draggedIndex = parseInt(e.dataTransfer.getData('pieceIndex'));
-        const targetIndex = parseInt(target.dataset.index);
-        
-        target.style.background = '#fff';
-        target.style.transform = 'scale(1)';
-        
-        if (draggedIndex === targetIndex) {
-          this.playSound('success');
-          this.placePieceInTarget(target, piece);
-          
-          // בדיקה אם הפאזל הושלם
-          if (document.querySelectorAll('.puzzle-target.filled').length === totalPieces) {
-            setTimeout(() => this.completePuzzle(), 500);
-          }
-        } else {
-          this.playSound('wrong');
-          this.showFeedback('🤔 לא במקום הנכון, נסה שוב!', '#e53935');
-        }
-      };
-      
-      board.appendChild(target);
-    });
-
-    // ערבוב החלקים ויצירתם באזור החלקים
-    const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
     
-    shuffledPieces.forEach(piece => {
-      const dragPiece = document.createElement('div');
-      dragPiece.className = 'puzzle-piece';
-      dragPiece.draggable = true;
-      dragPiece.dataset.index = piece.index;
-      dragPiece.style.width = this.pieceSize + 'px';
-      dragPiece.style.height = this.pieceSize + 'px';
-      dragPiece.style.backgroundImage = `url(${this.currentImage})`;
-      dragPiece.style.backgroundSize = `${this.pieceSize * this.currentGrid}px ${this.pieceSize * this.currentGrid}px`;
-      dragPiece.style.backgroundPosition = `-${piece.col * this.pieceSize}px -${piece.row * this.pieceSize}px`;
-      dragPiece.style.cursor = 'grab';
-      dragPiece.style.borderRadius = '8px';
-      dragPiece.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-      dragPiece.style.transition = 'transform 0.2s, box-shadow 0.2s';
-      dragPiece.style.border = '2px solid #fff';
-      
-      // אירועי גרירה
-      dragPiece.ondragstart = e => {
-        this.playSound('drag');
-        e.dataTransfer.setData('pieceIndex', piece.index);
-        dragPiece.style.opacity = '0.7';
-      };
-      
-      dragPiece.ondragend = () => {
-        dragPiece.style.opacity = '1';
-      };
-      
-      // אפקטי hover
-      dragPiece.onmouseenter = () => {
-        dragPiece.style.transform = 'scale(1.05) rotate(2deg)';
-        dragPiece.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-      };
-      
-      dragPiece.onmouseleave = () => {
-        dragPiece.style.transform = 'scale(1) rotate(0deg)';
-        dragPiece.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-      };
-      
-      piecesContainer.appendChild(dragPiece);
-    });
-
-    this.showFeedback('🎯 גרור כל חלק למקום הנכון בלוח הפאזל!', '#ff9800');
+    this.showFeedback('🎯 התחל לבנות את הפאזל! גרור חלקים קרוב זה לזה', '#ffeb3b');
   },
 
-  placePieceInTarget(target, piece) {
-    target.classList.add('filled');
-    target.style.backgroundImage = `url(${this.currentImage})`;
-    target.style.backgroundSize = `${this.pieceSize * this.currentGrid}px ${this.pieceSize * this.currentGrid}px`;
-    target.style.backgroundPosition = `-${piece.col * this.pieceSize}px -${piece.row * this.pieceSize}px`;
-    target.style.border = '2px solid #43a047';
-    target.innerHTML = '';
+  createPuzzlePiece(index, row, col, width, height) {
+    const piece = document.createElement('div');
+    piece.className = 'puzzle-piece';
+    piece.dataset.index = index;
+    piece.dataset.row = row;
+    piece.dataset.col = col;
+    piece.style.width = this.pieceSize + 'px';
+    piece.style.height = this.pieceSize + 'px';
+    piece.style.position = 'absolute';
+    piece.connected = false;
     
-    // הסרת החלק מאזור החלקים
-    const dragPiece = document.querySelector(`.puzzle-piece[data-index="${piece.index}"]`);
-    if (dragPiece) {
-      dragPiece.style.transform = 'scale(0.8)';
-      dragPiece.style.opacity = '0';
-      setTimeout(() => dragPiece.remove(), 300);
+    // יצירת SVG עם צורת פאזל ותמונה
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', this.pieceSize);
+    svg.setAttribute('height', this.pieceSize);
+    svg.setAttribute('viewBox', `0 0 ${this.pieceSize} ${this.pieceSize}`);
+    
+    // יצירת defs עבור התמונה
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+    pattern.setAttribute('id', `img-${index}`);
+    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+    pattern.setAttribute('width', this.pieceSize);
+    pattern.setAttribute('height', this.pieceSize);
+    
+    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    image.setAttribute('href', this.currentImage);
+    image.setAttribute('width', this.boardSize);
+    image.setAttribute('height', this.boardSize);
+    image.setAttribute('x', -col * (this.boardSize / 4));
+    image.setAttribute('y', -row * (this.boardSize / 4));
+    
+    pattern.appendChild(image);
+    defs.appendChild(pattern);
+    svg.appendChild(defs);
+    
+    // יצירת צורת הפאזל
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', this.generatePuzzleShape(row, col));
+    path.setAttribute('fill', `url(#img-${index})`);
+    path.setAttribute('stroke', '#ffffff');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))');
+    
+    svg.appendChild(path);
+    piece.appendChild(svg);
+    
+    return piece;
+  },
+
+  generatePuzzleShape(row, col) {
+    // יצירת צורת פאזל בסיסית עם בליטות וחורים
+    const size = this.pieceSize;
+    const knobSize = 15;
+    const knobDepth = 8;
+    
+    let path = `M 10,10`;
+    
+    // צד עליון
+    if (row === 0) {
+      path += ` L ${size-10},10`; // קו ישר
+    } else {
+      const knobOut = Math.random() > 0.5;
+      const knobPos = size * 0.5;
+      path += ` L ${knobPos - knobSize},10`;
+      if (knobOut) {
+        path += ` Q ${knobPos - knobSize},${10 - knobDepth} ${knobPos},${10 - knobDepth}`;
+        path += ` Q ${knobPos + knobSize},${10 - knobDepth} ${knobPos + knobSize},10`;
+      } else {
+        path += ` Q ${knobPos - knobSize},${10 + knobDepth} ${knobPos},${10 + knobDepth}`;
+        path += ` Q ${knobPos + knobSize},${10 + knobDepth} ${knobPos + knobSize},10`;
+      }
+      path += ` L ${size-10},10`;
     }
     
-    this.showFeedback('🎉 מצוין! חלק במקום הנכון!', '#43a047');
+    // צד ימין
+    if (col === this.gridSize - 1) {
+      path += ` L ${size-10},${size-10}`; // קו ישר
+    } else {
+      const knobOut = Math.random() > 0.5;
+      const knobPos = size * 0.5;
+      path += ` L ${size-10},${knobPos - knobSize}`;
+      if (knobOut) {
+        path += ` Q ${size-10+knobDepth},${knobPos - knobSize} ${size-10+knobDepth},${knobPos}`;
+        path += ` Q ${size-10+knobDepth},${knobPos + knobSize} ${size-10},${knobPos + knobSize}`;
+      } else {
+        path += ` Q ${size-10-knobDepth},${knobPos - knobSize} ${size-10-knobDepth},${knobPos}`;
+        path += ` Q ${size-10-knobDepth},${knobPos + knobSize} ${size-10},${knobPos + knobSize}`;
+      }
+      path += ` L ${size-10},${size-10}`;
+    }
+    
+    // צד תחתון
+    if (row === this.gridSize - 1) {
+      path += ` L 10,${size-10}`; // קו ישר
+    } else {
+      const knobOut = Math.random() > 0.5;
+      const knobPos = size * 0.5;
+      path += ` L ${knobPos + knobSize},${size-10}`;
+      if (knobOut) {
+        path += ` Q ${knobPos + knobSize},${size-10+knobDepth} ${knobPos},${size-10+knobDepth}`;
+        path += ` Q ${knobPos - knobSize},${size-10+knobDepth} ${knobPos - knobSize},${size-10}`;
+      } else {
+        path += ` Q ${knobPos + knobSize},${size-10-knobDepth} ${knobPos},${size-10-knobDepth}`;
+        path += ` Q ${knobPos - knobSize},${size-10-knobDepth} ${knobPos - knobSize},${size-10}`;
+      }
+      path += ` L 10,${size-10}`;
+    }
+    
+    // צד שמאל
+    if (col === 0) {
+      path += ` L 10,10`; // קו ישר
+    } else {
+      const knobOut = Math.random() > 0.5;
+      const knobPos = size * 0.5;
+      path += ` L 10,${knobPos + knobSize}`;
+      if (knobOut) {
+        path += ` Q ${10-knobDepth},${knobPos + knobSize} ${10-knobDepth},${knobPos}`;
+        path += ` Q ${10-knobDepth},${knobPos - knobSize} 10,${knobPos - knobSize}`;
+      } else {
+        path += ` Q ${10+knobDepth},${knobPos + knobSize} ${10+knobDepth},${knobPos}`;
+        path += ` Q ${10+knobDepth},${knobPos - knobSize} 10,${knobPos - knobSize}`;
+      }
+      path += ` L 10,10`;
+    }
+    
+    path += ` Z`;
+    return path;
+  },
+
+  addPieceEvents(piece) {
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    const startDrag = (e) => {
+      if (piece.connected) return;
+      
+      isDragging = true;
+      piece.classList.add('dragging');
+      this.playSound('drag');
+      
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      
+      startX = clientX;
+      startY = clientY;
+      initialX = parseInt(piece.style.left);
+      initialY = parseInt(piece.style.top);
+      
+      e.preventDefault();
+    };
+    
+    const drag = (e) => {
+      if (!isDragging) return;
+      
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      
+      const newX = initialX + (clientX - startX);
+      const newY = initialY + (clientY - startY);
+      
+      piece.style.left = newX + 'px';
+      piece.style.top = newY + 'px';
+      
+      e.preventDefault();
+    };
+    
+    const endDrag = (e) => {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      piece.classList.remove('dragging');
+      
+      // בדיקה אם החלק קרוב למיקום הנכון
+      this.checkPieceConnection(piece);
+      
+      e.preventDefault();
+    };
+    
+    // Mouse events
+    piece.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', endDrag);
+    
+    // Touch events
+    piece.addEventListener('touchstart', startDrag, {passive: false});
+    document.addEventListener('touchmove', drag, {passive: false});
+    document.addEventListener('touchend', endDrag, {passive: false});
+  },
+
+  checkPieceConnection(piece) {
+    const board = document.getElementById('puzzle-board');
+    const boardRect = board.getBoundingClientRect();
+    const pieceRect = piece.getBoundingClientRect();
+    
+    // חישוב מיקום יחסית ללוח
+    const relativeX = pieceRect.left - boardRect.left;
+    const relativeY = pieceRect.top - boardRect.top;
+    
+    // בדיקה אם החלק קרוב למיקום הנכון (טלרנס של 40 פיקסלים)
+    const tolerance = 40;
+    const isClose = Math.abs(relativeX - piece.correctX) < tolerance && 
+                   Math.abs(relativeY - piece.correctY) < tolerance;
+    
+    if (isClose) {
+      // התחברות החלק למיקום הנכון
+      piece.style.left = (boardRect.left + piece.correctX - board.parentElement.getBoundingClientRect().left) + 'px';
+      piece.style.top = (boardRect.top + piece.correctY - board.parentElement.getBoundingClientRect().top) + 'px';
+      piece.connected = true;
+      piece.classList.add('connected');
+      
+      this.playSound('connect');
+      this.correctPieces++;
+      
+      this.showFeedback(`🎉 מצוין! ${this.correctPieces}/16 חלקים`, '#4caf50');
+      this.renderGame(); // עדכון בר התקדמות
+      
+      // בדיקה אם הפאזל הושלם
+      if (this.correctPieces === 16) {
+        setTimeout(() => this.completePuzzle(), 500);
+      }
+    }
+  },
+
+  shufflePieces() {
+    const piecesArea = document.getElementById('puzzle-pieces-area');
+    this.pieces.forEach(piece => {
+      if (!piece.connected) {
+        const randomX = Math.random() * (380 - this.pieceSize);
+        const randomY = Math.random() * (280 - this.pieceSize);
+        piece.style.left = randomX + 'px';
+        piece.style.top = randomY + 'px';
+      }
+    });
+    this.showFeedback('🔄 החלקים פוזרו מחדש!', '#ff9800');
   },
 
   completePuzzle() {
     this.playSound('complete');
     
-    // אנימציה של השלמת הפאזל
-    const targets = document.querySelectorAll('.puzzle-target.filled');
-    targets.forEach((target, index) => {
+    // אנימציה של השלמה
+    this.pieces.forEach((piece, index) => {
       setTimeout(() => {
-        target.style.transform = 'scale(1.1)';
-        target.style.boxShadow = '0 0 20px rgba(255,193,7,0.8)';
+        piece.style.transform = 'scale(1.1)';
+        piece.style.filter = 'drop-shadow(0 0 20px rgba(255,235,59,0.8))';
         setTimeout(() => {
-          target.style.transform = 'scale(1)';
-          target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+          piece.style.transform = 'scale(1)';
+          piece.style.filter = 'drop-shadow(3px 3px 8px rgba(0,0,0,0.4))';
         }, 200);
-      }, index * 100);
+      }, index * 50);
     });
     
-    this.showFeedback('🎊 כל הכבוד! השלמת את הפאזל בהצלחה! 🎊', '#43a047');
-    this.nextStageButton();
+    this.showFeedback('🎊🎉 כל הכבוד! השלמת את הפאזל! 🎉🎊', '#ffeb3b');
+    
+    // הצגת כפתור המשך
+    const nextBtn = document.getElementById('puzzle-next-stage');
+    nextBtn.style.display = 'inline-block';
+    nextBtn.onclick = () => {
+      this.playSound('click');
+      this.stage++;
+      if (this.stage < this.totalStages) {
+        this.correctPieces = 0;
+        this.pieces.forEach(p => {
+          p.connected = false;
+          p.classList.remove('connected');
+        });
+        this.shufflePieces();
+        this.renderGame();
+        nextBtn.style.display = 'none';
+      } else {
+        document.querySelector('.game-modal-body').innerHTML = `
+          <div style="text-align: center; padding: 40px; color: white;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px;">🏆 מזל טוב! 🏆</h2>
+            <p style="font-size: 1.5rem; margin-bottom: 30px;">השלמת את כל ${this.totalStages} הפאזלים!</p>
+            <div style="font-size: 4rem; margin: 20px 0;">🧩✨</div>
+            <p style="font-size: 1.2rem;">אתה מאסטר פאזלים אמיתי!</p>
+          </div>
+        `;
+      }
+    };
   },
 
   showFeedback(message, color) {
     const feedback = document.getElementById('puzzle-feedback');
     feedback.textContent = message;
     feedback.style.color = color;
-  },
-
-  nextStageButton() {
-    const btn = document.getElementById('puzzle-next-stage');
-    btn.style.display = 'inline-block';
-    btn.onclick = () => {
-      this.playSound('click');
-      this.stage++;
-      if (this.stage < this.totalStages) {
-        this.renderGame();
-      } else {
-        document.querySelector('.game-modal-body').innerHTML = `
-          <div style="text-align: center; padding: 40px;">
-            <h2 style="font-size: 2.5rem; color: #43a047; margin-bottom: 20px;">🎊 מזל טוב! 🎊</h2>
-            <p style="font-size: 1.5rem; color: #666; margin-bottom: 30px;">השלמת את כל ${this.totalStages} שלבי הפאזל!</p>
-            <div style="font-size: 4rem; margin: 20px 0;">🏆</div>
-            <p style="font-size: 1.2rem; color: #43a047;">אתה מאסטר פאזלים אמיתי!</p>
-          </div>
-        `;
-      }
-    };
   }
 };

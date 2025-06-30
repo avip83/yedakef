@@ -289,34 +289,44 @@
             }
 
             generateEdgeMap() {
-                // תבנית קבועה של חורים ובליטות כמו בפאזל אמיתי
+                // מפת חיבורים לפי המפרט המדויק:
+                // 0: פינה שמאל עליון - קו עליון ושמאלי, בליטה ימינה ולמטה
+                // 1: אמצע עליון - קו עליון, חור משמאל ומימין, בליטה למטה
+                // 2: פינה ימין עליון - קו עליון וימני, חור למטה, בליטה שמאלה
+                // 3: אמצע שמאל - קו שמאלי, חור למעלה, בליטות ימינה ולמטה
+                // 4: מרכז - חורים מכל הצדדים
+                // 5: אמצע ימין - קו ימני, בליטות בשאר הצדדים
+                // 6: פינה שמאל תחתון - קו תחתון ושמאלי, חורים למעלה ולימין
+                // 7: אמצע תחתון - קו תחתון, בליטות בשאר הצדדים
+                // 8: פינה ימין תחתון - קו תחתון וימני, חור למעלה ושמאלה
+                
                 const edges = {};
                 
-                // קצוות אופקיים (ימין-שמאל)
-                // שורה 0: [0,0]--[0,1]  [0,1]--[0,2]
-                edges['h_0_0'] = true;   // בליטה משמאל בחתיכה [0,0]
-                edges['h_0_1'] = false;  // חור משמאל בחתיכה [0,1]
+                // קצוות אופקיים (ימין-שמאל) - מתוקן לפי המפרט המדויק
+                // שורה 0: [0,0]--[0,1]  [0,1]--[0,2]  
+                edges['h_0_0'] = true;   // חלק 0: בליטה ימינה ← → חלק 1: חור משמאל
+                edges['h_0_1'] = false;  // חלק 1: חור מימין ← → חלק 2: בליטה שמאלה
                 
-                // שורה 1: [1,0]--[1,1]  [1,1]--[1,2]  
-                edges['h_1_0'] = false;  // חור משמאל בחתיכה [1,0]
-                edges['h_1_1'] = true;   // בליטה משמאל בחתיכה [1,1]
+                // שורה 1: [1,0]--[1,1]  [1,1]--[1,2]
+                edges['h_1_0'] = true;   // חלק 3: בליטה ימינה ← → חלק 4: חור משמאל  
+                edges['h_1_1'] = false;  // חלק 4: חור מימין ← → חלק 5: בליטה שמאלה
                 
                 // שורה 2: [2,0]--[2,1]  [2,1]--[2,2]
-                edges['h_2_0'] = true;   // בליטה משמאל בחתיכה [2,0]
-                edges['h_2_1'] = false;  // חור משמאל בחתיכה [2,1]
+                edges['h_2_0'] = false;  // חלק 6: חור ימינה ← → חלק 7: בליטה שמאלה
+                edges['h_2_1'] = true;   // חלק 7: בליטה ימינה ← → חלק 8: חור שמאלה
                 
-                // קצוות אנכיים (למעלה-למטה)
+                // קצוות אנכיים (למעלה-למטה) - מתוקן לפי המפרט המדויק
                 // עמודה 0: [0,0]--[1,0]  [1,0]--[2,0]
-                edges['v_0_0'] = false;  // חור למעלה בחתיכה [0,0]
-                edges['v_1_0'] = true;   // בליטה למעלה בחתיכה [1,0]
+                edges['v_0_0'] = true;   // חלק 0: בליטה למטה ↕ חלק 3: חור למעלה
+                edges['v_1_0'] = true;   // חלק 3: בליטה למטה ↕ חלק 6: חור למעלה
                 
-                // עמודה 1: [0,1]--[1,1]  [1,1]--[2,1]
-                edges['v_0_1'] = true;   // בליטה למעלה בחתיכה [0,1]
-                edges['v_1_1'] = false;  // חור למעלה בחתיכה [1,1]
+                // עמודה 1: [0,1]--[1,1]  [1,1]--[2,1]  
+                edges['v_0_1'] = true;   // חלק 1: בליטה למטה ↕ חלק 4: חור למעלה
+                edges['v_1_1'] = false;  // חלק 4: חור למטה ↕ חלק 7: בליטה למעלה
                 
                 // עמודה 2: [0,2]--[1,2]  [1,2]--[2,2]
-                edges['v_0_2'] = false;  // חור למעלה בחתיכה [0,2]
-                edges['v_1_2'] = true;   // בליטה למעלה בחתיכה [1,2]
+                edges['v_0_2'] = false;  // חלק 2: חור למטה ↕ חלק 5: בליטה למעלה
+                edges['v_1_2'] = true;   // חלק 5: בליטה למטה ↕ חלק 8: חור למעלה
                 
                 return edges;
             }
@@ -441,100 +451,89 @@
                 const size = this.pieceSize;
                 const knobSize = 25;
                 const knobDepth = 15;
+                const pieceIndex = row * 3 + col;
                 
+                // הגדרות צורות לפי המפרט המדויק
+                const pieceShapes = {
+                    0: { top: 'flat', right: 'out', bottom: 'out', left: 'flat' },      // פינה שמאל עליון
+                    1: { top: 'flat', right: 'in', bottom: 'out', left: 'in' },        // אמצע עליון
+                    2: { top: 'flat', right: 'flat', bottom: 'in', left: 'out' },      // פינה ימין עליון
+                    3: { top: 'in', right: 'out', bottom: 'out', left: 'flat' },       // אמצע שמאל
+                    4: { top: 'in', right: 'in', bottom: 'in', left: 'in' },           // מרכז
+                    5: { top: 'out', right: 'flat', bottom: 'out', left: 'out' },      // אמצע ימין
+                    6: { top: 'in', right: 'in', bottom: 'flat', left: 'flat' },       // פינה שמאל תחתון
+                    7: { top: 'out', right: 'out', bottom: 'flat', left: 'out' },      // אמצע תחתון
+                    8: { top: 'in', right: 'flat', bottom: 'flat', left: 'in' }        // פינה ימין תחתון
+                };
+                
+                const shape = pieceShapes[pieceIndex];
                 let path = `M 0,0`;
                 
                 // צד עליון
-                if (row === 0) {
-                    // קצה עליון של הפאזל - קו ישר
+                if (shape.top === 'flat') {
                     path += ` L ${size},0`;
-                } else {
-                    // צריך להתאים לחתיכה מעל - בודק מה החתיכה מעל החליטה
-                    const upperEdgeKey = `v_${row-1}_${col}`;
-                    const upperKnobOut = this.edgeMap[upperEdgeKey];
-                    const knobOut = !upperKnobOut; // הפוך ממה שהחתיכה מעל החליטה
+                } else if (shape.top === 'out') {
                     const knobPos = size * 0.5;
                     path += ` L ${knobPos - knobSize},0`;
-                    
-                    if (knobOut) {
-                        // בליטה למעלה
-                        path += ` Q ${knobPos - knobSize/2},${0 - knobDepth} ${knobPos},${0 - knobDepth}`;
-                        path += ` Q ${knobPos + knobSize/2},${0 - knobDepth} ${knobPos + knobSize},0`;
-                    } else {
-                        // חור למעלה
-                        path += ` Q ${knobPos - knobSize/2},${0 + knobDepth} ${knobPos},${0 + knobDepth}`;
-                        path += ` Q ${knobPos + knobSize/2},${0 + knobDepth} ${knobPos + knobSize},0`;
-                    }
+                    path += ` Q ${knobPos - knobSize/2},${0 - knobDepth} ${knobPos},${0 - knobDepth}`;
+                    path += ` Q ${knobPos + knobSize/2},${0 - knobDepth} ${knobPos + knobSize},0`;
+                    path += ` L ${size},0`;
+                } else { // in
+                    const knobPos = size * 0.5;
+                    path += ` L ${knobPos - knobSize},0`;
+                    path += ` Q ${knobPos - knobSize/2},${0 + knobDepth} ${knobPos},${0 + knobDepth}`;
+                    path += ` Q ${knobPos + knobSize/2},${0 + knobDepth} ${knobPos + knobSize},0`;
                     path += ` L ${size},0`;
                 }
                 
                 // צד ימין
-                if (col === this.gridSize - 1) {
-                    // קצה ימני של הפאזל - קו ישר
+                if (shape.right === 'flat') {
                     path += ` L ${size},${size}`;
-                } else {
-                    // לפי מפת החיבורים
-                    const rightEdgeKey = `h_${row}_${col}`;
-                    const knobOut = this.edgeMap[rightEdgeKey];
+                } else if (shape.right === 'out') {
                     const knobPos = size * 0.5;
                     path += ` L ${size},${knobPos - knobSize}`;
-                    
-                    if (knobOut) {
-                        // בליטה ימינה
-                        path += ` Q ${size+knobDepth},${knobPos - knobSize/2} ${size+knobDepth},${knobPos}`;
-                        path += ` Q ${size+knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
-                    } else {
-                        // חור ימינה
-                        path += ` Q ${size-knobDepth},${knobPos - knobSize/2} ${size-knobDepth},${knobPos}`;
-                        path += ` Q ${size-knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
-                    }
+                    path += ` Q ${size + knobDepth},${knobPos - knobSize/2} ${size + knobDepth},${knobPos}`;
+                    path += ` Q ${size + knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
+                    path += ` L ${size},${size}`;
+                } else { // in
+                    const knobPos = size * 0.5;
+                    path += ` L ${size},${knobPos - knobSize}`;
+                    path += ` Q ${size - knobDepth},${knobPos - knobSize/2} ${size - knobDepth},${knobPos}`;
+                    path += ` Q ${size - knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
                     path += ` L ${size},${size}`;
                 }
                 
                 // צד תחתון
-                if (row === this.gridSize - 1) {
-                    // קצה תחתון של הפאזל - קו ישר
+                if (shape.bottom === 'flat') {
                     path += ` L 0,${size}`;
-                } else {
-                    // לפי מפת החיבורים
-                    const bottomEdgeKey = `v_${row}_${col}`;
-                    const knobOut = this.edgeMap[bottomEdgeKey];
+                } else if (shape.bottom === 'out') {
                     const knobPos = size * 0.5;
                     path += ` L ${knobPos + knobSize},${size}`;
-                    
-                    if (knobOut) {
-                        // בליטה למטה
-                        path += ` Q ${knobPos + knobSize/2},${size+knobDepth} ${knobPos},${size+knobDepth}`;
-                        path += ` Q ${knobPos - knobSize/2},${size+knobDepth} ${knobPos - knobSize},${size}`;
-                    } else {
-                        // חור למטה
-                        path += ` Q ${knobPos + knobSize/2},${size-knobDepth} ${knobPos},${size-knobDepth}`;
-                        path += ` Q ${knobPos - knobSize/2},${size-knobDepth} ${knobPos - knobSize},${size}`;
-                    }
+                    path += ` Q ${knobPos + knobSize/2},${size + knobDepth} ${knobPos},${size + knobDepth}`;
+                    path += ` Q ${knobPos - knobSize/2},${size + knobDepth} ${knobPos - knobSize},${size}`;
+                    path += ` L 0,${size}`;
+                } else { // in
+                    const knobPos = size * 0.5;
+                    path += ` L ${knobPos + knobSize},${size}`;
+                    path += ` Q ${knobPos + knobSize/2},${size - knobDepth} ${knobPos},${size - knobDepth}`;
+                    path += ` Q ${knobPos - knobSize/2},${size - knobDepth} ${knobPos - knobSize},${size}`;
                     path += ` L 0,${size}`;
                 }
                 
                 // צד שמאל
-                if (col === 0) {
-                    // קצה שמאלי של הפאזל - קו ישר
+                if (shape.left === 'flat') {
                     path += ` L 0,0`;
-                } else {
-                    // צריך להתאים לחתיכה משמאל - בודק מה החתיכה משמאל החליטה
-                    const leftEdgeKey = `h_${row}_${col-1}`;
-                    const leftKnobOut = this.edgeMap[leftEdgeKey];
-                    const knobOut = !leftKnobOut; // הפוך ממה שהחתיכה משמאל החליטה
+                } else if (shape.left === 'out') {
                     const knobPos = size * 0.5;
                     path += ` L 0,${knobPos + knobSize}`;
-                    
-                    if (knobOut) {
-                        // בליטה שמאלה
-                        path += ` Q ${0-knobDepth},${knobPos + knobSize/2} ${0-knobDepth},${knobPos}`;
-                        path += ` Q ${0-knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
-                    } else {
-                        // חור שמאלה
-                        path += ` Q ${0+knobDepth},${knobPos + knobSize/2} ${0+knobDepth},${knobPos}`;
-                        path += ` Q ${0+knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
-                    }
+                    path += ` Q ${0 - knobDepth},${knobPos + knobSize/2} ${0 - knobDepth},${knobPos}`;
+                    path += ` Q ${0 - knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
+                    path += ` L 0,0`;
+                } else { // in
+                    const knobPos = size * 0.5;
+                    path += ` L 0,${knobPos + knobSize}`;
+                    path += ` Q ${0 + knobDepth},${knobPos + knobSize/2} ${0 + knobDepth},${knobPos}`;
+                    path += ` Q ${0 + knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
                     path += ` L 0,0`;
                 }
                 

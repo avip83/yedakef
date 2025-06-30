@@ -235,7 +235,7 @@
     <div class="puzzle-container">
         <!-- Header -->
         <div class="puzzle-header">
-            <div class="puzzle-title">🧩 פאזל אמיתי</div>
+            <div class="puzzle-title">🧩 פאזל אמיתי - גרסה חדשה!</div>
             <div class="puzzle-progress">
                 <div>חלקים מחוברים: <span id="connected-count">0</span>/9</div>
                 <div class="progress-bar">
@@ -468,6 +468,9 @@
                 
                 const shape = pieceShapes[pieceIndex];
                 console.log(`Piece ${pieceIndex} (${row},${col}):`, shape);
+                if (pieceIndex === 0) {
+                    alert('פאזל חדש נטען! בדוק Console');
+                }
                 let path = `M 0,0`;
                 
                 // צד עליון

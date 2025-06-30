@@ -352,7 +352,6 @@
             init() {
                 this.createPuzzleSlots();
                 this.createPuzzlePieces();
-                this.shufflePieces();
             }
 
             createPuzzleSlots() {
@@ -468,9 +467,6 @@
                 
                 const shape = pieceShapes[pieceIndex];
                 console.log(`Piece ${pieceIndex} (${row},${col}):`, shape);
-                if (pieceIndex === 0) {
-                    alert('פאזל חדש נטען! בדוק Console');
-                }
                 let path = `M 0,0`;
                 
                 // צד עליון

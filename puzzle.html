@@ -282,8 +282,34 @@
                 this.connectedPieces = 0;
                 this.currentImage = 'puzzle/1.png';
                 this.sounds = {};
+                // יצירת מפת חיבורים לוגית
+                this.edgeMap = this.generateEdgeMap();
                 this.loadSounds();
                 this.init();
+            }
+
+            generateEdgeMap() {
+                // יצירת מפת חיבורים לוגית - כל קצה מוחלט אם יש בליטה או חור
+                const edges = {};
+                
+                // לכל חתיכה נקבע את הקצוות שלה (ימין ותחתון)
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        // קצה ימני (אם לא בעמודה האחרונה)
+                        if (col < this.gridSize - 1) {
+                            const edgeKey = `h_${row}_${col}`; // horizontal edge
+                            edges[edgeKey] = Math.random() > 0.5; // true = בליטה משמאל, false = חור משמאל
+                        }
+                        
+                        // קצה תחתון (אם לא בשורה האחרונה)
+                        if (row < this.gridSize - 1) {
+                            const edgeKey = `v_${row}_${col}`; // vertical edge
+                            edges[edgeKey] = Math.random() > 0.5; // true = בליטה מעלה, false = חור מעלה
+                        }
+                    }
+                }
+                
+                return edges;
             }
 
             loadSounds() {
@@ -407,26 +433,17 @@
                 const knobSize = 25;
                 const knobDepth = 15;
                 
-                // יצירת מפתח קבוע לכל חתיכה כדי שהצורות יהיו עקביות
-                const seed = row * 1000 + col * 100;
-                const random = (n) => {
-                    const val = ((seed + n) * 9301 + 49297) % 233280;
-                    return val / 233280;
-                };
-                
                 let path = `M 0,0`;
                 
                 // צד עליון
                 if (row === 0) {
+                    // קצה עליון של הפאזל - קו ישר
                     path += ` L ${size},0`;
                 } else {
-                    // הבליטה/חור צריכים להתאים לחתיכה מעל
-                    const upperSeed = (row-1) * 1000 + col * 100;
-                    const upperRandom = (n) => {
-                        const val = ((upperSeed + n) * 9301 + 49297) % 233280;
-                        return val / 233280;
-                    };
-                    const knobOut = upperRandom(3) <= 0.5; // הפוך מהחתיכה מעל
+                    // צריך להתאים לחתיכה מעל - בודק מה החתיכה מעל החליטה
+                    const upperEdgeKey = `v_${row-1}_${col}`;
+                    const upperKnobOut = this.edgeMap[upperEdgeKey];
+                    const knobOut = !upperKnobOut; // הפוך ממה שהחתיכה מעל החליטה
                     const knobPos = size * 0.5;
                     path += ` L ${knobPos - knobSize},0`;
                     
@@ -444,9 +461,12 @@
                 
                 // צד ימין
                 if (col === this.gridSize - 1) {
+                    // קצה ימני של הפאזל - קו ישר
                     path += ` L ${size},${size}`;
                 } else {
-                    const knobOut = random(2) > 0.5;
+                    // לפי מפת החיבורים
+                    const rightEdgeKey = `h_${row}_${col}`;
+                    const knobOut = this.edgeMap[rightEdgeKey];
                     const knobPos = size * 0.5;
                     path += ` L ${size},${knobPos - knobSize}`;
                     
@@ -464,9 +484,12 @@
                 
                 // צד תחתון
                 if (row === this.gridSize - 1) {
+                    // קצה תחתון של הפאזל - קו ישר
                     path += ` L 0,${size}`;
                 } else {
-                    const knobOut = random(3) > 0.5;
+                    // לפי מפת החיבורים
+                    const bottomEdgeKey = `v_${row}_${col}`;
+                    const knobOut = this.edgeMap[bottomEdgeKey];
                     const knobPos = size * 0.5;
                     path += ` L ${knobPos + knobSize},${size}`;
                     
@@ -484,15 +507,13 @@
                 
                 // צד שמאל
                 if (col === 0) {
+                    // קצה שמאלי של הפאזל - קו ישר
                     path += ` L 0,0`;
                 } else {
-                    // הבליטה/חור צריכים להתאים לחתיכה משמאל
-                    const leftSeed = row * 1000 + (col-1) * 100;
-                    const leftRandom = (n) => {
-                        const val = ((leftSeed + n) * 9301 + 49297) % 233280;
-                        return val / 233280;
-                    };
-                    const knobOut = leftRandom(2) <= 0.5; // הפוך מהחתיכה משמאל
+                    // צריך להתאים לחתיכה משמאל - בודק מה החתיכה משמאל החליטה
+                    const leftEdgeKey = `h_${row}_${col-1}`;
+                    const leftKnobOut = this.edgeMap[leftEdgeKey];
+                    const knobOut = !leftKnobOut; // הפוך ממה שהחתיכה משמאל החליטה
                     const knobPos = size * 0.5;
                     path += ` L 0,${knobPos + knobSize}`;
                     

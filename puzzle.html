@@ -76,8 +76,8 @@
             top: 50%;
             left: 35%;
             transform: translate(-50%, -50%);
-            width: 450px;
-            height: 450px;
+            width: 380px;
+            height: 380px;
             background: rgba(255,255,255,0.1);
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 20px;
@@ -274,7 +274,7 @@
             constructor() {
                 this.gridSize = 3;
                 this.pieceSize = 140;
-                this.boardSize = 420;
+                this.boardSize = 360; // הקטנת הלוח כדי שהחלקים יהיו צמודים יותר
                 this.pieces = [];
                 this.connectedPieces = 0;
                 this.currentImage = 'puzzle/1.png';
@@ -315,10 +315,11 @@
                     for (let col = 0; col < this.gridSize; col++) {
                         const slot = document.createElement('div');
                         slot.className = 'puzzle-slot';
-                        slot.style.left = (col * slotSize) + 'px';
-                        slot.style.top = (row * slotSize) + 'px';
-                        slot.style.width = slotSize + 'px';
-                        slot.style.height = slotSize + 'px';
+                        // הקטנת המרחקים - חלקים צמודים יותר
+                        slot.style.left = (col * (slotSize - 10)) + 'px';
+                        slot.style.top = (row * (slotSize - 10)) + 'px';
+                        slot.style.width = (slotSize - 5) + 'px';
+                        slot.style.height = (slotSize - 5) + 'px';
                         slot.dataset.row = row;
                         slot.dataset.col = col;
                         board.appendChild(slot);
@@ -577,8 +578,9 @@
                 const pieceY = parseInt(piece.style.top);
 
                 const slotSize = this.boardSize / this.gridSize;
-                const correctX = boardRect.left + (piece.correctCol * slotSize);
-                const correctY = boardRect.top + (piece.correctRow * slotSize);
+                // חישוב מיקום נכון עם המרחקים החדשים
+                const correctX = boardRect.left + (piece.correctCol * (slotSize - 10));
+                const correctY = boardRect.top + (piece.correctRow * (slotSize - 10));
 
                 const tolerance = 100;
                 if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
@@ -594,8 +596,9 @@
                 const pieceY = parseInt(piece.style.top);
 
                 const slotSize = this.boardSize / this.gridSize;
-                const correctX = boardRect.left + (piece.correctCol * slotSize);
-                const correctY = boardRect.top + (piece.correctRow * slotSize);
+                // חישוב מיקום נכון עם המרחקים החדשים
+                const correctX = boardRect.left + (piece.correctCol * (slotSize - 10));
+                const correctY = boardRect.top + (piece.correctRow * (slotSize - 10));
 
                 const tolerance = 80;
                 if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
@@ -609,8 +612,9 @@
                 piece.classList.add('snapping');
                 setTimeout(() => piece.classList.remove('snapping'), 400);
 
-                piece.style.left = (correctX - 10) + 'px';
-                piece.style.top = (correctY - 10) + 'px';
+                // מיקום מדויק יותר לחיבור החלק
+                piece.style.left = (correctX + 5) + 'px';
+                piece.style.top = (correctY + 5) + 'px';
                 piece.connected = true;
                 piece.classList.add('connected');
 

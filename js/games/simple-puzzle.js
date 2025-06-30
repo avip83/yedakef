@@ -11,6 +11,21 @@ window['simple-puzzle'] = {
   draggedPiece: null,
   showPreview: true, // הצגת תמונה מלאה כהדרכה
   
+  // מיפוי צורות הפאזל - מגדיר איפה יש בליטות וחורים
+  puzzleShapes: {
+    // כל משבצת מוגדרת כ: [top, right, bottom, left]
+    // 0 = קו ישר (רק בפאות), 1 = בליטה, -1 = חור
+    0: [0, 1, 1, 0],     // פינה שמאל עליון: קו עליון ושמאלי, בליטה ימינה ולמטה
+    1: [0, -1, 1, -1],   // אמצע עליון: קו עליון, חור משמאל ומימין, בליטה למטה
+    2: [0, 0, -1, 1],    // פינה ימין עליון: קו עליון וימני, חור למטה, בליטה שמאלה
+    3: [-1, 1, 1, 0],    // אמצע שמאל: קו שמאלי, חור למעלה, בליטות ימינה ולמטה
+    4: [-1, -1, -1, -1], // מרכז: חורים מכל הצדדים
+    5: [1, 0, 1, 1],     // אמצע ימין: קו ימני, בליטות בשאר הצדדים
+    6: [-1, -1, 0, 0],   // פינה שמאל תחתון: קו תחתון ושמאלי, חורים למעלה ולימין
+    7: [1, 1, 0, 1],     // אמצע תחתון: קו תחתון, בליטות בשאר הצדדים
+    8: [-1, 0, 0, -1]    // פינה ימין תחתון: קו תחתון וימני, חור למעלה ושמאלה
+  },
+  
   // גבולות אזור הגרירה
   dragBounds: {
     minX: 0,
@@ -353,12 +368,13 @@ window['simple-puzzle'] = {
     puzzleContainer.appendChild(piecesContainer);
     mainArea.appendChild(puzzleContainer);
 
-    // הגדרת גבולות הגרירה
+    // הגדרת גבולות הגרירה - מתחשב בגודל הגדול יותר עם הבליטות
+    const actualPieceSize = this.pieceSize + 40;
     this.dragBounds = {
       minX: 10,
       minY: 10,
-      maxX: 800 - this.pieceSize - 10,
-      maxY: 600 - this.pieceSize - 10
+      maxX: 800 - actualPieceSize - 10,
+      maxY: 600 - actualPieceSize - 10
     };
 
     // יצירת המשבצות בלוח
@@ -411,9 +427,10 @@ window['simple-puzzle'] = {
         piece.correctCol = col;
         piece.connected = false;
         
-        // מיקום ראשוני באזור החלקים (אקראי)
-        const randomX = Math.random() * (280 - this.pieceSize);
-        const randomY = Math.random() * (360 - this.pieceSize);
+        // מיקום ראשוני באזור החלקים (אקראי) - מתחשב בגודל הגדול יותר
+        const actualPieceSize = this.pieceSize + 40;
+        const randomX = Math.random() * (320 - actualPieceSize);
+        const randomY = Math.random() * (400 - actualPieceSize);
         
         piece.style.left = randomX + 'px';
         piece.style.top = randomY + 'px';
@@ -436,16 +453,137 @@ window['simple-puzzle'] = {
     piece.dataset.index = index;
     piece.dataset.row = row;
     piece.dataset.col = col;
-    piece.style.width = this.pieceSize + 'px';
-    piece.style.height = this.pieceSize + 'px';
+    piece.style.width = (this.pieceSize + 40) + 'px'; // מקום נוסף לבליטות
+    piece.style.height = (this.pieceSize + 40) + 'px';
     piece.style.position = 'absolute';
-    piece.style.backgroundImage = `url(${this.currentImage})`;
-    piece.style.backgroundSize = `${this.boardSize}px ${this.boardSize}px`;
-    piece.style.backgroundPosition = `-${col * size}px -${row * size}px`;
-    piece.style.border = '3px solid white';
-    piece.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.3)';
+    
+    // יצירת SVG לצורת הפאזל
+    const svg = this.createPuzzlePieceSVG(index, row, col, size);
+    piece.appendChild(svg);
     
     return piece;
+  },
+
+  createPuzzlePieceSVG(index, row, col, size) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.style.width = (this.pieceSize + 40) + 'px';
+    svg.style.height = (this.pieceSize + 40) + 'px';
+    svg.style.overflow = 'visible';
+    
+    // יצירת defs לpattern של התמונה
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+    pattern.id = `piece-pattern-${index}`;
+    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+    pattern.setAttribute('width', this.boardSize);
+    pattern.setAttribute('height', this.boardSize);
+    pattern.setAttribute('x', -col * size - 20);
+    pattern.setAttribute('y', -row * size - 20);
+    
+    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    image.setAttribute('href', this.currentImage);
+    image.setAttribute('width', this.boardSize);
+    image.setAttribute('height', this.boardSize);
+    
+    pattern.appendChild(image);
+    defs.appendChild(pattern);
+    svg.appendChild(defs);
+    
+    // יצירת צורת הפאזל
+    const path = this.createPuzzlePiecePath(index);
+    const puzzlePiece = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    puzzlePiece.setAttribute('d', path);
+    puzzlePiece.setAttribute('fill', `url(#piece-pattern-${index})`);
+    puzzlePiece.setAttribute('stroke', '#ffffff');
+    puzzlePiece.setAttribute('stroke-width', '3');
+    puzzlePiece.setAttribute('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))');
+    
+    svg.appendChild(puzzlePiece);
+    
+    return svg;
+  },
+
+  createPuzzlePiecePath(index) {
+    const shapes = this.puzzleShapes[index];
+    const [top, right, bottom, left] = shapes;
+    const size = this.pieceSize;
+    const tabSize = 18; // גודל הבליטה - יותר קטן וטבעי
+    const offset = 20; // היסט מהקצה
+    const smooth = 8; // מקדם חלקות לעיקולים
+    
+    let path = `M ${offset} ${offset}`; // התחלה מפינה שמאל עליון
+    
+    // קו עליון
+    if (top === 0) {
+      path += ` L ${offset + size} ${offset}`;
+    } else if (top === 1) {
+      // בליטה למעלה - צורה יותר עגולה וטבעית
+      path += ` L ${offset + size*0.35} ${offset}`;
+      path += ` C ${offset + size*0.4} ${offset - smooth} ${offset + size*0.45} ${offset - tabSize} ${offset + size/2} ${offset - tabSize}`;
+      path += ` C ${offset + size*0.55} ${offset - tabSize} ${offset + size*0.6} ${offset - smooth} ${offset + size*0.65} ${offset}`;
+      path += ` L ${offset + size} ${offset}`;
+    } else {
+      // חור למעלה - צורה יותר עגולה ופנימית
+      path += ` L ${offset + size*0.35} ${offset}`;
+      path += ` C ${offset + size*0.4} ${offset + smooth} ${offset + size*0.45} ${offset + tabSize} ${offset + size/2} ${offset + tabSize}`;
+      path += ` C ${offset + size*0.55} ${offset + tabSize} ${offset + size*0.6} ${offset + smooth} ${offset + size*0.65} ${offset}`;
+      path += ` L ${offset + size} ${offset}`;
+    }
+    
+    // קו ימני
+    if (right === 0) {
+      path += ` L ${offset + size} ${offset + size}`;
+    } else if (right === 1) {
+      // בליטה ימינה
+      path += ` L ${offset + size} ${offset + size*0.35}`;
+      path += ` C ${offset + size + smooth} ${offset + size*0.4} ${offset + size + tabSize} ${offset + size*0.45} ${offset + size + tabSize} ${offset + size/2}`;
+      path += ` C ${offset + size + tabSize} ${offset + size*0.55} ${offset + size + smooth} ${offset + size*0.6} ${offset + size} ${offset + size*0.65}`;
+      path += ` L ${offset + size} ${offset + size}`;
+    } else {
+      // חור ימינה
+      path += ` L ${offset + size} ${offset + size*0.35}`;
+      path += ` C ${offset + size - smooth} ${offset + size*0.4} ${offset + size - tabSize} ${offset + size*0.45} ${offset + size - tabSize} ${offset + size/2}`;
+      path += ` C ${offset + size - tabSize} ${offset + size*0.55} ${offset + size - smooth} ${offset + size*0.6} ${offset + size} ${offset + size*0.65}`;
+      path += ` L ${offset + size} ${offset + size}`;
+    }
+    
+    // קו תחתון
+    if (bottom === 0) {
+      path += ` L ${offset} ${offset + size}`;
+    } else if (bottom === 1) {
+      // בליטה למטה
+      path += ` L ${offset + size*0.65} ${offset + size}`;
+      path += ` C ${offset + size*0.6} ${offset + size + smooth} ${offset + size*0.55} ${offset + size + tabSize} ${offset + size/2} ${offset + size + tabSize}`;
+      path += ` C ${offset + size*0.45} ${offset + size + tabSize} ${offset + size*0.4} ${offset + size + smooth} ${offset + size*0.35} ${offset + size}`;
+      path += ` L ${offset} ${offset + size}`;
+    } else {
+      // חור למטה
+      path += ` L ${offset + size*0.65} ${offset + size}`;
+      path += ` C ${offset + size*0.6} ${offset + size - smooth} ${offset + size*0.55} ${offset + size - tabSize} ${offset + size/2} ${offset + size - tabSize}`;
+      path += ` C ${offset + size*0.45} ${offset + size - tabSize} ${offset + size*0.4} ${offset + size - smooth} ${offset + size*0.35} ${offset + size}`;
+      path += ` L ${offset} ${offset + size}`;
+    }
+    
+    // קו שמאלי
+    if (left === 0) {
+      path += ` L ${offset} ${offset}`;
+    } else if (left === 1) {
+      // בליטה שמאלה
+      path += ` L ${offset} ${offset + size*0.65}`;
+      path += ` C ${offset - smooth} ${offset + size*0.6} ${offset - tabSize} ${offset + size*0.55} ${offset - tabSize} ${offset + size/2}`;
+      path += ` C ${offset - tabSize} ${offset + size*0.45} ${offset - smooth} ${offset + size*0.4} ${offset} ${offset + size*0.35}`;
+      path += ` L ${offset} ${offset}`;
+    } else {
+      // חור שמאלה
+      path += ` L ${offset} ${offset + size*0.65}`;
+      path += ` C ${offset + smooth} ${offset + size*0.6} ${offset + tabSize} ${offset + size*0.55} ${offset + tabSize} ${offset + size/2}`;
+      path += ` C ${offset + tabSize} ${offset + size*0.45} ${offset + smooth} ${offset + size*0.4} ${offset} ${offset + size*0.35}`;
+      path += ` L ${offset} ${offset}`;
+    }
+    
+    path += ' Z'; // סגירת הצורה
+    
+    return path;
   },
 
   addPieceEvents(piece) {
@@ -537,8 +675,9 @@ window['simple-puzzle'] = {
     const boardY = boardRect.top - containerRect.top;
     const pieceSize = this.boardSize / this.gridSize;
     
-    const correctX = boardX + (piece.correctCol * pieceSize);
-    const correctY = boardY + (piece.correctRow * pieceSize);
+    // התאמה לחתיכות עם בליטות - הפחתה של 20 פיקסלים (המרחק מהקצה)
+    const correctX = boardX + (piece.correctCol * pieceSize) - 20;
+    const correctY = boardY + (piece.correctRow * pieceSize) - 20;
     
     const tolerance = 80;
     if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
@@ -560,8 +699,9 @@ window['simple-puzzle'] = {
     const boardY = boardRect.top - containerRect.top;
     const pieceSize = this.boardSize / this.gridSize;
     
-    const correctX = boardX + (piece.correctCol * pieceSize);
-    const correctY = boardY + (piece.correctRow * pieceSize);
+    // התאמה לחתיכות עם בליטות - הפחתה של 20 פיקסלים (הOffset)
+    const correctX = boardX + (piece.correctCol * pieceSize) - 20;
+    const correctY = boardY + (piece.correctRow * pieceSize) - 20;
     
     // בדיקה אם החלק קרוב למקום הנכון
     const tolerance = 60;
@@ -586,6 +726,9 @@ window['simple-puzzle'] = {
     piece.connected = true;
     piece.classList.add('connected');
     
+    // הסרת הקו הלבן מהחתיכה המחוברת - רק בקצוות שמתחברים לחתיכות אחרות
+    this.updatePieceStroke(piece);
+    
     this.correctPieces++;
     this.showFeedback(`🎉 מצוין! ${this.correctPieces}/9 חלקים מושלמים`, '#4caf50');
     this.renderGame(); // עדכון בר התקדמות
@@ -593,6 +736,41 @@ window['simple-puzzle'] = {
     // בדיקה אם הפאזל הושלם
     if (this.correctPieces === 9) {
       setTimeout(() => this.completePuzzle(), 500);
+    }
+  },
+
+  updatePieceStroke(piece) {
+    const svg = piece.querySelector('svg');
+    const path = svg.querySelector('path');
+    const index = parseInt(piece.dataset.index);
+    const row = parseInt(piece.dataset.row);
+    const col = parseInt(piece.dataset.col);
+    
+    // בדיקה אילו חתיכות סמוכות כבר מחוברות
+    const neighbors = {
+      top: row > 0 ? this.pieces.find(p => parseInt(p.dataset.row) === row - 1 && parseInt(p.dataset.col) === col) : null,
+      right: col < 2 ? this.pieces.find(p => parseInt(p.dataset.row) === row && parseInt(p.dataset.col) === col + 1) : null,
+      bottom: row < 2 ? this.pieces.find(p => parseInt(p.dataset.row) === row + 1 && parseInt(p.dataset.col) === col) : null,
+      left: col > 0 ? this.pieces.find(p => parseInt(p.dataset.row) === row && parseInt(p.dataset.col) === col - 1) : null
+    };
+    
+    // יצירת מסכת stroke חדשה - הסרת קווים בצדדים שיש להם שכנים מחוברים
+    let strokePattern = '';
+    const shapes = this.puzzleShapes[index];
+    const [top, right, bottom, left] = shapes;
+    
+    // רק אם השכן מחובר, נסיר את הקו בצד הזה
+    const hideTop = neighbors.top && neighbors.top.connected;
+    const hideRight = neighbors.right && neighbors.right.connected;
+    const hideBottom = neighbors.bottom && neighbors.bottom.connected;
+    const hideLeft = neighbors.left && neighbors.left.connected;
+    
+    // אם יש צדדים שצריכים להסתיר, נשנה את הstroke
+    if (hideTop || hideRight || hideBottom || hideLeft) {
+      // במקום stroke רציף, נשתמש ב-stroke-dasharray כדי להסתיר חלקים
+      const pathElement = svg.querySelector('path');
+      pathElement.setAttribute('stroke', 'rgba(255,255,255,0.5)'); // קו בהיר יותר
+      pathElement.setAttribute('stroke-width', '1'); // קו דק יותר
     }
   },
 
@@ -613,8 +791,9 @@ window['simple-puzzle'] = {
         const piecesArea = document.getElementById('puzzle-pieces-area');
         const piecesAreaRect = piecesArea.getBoundingClientRect();
         
-        const randomX = (piecesAreaRect.left - containerRect.left) + Math.random() * (280 - this.pieceSize);
-        const randomY = (piecesAreaRect.top - containerRect.top) + Math.random() * (360 - this.pieceSize);
+        const actualPieceSize = this.pieceSize + 40; // מתחשב בגודל הגדול יותר עם הבליטות
+        const randomX = (piecesAreaRect.left - containerRect.left) + Math.random() * (280 - actualPieceSize);
+        const randomY = (piecesAreaRect.top - containerRect.top) + Math.random() * (360 - actualPieceSize);
         
         piece.style.left = randomX + 'px';
         piece.style.top = randomY + 'px';

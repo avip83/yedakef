@@ -76,8 +76,8 @@
             top: 50%;
             left: 35%;
             transform: translate(-50%, -50%);
-            width: 380px;
-            height: 380px;
+            width: 360px;
+            height: 360px;
             background: rgba(255,255,255,0.1);
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 20px;
@@ -146,16 +146,15 @@
 
         .puzzle-slot {
             position: absolute;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
+            border: none;
+            background: transparent;
             transition: all 0.3s ease;
         }
 
         .puzzle-slot.highlight {
-            border-color: rgba(76,175,80,0.8);
-            background: rgba(76,175,80,0.1);
-            box-shadow: 0 0 20px rgba(76,175,80,0.4);
+            background: rgba(76,175,80,0.2);
+            box-shadow: 0 0 20px rgba(76,175,80,0.6);
+            border-radius: 10px;
         }
 
         .control-buttons {
@@ -273,8 +272,8 @@
         class RealPuzzle {
             constructor() {
                 this.gridSize = 3;
-                this.pieceSize = 140;
-                this.boardSize = 360; // הקטנת הלוח כדי שהחלקים יהיו צמודים יותר
+                this.pieceSize = 120; // גודל החלק מתאים לגודל הריבוע
+                this.boardSize = 360;
                 this.pieces = [];
                 this.connectedPieces = 0;
                 this.currentImage = 'puzzle/1.png';
@@ -315,11 +314,11 @@
                     for (let col = 0; col < this.gridSize; col++) {
                         const slot = document.createElement('div');
                         slot.className = 'puzzle-slot';
-                        // הקטנת המרחקים - חלקים צמודים יותר
-                        slot.style.left = (col * (slotSize - 10)) + 'px';
-                        slot.style.top = (row * (slotSize - 10)) + 'px';
-                        slot.style.width = (slotSize - 5) + 'px';
-                        slot.style.height = (slotSize - 5) + 'px';
+                        // חלקים צמודים לגמרי - אין רווחים
+                        slot.style.left = (col * slotSize) + 'px';
+                        slot.style.top = (row * slotSize) + 'px';
+                        slot.style.width = slotSize + 'px';
+                        slot.style.height = slotSize + 'px';
                         slot.dataset.row = row;
                         slot.dataset.col = col;
                         board.appendChild(slot);
@@ -376,8 +375,9 @@
                 image.setAttribute('href', this.currentImage);
                 image.setAttribute('width', this.boardSize);
                 image.setAttribute('height', this.boardSize);
-                image.setAttribute('x', -col * size);
-                image.setAttribute('y', -row * size);
+                // התאמת התמונה לגודל החלק החדש
+                image.setAttribute('x', -col * this.pieceSize);
+                image.setAttribute('y', -row * this.pieceSize);
 
                 pattern.appendChild(image);
                 defs.appendChild(pattern);
@@ -388,7 +388,7 @@
                 path.setAttribute('d', this.generateRealPuzzleShape(row, col));
                 path.setAttribute('fill', `url(#pattern-${row}-${col})`);
                 path.setAttribute('stroke', '#ffffff');
-                path.setAttribute('stroke-width', '3');
+                path.setAttribute('stroke-width', '2');
 
                 svg.appendChild(path);
                 piece.appendChild(svg);
@@ -398,8 +398,8 @@
 
             generateRealPuzzleShape(row, col) {
                 const size = this.pieceSize;
-                const knobSize = 30;
-                const knobDepth = 20;
+                const knobSize = 25;
+                const knobDepth = 15;
                 
                 // יצירת מפתח קבוע לכל חתיכה כדי שהצורות יהיו עקביות
                 const seed = row * 1000 + col * 100;
@@ -408,11 +408,11 @@
                     return val / 233280;
                 };
                 
-                let path = `M 20,20`;
+                let path = `M 0,0`;
                 
                 // צד עליון
                 if (row === 0) {
-                    path += ` L ${size-20},20`;
+                    path += ` L ${size},0`;
                 } else {
                     // הבליטה/חור צריכים להתאים לחתיכה מעל
                     const upperSeed = (row-1) * 1000 + col * 100;
@@ -422,63 +422,63 @@
                     };
                     const knobOut = upperRandom(3) <= 0.5; // הפוך מהחתיכה מעל
                     const knobPos = size * 0.5;
-                    path += ` L ${knobPos - knobSize},20`;
+                    path += ` L ${knobPos - knobSize},0`;
                     
                     if (knobOut) {
                         // בליטה למעלה
-                        path += ` Q ${knobPos - knobSize/2},${20 - knobDepth} ${knobPos},${20 - knobDepth}`;
-                        path += ` Q ${knobPos + knobSize/2},${20 - knobDepth} ${knobPos + knobSize},20`;
+                        path += ` Q ${knobPos - knobSize/2},${0 - knobDepth} ${knobPos},${0 - knobDepth}`;
+                        path += ` Q ${knobPos + knobSize/2},${0 - knobDepth} ${knobPos + knobSize},0`;
                     } else {
                         // חור למעלה
-                        path += ` Q ${knobPos - knobSize/2},${20 + knobDepth} ${knobPos},${20 + knobDepth}`;
-                        path += ` Q ${knobPos + knobSize/2},${20 + knobDepth} ${knobPos + knobSize},20`;
+                        path += ` Q ${knobPos - knobSize/2},${0 + knobDepth} ${knobPos},${0 + knobDepth}`;
+                        path += ` Q ${knobPos + knobSize/2},${0 + knobDepth} ${knobPos + knobSize},0`;
                     }
-                    path += ` L ${size-20},20`;
+                    path += ` L ${size},0`;
                 }
                 
                 // צד ימין
                 if (col === this.gridSize - 1) {
-                    path += ` L ${size-20},${size-20}`;
+                    path += ` L ${size},${size}`;
                 } else {
                     const knobOut = random(2) > 0.5;
                     const knobPos = size * 0.5;
-                    path += ` L ${size-20},${knobPos - knobSize}`;
+                    path += ` L ${size},${knobPos - knobSize}`;
                     
                     if (knobOut) {
                         // בליטה ימינה
-                        path += ` Q ${size-20+knobDepth},${knobPos - knobSize/2} ${size-20+knobDepth},${knobPos}`;
-                        path += ` Q ${size-20+knobDepth},${knobPos + knobSize/2} ${size-20},${knobPos + knobSize}`;
+                        path += ` Q ${size+knobDepth},${knobPos - knobSize/2} ${size+knobDepth},${knobPos}`;
+                        path += ` Q ${size+knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
                     } else {
                         // חור ימינה
-                        path += ` Q ${size-20-knobDepth},${knobPos - knobSize/2} ${size-20-knobDepth},${knobPos}`;
-                        path += ` Q ${size-20-knobDepth},${knobPos + knobSize/2} ${size-20},${knobPos + knobSize}`;
+                        path += ` Q ${size-knobDepth},${knobPos - knobSize/2} ${size-knobDepth},${knobPos}`;
+                        path += ` Q ${size-knobDepth},${knobPos + knobSize/2} ${size},${knobPos + knobSize}`;
                     }
-                    path += ` L ${size-20},${size-20}`;
+                    path += ` L ${size},${size}`;
                 }
                 
                 // צד תחתון
                 if (row === this.gridSize - 1) {
-                    path += ` L 20,${size-20}`;
+                    path += ` L 0,${size}`;
                 } else {
                     const knobOut = random(3) > 0.5;
                     const knobPos = size * 0.5;
-                    path += ` L ${knobPos + knobSize},${size-20}`;
+                    path += ` L ${knobPos + knobSize},${size}`;
                     
                     if (knobOut) {
                         // בליטה למטה
-                        path += ` Q ${knobPos + knobSize/2},${size-20+knobDepth} ${knobPos},${size-20+knobDepth}`;
-                        path += ` Q ${knobPos - knobSize/2},${size-20+knobDepth} ${knobPos - knobSize},${size-20}`;
+                        path += ` Q ${knobPos + knobSize/2},${size+knobDepth} ${knobPos},${size+knobDepth}`;
+                        path += ` Q ${knobPos - knobSize/2},${size+knobDepth} ${knobPos - knobSize},${size}`;
                     } else {
                         // חור למטה
-                        path += ` Q ${knobPos + knobSize/2},${size-20-knobDepth} ${knobPos},${size-20-knobDepth}`;
-                        path += ` Q ${knobPos - knobSize/2},${size-20-knobDepth} ${knobPos - knobSize},${size-20}`;
+                        path += ` Q ${knobPos + knobSize/2},${size-knobDepth} ${knobPos},${size-knobDepth}`;
+                        path += ` Q ${knobPos - knobSize/2},${size-knobDepth} ${knobPos - knobSize},${size}`;
                     }
-                    path += ` L 20,${size-20}`;
+                    path += ` L 0,${size}`;
                 }
                 
                 // צד שמאל
                 if (col === 0) {
-                    path += ` L 20,20`;
+                    path += ` L 0,0`;
                 } else {
                     // הבליטה/חור צריכים להתאים לחתיכה משמאל
                     const leftSeed = row * 1000 + (col-1) * 100;
@@ -488,18 +488,18 @@
                     };
                     const knobOut = leftRandom(2) <= 0.5; // הפוך מהחתיכה משמאל
                     const knobPos = size * 0.5;
-                    path += ` L 20,${knobPos + knobSize}`;
+                    path += ` L 0,${knobPos + knobSize}`;
                     
                     if (knobOut) {
                         // בליטה שמאלה
-                        path += ` Q ${20-knobDepth},${knobPos + knobSize/2} ${20-knobDepth},${knobPos}`;
-                        path += ` Q ${20-knobDepth},${knobPos - knobSize/2} 20,${knobPos - knobSize}`;
+                        path += ` Q ${0-knobDepth},${knobPos + knobSize/2} ${0-knobDepth},${knobPos}`;
+                        path += ` Q ${0-knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
                     } else {
                         // חור שמאלה
-                        path += ` Q ${20+knobDepth},${knobPos + knobSize/2} ${20+knobDepth},${knobPos}`;
-                        path += ` Q ${20+knobDepth},${knobPos - knobSize/2} 20,${knobPos - knobSize}`;
+                        path += ` Q ${0+knobDepth},${knobPos + knobSize/2} ${0+knobDepth},${knobPos}`;
+                        path += ` Q ${0+knobDepth},${knobPos - knobSize/2} 0,${knobPos - knobSize}`;
                     }
-                    path += ` L 20,20`;
+                    path += ` L 0,0`;
                 }
                 
                 path += ` Z`;
@@ -578,11 +578,11 @@
                 const pieceY = parseInt(piece.style.top);
 
                 const slotSize = this.boardSize / this.gridSize;
-                // חישוב מיקום נכון עם המרחקים החדשים
-                const correctX = boardRect.left + (piece.correctCol * (slotSize - 10));
-                const correctY = boardRect.top + (piece.correctRow * (slotSize - 10));
+                // המיקום הנכון בדיוק על הריבוע
+                const correctX = boardRect.left + (piece.correctCol * slotSize);
+                const correctY = boardRect.top + (piece.correctRow * slotSize);
 
-                const tolerance = 100;
+                const tolerance = 60;
                 if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
                     const slot = document.querySelector(`.puzzle-slot[data-row="${piece.correctRow}"][data-col="${piece.correctCol}"]`);
                     if (slot) slot.classList.add('highlight');
@@ -596,11 +596,11 @@
                 const pieceY = parseInt(piece.style.top);
 
                 const slotSize = this.boardSize / this.gridSize;
-                // חישוב מיקום נכון עם המרחקים החדשים
-                const correctX = boardRect.left + (piece.correctCol * (slotSize - 10));
-                const correctY = boardRect.top + (piece.correctRow * (slotSize - 10));
+                // המיקום הנכון בדיוק על הריבוע
+                const correctX = boardRect.left + (piece.correctCol * slotSize);
+                const correctY = boardRect.top + (piece.correctRow * slotSize);
 
-                const tolerance = 80;
+                const tolerance = 60;
                 if (Math.abs(pieceX - correctX) < tolerance && Math.abs(pieceY - correctY) < tolerance) {
                     this.connectPiece(piece, correctX, correctY);
                 }
@@ -612,9 +612,9 @@
                 piece.classList.add('snapping');
                 setTimeout(() => piece.classList.remove('snapping'), 400);
 
-                // מיקום מדויק יותר לחיבור החלק
-                piece.style.left = (correctX + 5) + 'px';
-                piece.style.top = (correctY + 5) + 'px';
+                // מיקום מדויק - החלק ממורכז על הריבוע
+                piece.style.left = correctX + 'px';
+                piece.style.top = correctY + 'px';
                 piece.connected = true;
                 piece.classList.add('connected');
 

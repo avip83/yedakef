@@ -315,49 +315,45 @@ class PuzzleGame {
     }
 }
 
+// פאזל עם jigsawpuzzle-rhill - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
 function startPuzzleGame() {
-    // צור wrapper לעיצוב
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
         <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
-                <div id="puzzle-headbreaker"></div>
+                <canvas id="jigsaw-canvas" width="480" height="480" style="background:#fff;border-radius:8px;box-shadow:0 2px 8px #0003;"></canvas>
             </div>
             <div style="margin-bottom:16px;">
-                <button onclick="window.puzzleCanvas && window.puzzleCanvas.shuffle(0.7);window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">ערבב</button>
-                <button onclick="window.puzzleCanvas && window.puzzleCanvas.solve();window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">פתור</button>
+                <button onclick="window.jigsaw && window.jigsaw.shuffle();" class="pz-btn">ערבב</button>
+                <button onclick="window.jigsaw && window.jigsaw.solve();" class="pz-btn">פתור</button>
             </div>
         </div>
     `;
     // טען את הספרייה אם לא קיימת
-    if (!window.headbreaker) {
+    if (!window.JigsawPuzzle) {
         const script = document.createElement('script');
-        script.src = 'https://flbulgarelli.github.io/headbreaker/js/headbreaker.js';
+        script.src = 'js/games/jigsawpuzzle-rhill.js';
         script.onload = () => createPuzzle();
         document.body.appendChild(script);
     } else {
         createPuzzle();
     }
     function createPuzzle() {
-        let img = new window.Image();
+        const img = new window.Image();
         img.src = 'puzzle/6.png';
         img.onload = () => {
-            const canvas = new window.headbreaker.Canvas('puzzle-headbreaker', {
-                width: 360, height: 360,
+            window.jigsaw = new window.JigsawPuzzle({
+                canvas: document.getElementById('jigsaw-canvas'),
                 image: img,
-                pieceSize: 120,
-                proximity: 20,
-                borderFill: 10,
-                strokeWidth: 2,
-                lineSoftness: 0.18,
+                rows: 3,
+                cols: 3,
+                pieceBorder: true,
+                snapDistance: 30,
+                showPreview: false,
+                shuffleOnInit: true,
+                onComplete: function() { setTimeout(()=>alert('כל הכבוד!'), 300); }
             });
-            canvas.autogenerate({
-                horizontalPiecesCount: 3,
-                verticalPiecesCount: 3
-            });
-            canvas.shuffle(0.7);
-            canvas.draw();
-            window.puzzleCanvas = canvas;
+            window.jigsaw.shuffle();
         };
     }
 }

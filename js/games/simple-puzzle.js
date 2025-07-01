@@ -499,6 +499,17 @@ window['simple-puzzle'] = {
     },
     
     setupUI: function() {
+        // יצירת מודאל למשחק
+        const modal = document.createElement('div');
+        modal.className = 'game-modal';
+        modal.innerHTML = `
+            <div class="game-modal-content">
+                <button class="close-button" onclick="this.parentElement.parentElement.remove()" style="position:fixed;top:12px;right:12px;z-index:2000;">×</button>
+                <div id="game-container"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
         const gameContainer = document.getElementById('game-container');
         gameContainer.innerHTML = `
             <div class="game-header">
@@ -541,6 +552,42 @@ window['simple-puzzle'] = {
         const style = document.createElement('style');
         style.id = 'puzzle-styles';
         style.textContent = `
+            .game-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-out;
+            }
+
+            .game-modal-content {
+                background: white;
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 95%;
+                max-height: 95%;
+                width: 100%;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.3s ease-out;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes slideIn {
+                from { transform: translateY(-50px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            
             .game-header {
                 text-align: center;
                 margin-bottom: 20px;

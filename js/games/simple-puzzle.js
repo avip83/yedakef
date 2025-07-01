@@ -26,14 +26,15 @@ function startSimplePuzzleGame() {
                     <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.5em;">🧩 פאזל תמונות</h2>
                     <div style="margin-bottom: 15px;">
                         <label style="color: #666; font-weight: bold;">מספר חלקים:</label>
-                        <select id="piecesSelect" style="margin: 0 10px; padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                        <select id="piecesSelect" onchange="createNewPuzzle()" style="margin: 0 10px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; font-size: 14px;">
                             <option value="9">9 חלקים (3x3)</option>
                             <option value="16">16 חלקים (4x4)</option>
                             <option value="25">25 חלקים (5x5)</option>
                             <option value="36">36 חלקים (6x6)</option>
                             <option value="49">49 חלקים (7x7)</option>
                         </select>
-                        <button onclick="createNewPuzzle()" style="padding: 5px 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">פאזל חדש</button>
+                        <button onclick="createNewPuzzle()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🔄 פאזל חדש</button>
+                        <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 5px;">💡 טיפים</button>
                     </div>
                 </div>
                 
@@ -48,10 +49,7 @@ function startSimplePuzzleGame() {
                     </iframe>
                 </div>
                 
-                <div style="text-align: center; margin-top: 15px;">
-                    <button onclick="createNewPuzzle()" style="padding: 12px 24px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 5px;">🔄 פאזל חדש</button>
-                    <button onclick="showHint()" style="padding: 12px 24px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 5px;">💡 רמז</button>
-                </div>
+
             </div>
         </div>
     `;

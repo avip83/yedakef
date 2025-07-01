@@ -1,14 +1,14 @@
-// Puzzle Game - 9 pieces with real puzzle shapes, green background, frame, and preview button
+// Puzzle Game - 9 pieces, real puzzle shapes, drag & drop, pieces outside the board
 class PuzzleGame {
     constructor() {
         this.puzzleImage = 'puzzle/6.png';
         this.gridSize = 3;
+        this.pieceSize = 120;
+        this.boardSize = this.pieceSize * this.gridSize;
         this.pieces = [];
         this.draggedPiece = null;
         this.gameCompleted = false;
         this.previewMode = false;
-        this.pieceSize = 120; // px
-        this.boardSize = this.pieceSize * this.gridSize;
         this.pieceShapes = [
             // [top, right, bottom, left] (0=flat, 1=out, -1=in)
             [0, 1, 1, 0],   // 0 TL
@@ -166,7 +166,7 @@ class PuzzleGame {
     }
 
     setupEventListeners() {
-        // Drag and drop
+        // Drag and drop (mouse)
         this.pieces.forEach(piece => {
             piece.addEventListener('dragstart', (e) => this.handleDragStart(e));
             piece.addEventListener('dragend', (e) => this.handleDragEnd(e));
@@ -179,6 +179,16 @@ class PuzzleGame {
         document.getElementById('pz-pieces').addEventListener('drop', (e) => this.handleDrop(e, null));
         document.getElementById('pz-preview-btn').onclick = () => this.togglePreview();
         document.getElementById('pz-restart-btn').onclick = () => this.reset();
+        // Touch support
+        this.pieces.forEach(piece => {
+            piece.addEventListener('touchstart', (e) => this.handleTouchStart(e), {passive:false});
+        });
+        document.querySelectorAll('.pz-slot').forEach(slot => {
+            slot.addEventListener('touchmove', (e) => e.preventDefault(), {passive:false});
+            slot.addEventListener('touchend', (e) => this.handleTouchDrop(e, slot), {passive:false});
+        });
+        document.getElementById('pz-pieces').addEventListener('touchmove', (e) => e.preventDefault(), {passive:false});
+        document.getElementById('pz-pieces').addEventListener('touchend', (e) => this.handleTouchDrop(e, null), {passive:false});
     }
 
     handleDragStart(e) {
@@ -208,6 +218,49 @@ class PuzzleGame {
             // Drop back to pieces area
             document.getElementById('pz-pieces').appendChild(this.draggedPiece);
         }
+        this.checkCompletion();
+    }
+    // Touch drag & drop
+    handleTouchStart(e) {
+        e.preventDefault();
+        this.draggedPiece = e.target.closest('svg');
+        this.draggedPiece.style.opacity = '0.6';
+        this.draggedPiece.style.zIndex = 10;
+        document.ontouchmove = (ev) => {
+            const touch = ev.touches[0];
+            this.draggedPiece.style.position = 'fixed';
+            this.draggedPiece.style.left = (touch.clientX - this.pieceSize/2) + 'px';
+            this.draggedPiece.style.top = (touch.clientY - this.pieceSize/2) + 'px';
+            this.draggedPiece.style.pointerEvents = 'none';
+        };
+        document.ontouchend = () => {
+            this.draggedPiece.style.opacity = '1';
+            this.draggedPiece.style.zIndex = 2;
+            this.draggedPiece.style.position = 'relative';
+            this.draggedPiece.style.left = '';
+            this.draggedPiece.style.top = '';
+            this.draggedPiece.style.pointerEvents = '';
+            document.ontouchmove = null;
+            document.ontouchend = null;
+        };
+    }
+    handleTouchDrop(e, slot) {
+        if (!this.draggedPiece) return;
+        this.draggedPiece.style.opacity = '1';
+        this.draggedPiece.style.zIndex = 2;
+        this.draggedPiece.style.position = 'relative';
+        this.draggedPiece.style.left = '';
+        this.draggedPiece.style.top = '';
+        this.draggedPiece.style.pointerEvents = '';
+        if (slot) {
+            if (slot.children.length > 0) {
+                document.getElementById('pz-pieces').appendChild(slot.children[0]);
+            }
+            slot.appendChild(this.draggedPiece);
+        } else {
+            document.getElementById('pz-pieces').appendChild(this.draggedPiece);
+        }
+        this.draggedPiece = null;
         this.checkCompletion();
     }
 

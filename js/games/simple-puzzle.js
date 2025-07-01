@@ -24,8 +24,8 @@ window['simple-puzzle'] = {
 
   getRandomPuzzleImage() {
     // תמונות פאזל מתיקיית puzzle (1.png עד 20.png)
-    // נתיב נכון לאתר GitHub Pages
-    const baseUrl = 'https://avip83.github.io/KIDS/puzzle/';
+    // כתובת נכונה לאתר GitHub Pages
+    const baseUrl = 'https://avip83.github.io/yedakef/puzzle/';
     const imageNumber = Math.floor(Math.random() * 20) + 1;
     const imageUrl = `${baseUrl}${imageNumber}.png`;
     

@@ -97,15 +97,8 @@ window['simple-puzzle'] = {
       <p style="color: #ff9800; font-weight: bold;">כאן נטען הפאזל עם הספריה הנבחרת</p>
     `;
     
-    // כאן נוסיף את הספריות השונות
-    setTimeout(() => {
-      puzzleArea.innerHTML = `
-        <div style="text-align: center; color: #4CAF50;">
-          <div style="font-size: 48px; margin-bottom: 15px;">🧩</div>
-          <div style="font-size: 18px;">מוכן לטעינת ספריה!</div>
-        </div>
-      `;
-    }, 1000);
+         // ספריה 1: JigsawJS - פשוטה וקלה
+     this.loadJigsawJS(imageSrc, pieces);
   },
 
   showPreview() {
@@ -139,5 +132,70 @@ window['simple-puzzle'] = {
     `;
     
     document.body.appendChild(preview);
+  },
+
+  loadJigsawJS(imageSrc, pieces) {
+    const puzzleArea = document.getElementById('puzzle-area');
+    const puzzleInfo = document.getElementById('puzzle-info');
+    
+    // טעינת הספריה
+    if (!window.JigsawJS) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/jigsaw-js@1.0.0/dist/jigsaw.min.js';
+      script.onload = () => {
+        this.initJigsawJS(imageSrc, pieces);
+      };
+      script.onerror = () => {
+        puzzleArea.innerHTML = `
+          <div style="text-align: center; color: #f44336;">
+            <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
+            <div>שגיאה בטעינת הספריה</div>
+          </div>
+        `;
+      };
+      document.head.appendChild(script);
+    } else {
+      this.initJigsawJS(imageSrc, pieces);
+    }
+  },
+
+  initJigsawJS(imageSrc, pieces) {
+    const puzzleArea = document.getElementById('puzzle-area');
+    const puzzleInfo = document.getElementById('puzzle-info');
+    
+    puzzleArea.innerHTML = `
+      <div id="jigsaw-container" style="width: 100%; height: 500px; background: #fff; border-radius: 10px; overflow: hidden;"></div>
+    `;
+    
+    try {
+      // יצירת הפאזל
+      const jigsaw = new JigsawJS({
+        container: '#jigsaw-container',
+        image: imageSrc,
+        pieces: pieces,
+        onComplete: () => {
+          this.playSound('complete');
+          puzzleInfo.innerHTML = `
+            <div style="color: #4CAF50; font-size: 18px; font-weight: bold;">
+              🎉 כל הכבוד! פתרת את הפאזל! 🎉
+            </div>
+          `;
+        }
+      });
+      
+      puzzleInfo.innerHTML = `
+        <p style="color: #4CAF50; font-weight: bold;">ספריה: JigsawJS</p>
+        <p>גרור את החלקים למקום הנכון!</p>
+      `;
+      
+    } catch (error) {
+      puzzleArea.innerHTML = `
+        <div style="text-align: center; color: #f44336;">
+          <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+          <div>הספריה לא עובדת כמו שצריך</div>
+          <div style="font-size: 14px; margin-top: 10px;">שגיאה: ${error.message}</div>
+        </div>
+      `;
+    }
   }
 }; 

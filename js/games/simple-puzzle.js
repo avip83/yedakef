@@ -175,7 +175,7 @@ window['simple-puzzle'] = {
     
     puzzleArea.innerHTML = `
       <div style="background: white; border-radius: 10px; padding: 10px; box-shadow: 0 4px 15px rgba(30, 136, 229, 0.15); border: 2px solid #90caf9;">
-        <div id="jigsaw-puzzle-container" style="width: 100%; height: 280px; border: 2px solid #1976d2; border-radius: 8px; overflow: hidden; position: relative;">
+        <div id="jigsaw-puzzle-container" style="width: 100%; height: 450px; border: 2px solid #1976d2; border-radius: 8px; overflow: hidden; position: relative;">
           <!-- JigsawExplorer יטען כאן -->
         </div>
       </div>

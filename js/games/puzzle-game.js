@@ -315,24 +315,23 @@ class PuzzleGame {
     }
 }
 
-// פאזל עם puzzlejs - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
+// פאזל עם svg-puzzle - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
 function startPuzzleGame() {
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
         <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
-                <img id="puzzlejs-img" src="puzzle/6.png" style="display:none;" />
-                <div id="puzzlejs-canvas"></div>
+                <div id="svgpuzzle-canvas"></div>
             </div>
             <div style="margin-bottom:16px;">
-                <button onclick="window.puzzlejs && window.puzzlejs.shuffle();" class="pz-btn">ערבב</button>
+                <button onclick="window.svgPuzzle && window.svgPuzzle.shuffle();" class="pz-btn">ערבב</button>
             </div>
         </div>
     `;
     // טען את הספרייה אם לא קיימת
-    if (!window.pz) {
+    if (!window.SVGPuzzle) {
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/gh/abidibo/puzzlejs/js/puzzle.js';
+        script.src = 'https://cdn.jsdelivr.net/gh/dmitruk/svg-puzzle/js/puzzle.js';
         script.onload = () => createPuzzle();
         document.body.appendChild(script);
     } else {
@@ -340,18 +339,18 @@ function startPuzzleGame() {
     }
     function createPuzzle() {
         setTimeout(() => {
-            window.puzzlejs = new window.pz.Puzzle('puzzlejs-img', {
-                render_to: 'puzzlejs-canvas',
-                rows: 3,
-                cols: 3,
-                margin: 20,
-                snap_offset: 40,
-                grid_color: '#222',
-                slot_color: '#666',
-                puzzle_completed_text: 'כל הכבוד!',
-                hide_original: true
+            window.svgPuzzle = new window.SVGPuzzle({
+                container: document.getElementById('svgpuzzle-canvas'),
+                image: 'puzzle/6.png',
+                size: {x: 3, y: 3},
+                width: 420,
+                height: 420,
+                padding: 0,
+                stroke: 2,
+                shadow: true,
+                onComplete: function() { setTimeout(()=>alert('כל הכבוד!'), 300); }
             });
-            window.puzzlejs.shuffle();
+            window.svgPuzzle.shuffle();
         }, 200);
     }
 }

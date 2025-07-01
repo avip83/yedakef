@@ -1,14 +1,15 @@
-// משחק פאזל מקצועי עם ספרייה מתקדמת
-class ProfessionalPuzzleGame {
+// משחק פאזל מקצועי עם Konva.js
+class KonvaPuzzleGame {
     constructor() {
-        this.gameContainer = null;
-        this.puzzleContainer = null;
-        this.piecesContainer = null;
-        this.currentImage = null;
+        this.stage = null;
+        this.mainLayer = null;
         this.gridSize = 3;
         this.pieces = [];
+        this.puzzleBoard = [];
+        this.currentImage = null;
+        this.pieceWidth = 120;
+        this.pieceHeight = 120;
         this.completedPieces = 0;
-        this.totalPieces = 9;
         
         // רשימת תמונות
         this.imageList = [
@@ -28,35 +29,51 @@ class ProfessionalPuzzleGame {
     }
 
     init() {
-        this.createGameInterface();
-        this.loadRandomImage();
-        this.setupEventListeners();
+        this.createGameHTML();
+        this.loadKonvaLibrary();
     }
 
-    createGameInterface() {
+    loadKonvaLibrary() {
+        // טעינת Konva.js
+        if (typeof Konva === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/konva@9/konva.min.js';
+            script.onload = () => {
+                this.initializeKonva();
+            };
+            document.head.appendChild(script);
+        } else {
+            this.initializeKonva();
+        }
+    }
+
+    createGameHTML() {
         const gameContainer = document.getElementById('game-container');
         if (!gameContainer) return;
 
         gameContainer.innerHTML = `
-            <div class="professional-puzzle-game">
+            <div class="konva-puzzle-game">
                 <style>
-                    .professional-puzzle-game {
+                    .konva-puzzle-game {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         min-height: 100vh;
                         padding: 20px;
                         box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
                     }
                     
                     .puzzle-header {
                         text-align: center;
                         color: white;
-                        margin-bottom: 30px;
+                        margin-bottom: 20px;
                     }
                     
                     .puzzle-title {
-                        font-size: 3em;
-                        margin: 0;
+                        font-size: 2.5em;
+                        margin: 0 0 15px 0;
                         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                         background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
                         -webkit-background-clip: text;
@@ -69,11 +86,11 @@ class ProfessionalPuzzleGame {
                         gap: 15px;
                         justify-content: center;
                         flex-wrap: wrap;
-                        margin: 20px 0;
+                        margin-bottom: 20px;
                     }
                     
                     .control-btn, .control-select {
-                        padding: 12px 20px;
+                        padding: 10px 20px;
                         border: none;
                         border-radius: 25px;
                         font-size: 14px;
@@ -81,13 +98,8 @@ class ProfessionalPuzzleGame {
                         cursor: pointer;
                         transition: all 0.3s ease;
                         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                    }
-                    
-                    .control-btn {
                         background: linear-gradient(45deg, #ff6b6b, #ee5a52);
                         color: white;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
                     }
                     
                     .control-btn:hover {
@@ -108,113 +120,22 @@ class ProfessionalPuzzleGame {
                         color: #333;
                     }
                     
-                    .puzzle-main {
+                    .game-area {
                         display: flex;
-                        gap: 30px;
-                        justify-content: center;
+                        gap: 20px;
                         align-items: flex-start;
                         flex-wrap: wrap;
-                    }
-                    
-                    .puzzle-board {
-                        background: rgba(255,255,255,0.95);
-                        border-radius: 20px;
-                        padding: 20px;
-                        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-                        backdrop-filter: blur(10px);
-                        position: relative;
-                    }
-                    
-                    .puzzle-grid {
-                        display: grid;
-                        gap: 2px;
-                        background: #ddd;
-                        border: 3px solid #bbb;
-                        border-radius: 10px;
-                        padding: 10px;
-                        position: relative;
-                    }
-                    
-                    .puzzle-slot {
-                        background: #f8f9fa;
-                        border: 2px dashed #ccc;
-                        border-radius: 8px;
-                        position: relative;
-                        transition: all 0.3s ease;
-                    }
-                    
-                    .puzzle-slot.highlight {
-                        border-color: #4ecdc4;
-                        background: rgba(78, 205, 196, 0.1);
-                        transform: scale(1.02);
-                    }
-                    
-                    .puzzle-slot.completed {
-                        border-color: #27ae60;
-                        background: rgba(39, 174, 96, 0.1);
-                    }
-                    
-                    .pieces-area {
-                        background: rgba(255,255,255,0.95);
-                        border-radius: 20px;
-                        padding: 20px;
-                        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-                        backdrop-filter: blur(10px);
-                        max-width: 400px;
-                    }
-                    
-                    .pieces-title {
-                        text-align: center;
-                        color: #333;
-                        margin: 0 0 15px 0;
-                        font-size: 1.2em;
-                        font-weight: 600;
-                    }
-                    
-                    .pieces-container {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 10px;
                         justify-content: center;
-                        min-height: 200px;
-                        padding: 15px;
-                        border: 2px dashed #ddd;
-                        border-radius: 10px;
-                        background: #fafafa;
-                    }
-                    
-                    .puzzle-piece {
-                        border-radius: 8px;
-                        cursor: grab;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        border: 2px solid #fff;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    
-                    .puzzle-piece:hover {
-                        transform: scale(1.05);
-                        box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-                        z-index: 10;
-                    }
-                    
-                    .puzzle-piece:active {
-                        cursor: grabbing;
-                    }
-                    
-                    .puzzle-piece.dragging {
-                        transform: scale(1.1) rotate(5deg);
-                        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-                        z-index: 100;
-                        border-color: #4ecdc4;
-                    }
-                    
-                    .puzzle-piece img {
                         width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        pointer-events: none;
+                        max-width: 1200px;
+                    }
+                    
+                    .canvas-container {
+                        background: rgba(255,255,255,0.95);
+                        border-radius: 20px;
+                        padding: 20px;
+                        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
                     }
                     
                     .preview-container {
@@ -312,19 +233,17 @@ class ProfessionalPuzzleGame {
                         60% { transform: translateY(-10px); }
                     }
                     
-                    @keyframes sparkle {
-                        0%, 100% { opacity: 0; transform: scale(0); }
-                        50% { opacity: 1; transform: scale(1); }
-                    }
-                    
-                    .sparkle {
-                        position: absolute;
-                        width: 10px;
-                        height: 10px;
-                        background: #ffd700;
-                        border-radius: 50%;
-                        animation: sparkle 1.5s infinite;
-                        pointer-events: none;
+                    @media (max-width: 768px) {
+                        .game-area {
+                            flex-direction: column;
+                        }
+                        .puzzle-title {
+                            font-size: 2em;
+                        }
+                        .control-btn, .control-select {
+                            padding: 8px 16px;
+                            font-size: 12px;
+                        }
                     }
                 </style>
                 
@@ -335,22 +254,17 @@ class ProfessionalPuzzleGame {
                             <option value="3">9 חלקים (3×3)</option>
                             <option value="4">16 חלקים (4×4)</option>
                             <option value="5">25 חלקים (5×5)</option>
-                            <option value="6">36 חלקים (6×6)</option>
                         </select>
                         <button id="new-image-btn" class="control-btn">🖼️ תמונה חדשה</button>
                         <button id="shuffle-btn" class="control-btn shuffle">🔀 ערבב</button>
                         <button id="preview-btn" class="control-btn preview">👁️ תצוגה מקדימה</button>
+                        <button id="hint-btn" class="control-btn">💡 רמז</button>
                     </div>
                 </div>
                 
-                <div class="puzzle-main">
-                    <div class="puzzle-board">
-                        <div id="puzzle-grid" class="puzzle-grid"></div>
-                    </div>
-                    
-                    <div class="pieces-area">
-                        <h3 class="pieces-title">חלקי הפאזל</h3>
-                        <div id="pieces-container" class="pieces-container"></div>
+                <div class="game-area">
+                    <div class="canvas-container">
+                        <div id="konva-container"></div>
                     </div>
                     
                     <div id="preview-container" class="preview-container">
@@ -371,204 +285,388 @@ class ProfessionalPuzzleGame {
                 </div>
             </div>
         `;
+    }
+
+    initializeKonva() {
+        // יצירת stage של Konva
+        const containerWidth = Math.min(800, window.innerWidth - 40);
+        const containerHeight = Math.min(600, window.innerHeight - 200);
         
-        this.puzzleContainer = document.getElementById('puzzle-grid');
-        this.piecesContainer = document.getElementById('pieces-container');
+        this.stage = new Konva.Stage({
+            container: 'konva-container',
+            width: containerWidth,
+            height: containerHeight
+        });
+
+        // יצירת שכבה ראשית
+        this.mainLayer = new Konva.Layer();
+        this.stage.add(this.mainLayer);
+
+        // טעינת תמונה ראשונה
+        this.loadRandomImage();
+        this.setupEventListeners();
     }
 
     loadRandomImage() {
         const randomIndex = Math.floor(Math.random() * this.imageList.length);
         const imagePath = this.imageList[randomIndex];
         
-        this.currentImage = new Image();
-        this.currentImage.crossOrigin = 'anonymous';
-        this.currentImage.onload = () => {
+        const imageObj = new Image();
+        imageObj.crossOrigin = 'anonymous';
+        imageObj.onload = () => {
+            this.currentImage = imageObj;
             this.createPuzzle();
-            document.getElementById('preview-image').src = imagePath;
+            
+            // עדכון תצוגה מקדימה
+            const previewImg = document.getElementById('preview-image');
+            if (previewImg) {
+                previewImg.src = imagePath;
+            }
         };
-        this.currentImage.src = imagePath;
+        imageObj.src = imagePath;
     }
 
     createPuzzle() {
-        this.totalPieces = this.gridSize * this.gridSize;
         this.completedPieces = 0;
         this.pieces = [];
+        this.puzzleBoard = [];
         
-        // יצירת רשת הפאזל
-        this.createPuzzleGrid();
+        // ניקוי השכבה
+        this.mainLayer.destroyChildren();
+        
+        // יצירת רקע
+        this.createBackground();
         
         // יצירת חלקי הפאזל
         this.createPuzzlePieces();
         
         // ערבוב החלקים
         this.shufflePieces();
+        
+        // עדכון התצוגה
+        this.mainLayer.draw();
     }
 
-    createPuzzleGrid() {
-        this.puzzleContainer.innerHTML = '';
-        this.puzzleContainer.style.gridTemplateColumns = `repeat(${this.gridSize}, 1fr)`;
-        this.puzzleContainer.style.gridTemplateRows = `repeat(${this.gridSize}, 1fr)`;
+    createBackground() {
+        // יצירת רקע עם מסגרת הפאזל
+        const boardX = 50;
+        const boardY = 50;
+        const boardWidth = this.gridSize * this.pieceWidth;
+        const boardHeight = this.gridSize * this.pieceHeight;
         
-        const slotSize = Math.min(400 / this.gridSize, 100);
+        // רקע המסגרת
+        const boardBg = new Konva.Rect({
+            x: boardX - 10,
+            y: boardY - 10,
+            width: boardWidth + 20,
+            height: boardHeight + 20,
+            fill: '#f0f0f0',
+            stroke: '#ddd',
+            strokeWidth: 2,
+            cornerRadius: 10,
+            shadowColor: 'black',
+            shadowBlur: 10,
+            shadowOffset: { x: 5, y: 5 },
+            shadowOpacity: 0.2
+        });
         
-        for (let i = 0; i < this.totalPieces; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'puzzle-slot';
-            slot.style.width = slotSize + 'px';
-            slot.style.height = slotSize + 'px';
-            slot.dataset.index = i;
-            
-            // אירועי גרירה
-            slot.addEventListener('dragover', this.handleDragOver.bind(this));
-            slot.addEventListener('drop', this.handleDrop.bind(this));
-            
-            this.puzzleContainer.appendChild(slot);
+        this.mainLayer.add(boardBg);
+        
+        // יצירת רשת המיקומים הנכונים
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const slot = new Konva.Rect({
+                    x: boardX + col * this.pieceWidth,
+                    y: boardY + row * this.pieceHeight,
+                    width: this.pieceWidth,
+                    height: this.pieceHeight,
+                    fill: 'transparent',
+                    stroke: '#ccc',
+                    strokeWidth: 1,
+                    dash: [5, 5]
+                });
+                
+                this.mainLayer.add(slot);
+                
+                // שמירת המיקום הנכון
+                this.puzzleBoard.push({
+                    x: boardX + col * this.pieceWidth,
+                    y: boardY + row * this.pieceHeight,
+                    row: row,
+                    col: col,
+                    occupied: false
+                });
+            }
         }
     }
 
     createPuzzlePieces() {
-        this.piecesContainer.innerHTML = '';
+        const sourceWidth = this.currentImage.width / this.gridSize;
+        const sourceHeight = this.currentImage.height / this.gridSize;
         
-        const pieceSize = Math.min(300 / this.gridSize, 80);
-        const canvasSize = 400;
-        
-        for (let i = 0; i < this.totalPieces; i++) {
-            const row = Math.floor(i / this.gridSize);
-            const col = i % this.gridSize;
-            
-            // יצירת קנבס לחלק
-            const canvas = document.createElement('canvas');
-            canvas.width = pieceSize;
-            canvas.height = pieceSize;
-            canvas.className = 'puzzle-piece';
-            canvas.draggable = true;
-            canvas.dataset.index = i;
-            canvas.dataset.correctIndex = i;
-            
-            const ctx = canvas.getContext('2d');
-            
-            // חישוב מיקום בתמונה המקורית
-            const sourceX = (col * this.currentImage.width) / this.gridSize;
-            const sourceY = (row * this.currentImage.height) / this.gridSize;
-            const sourceWidth = this.currentImage.width / this.gridSize;
-            const sourceHeight = this.currentImage.height / this.gridSize;
-            
-            // ציור החלק
-            ctx.drawImage(
-                this.currentImage,
-                sourceX, sourceY, sourceWidth, sourceHeight,
-                0, 0, pieceSize, pieceSize
-            );
-            
-            // הוספת מסגרת
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, pieceSize, pieceSize);
-            
-            // אירועי גרירה
-            canvas.addEventListener('dragstart', this.handleDragStart.bind(this));
-            canvas.addEventListener('dragend', this.handleDragEnd.bind(this));
-            
-            this.piecesContainer.appendChild(canvas);
-            this.pieces.push(canvas);
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const pieceIndex = row * this.gridSize + col;
+                
+                // יצירת קנבס זמני לחלק
+                const canvas = document.createElement('canvas');
+                canvas.width = this.pieceWidth;
+                canvas.height = this.pieceHeight;
+                const ctx = canvas.getContext('2d');
+                
+                // ציור החלק
+                ctx.drawImage(
+                    this.currentImage,
+                    col * sourceWidth, row * sourceHeight, sourceWidth, sourceHeight,
+                    0, 0, this.pieceWidth, this.pieceHeight
+                );
+                
+                // יצירת אובייקט תמונה של Konva
+                const imageObj = new Image();
+                imageObj.onload = () => {
+                    const piece = new Konva.Image({
+                        x: 400 + (pieceIndex % 4) * (this.pieceWidth + 10),
+                        y: 100 + Math.floor(pieceIndex / 4) * (this.pieceHeight + 10),
+                        image: imageObj,
+                        width: this.pieceWidth,
+                        height: this.pieceHeight,
+                        draggable: true,
+                        shadowColor: 'black',
+                        shadowBlur: 10,
+                        shadowOffset: { x: 3, y: 3 },
+                        shadowOpacity: 0.3
+                    });
+                    
+                    // הוספת מאפיינים מותאמים
+                    piece.correctRow = row;
+                    piece.correctCol = col;
+                    piece.isPlaced = false;
+                    piece.originalX = piece.x();
+                    piece.originalY = piece.y();
+                    
+                    // אירועי גרירה
+                    piece.on('dragstart', () => {
+                        piece.moveToTop();
+                        piece.shadowBlur(15);
+                        piece.scaleX(1.05);
+                        piece.scaleY(1.05);
+                        this.playSound('click-tap-computer-mouse-352734.mp3');
+                    });
+                    
+                    piece.on('dragend', () => {
+                        piece.shadowBlur(10);
+                        piece.scaleX(1);
+                        piece.scaleY(1);
+                        this.checkSnap(piece);
+                    });
+                    
+                    // אפקטי hover
+                    piece.on('mouseenter', () => {
+                        if (!piece.isPlaced) {
+                            piece.scaleX(1.02);
+                            piece.scaleY(1.02);
+                            document.body.style.cursor = 'pointer';
+                        }
+                    });
+                    
+                    piece.on('mouseleave', () => {
+                        if (!piece.isPlaced) {
+                            piece.scaleX(1);
+                            piece.scaleY(1);
+                            document.body.style.cursor = 'default';
+                        }
+                    });
+                    
+                    this.pieces.push(piece);
+                    this.mainLayer.add(piece);
+                    this.mainLayer.draw();
+                };
+                
+                imageObj.src = canvas.toDataURL();
+            }
         }
     }
 
-    shufflePieces() {
-        // ערבוב מערך החלקים
-        for (let i = this.pieces.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.pieces[i], this.pieces[j]] = [this.pieces[j], this.pieces[i]];
-        }
+    checkSnap(piece) {
+        const correctSlot = this.puzzleBoard.find(slot => 
+            slot.row === piece.correctRow && slot.col === piece.correctCol
+        );
         
-        // עדכון הצגת החלקים
-        this.piecesContainer.innerHTML = '';
-        this.pieces.forEach(piece => {
-            this.piecesContainer.appendChild(piece);
-        });
-    }
-
-    handleDragStart(e) {
-        e.dataTransfer.setData('text/plain', e.target.dataset.index);
-        e.target.classList.add('dragging');
-        this.playSound('click-tap-computer-mouse-352734.mp3');
-    }
-
-    handleDragEnd(e) {
-        e.target.classList.remove('dragging');
-    }
-
-    handleDragOver(e) {
-        e.preventDefault();
-        e.target.classList.add('highlight');
-    }
-
-    handleDrop(e) {
-        e.preventDefault();
-        e.target.classList.remove('highlight');
+        if (!correctSlot) return;
         
-        const pieceIndex = parseInt(e.dataTransfer.getData('text/plain'));
-        const slotIndex = parseInt(e.target.dataset.index);
-        const piece = this.pieces.find(p => parseInt(p.dataset.index) === pieceIndex);
+        const distance = Math.sqrt(
+            Math.pow(piece.x() - correctSlot.x, 2) + 
+            Math.pow(piece.y() - correctSlot.y, 2)
+        );
         
-        if (piece && parseInt(piece.dataset.correctIndex) === slotIndex) {
-            // חלק נכון!
-            e.target.appendChild(piece);
-            e.target.classList.add('completed');
-            piece.draggable = false;
-            piece.style.cursor = 'default';
+        if (distance < 50 && !correctSlot.occupied) {
+            // צמידה למקום הנכון
+            piece.x(correctSlot.x);
+            piece.y(correctSlot.y);
+            piece.draggable(false);
+            piece.isPlaced = true;
+            correctSlot.occupied = true;
+            
+            // אפקט ויזואלי
+            piece.stroke('#4CAF50');
+            piece.strokeWidth(3);
+            
+            // אנימציית הצלחה
+            const tween = new Konva.Tween({
+                node: piece,
+                duration: 0.3,
+                scaleX: 1.1,
+                scaleY: 1.1,
+                onFinish: () => {
+                    piece.scaleX(1);
+                    piece.scaleY(1);
+                }
+            });
+            tween.play();
             
             this.completedPieces++;
             this.playSound('success-340660 (mp3cut.net).mp3');
             
-            // אפקט נצנוצים
-            this.createSparkles(e.target);
+            // יצירת אפקט זיקוקים קטן
+            this.createSparkleEffect(piece.x() + this.pieceWidth/2, piece.y() + this.pieceHeight/2);
             
             // בדיקה אם הפאזל הושלם
-            if (this.completedPieces === this.totalPieces) {
+            if (this.completedPieces === this.gridSize * this.gridSize) {
                 setTimeout(() => {
                     this.showSuccess();
                 }, 500);
             }
         } else {
-            // חלק לא נכון
+            // החזרה למקום המקורי אם לא נכון
+            const tween = new Konva.Tween({
+                node: piece,
+                duration: 0.3,
+                x: piece.originalX,
+                y: piece.originalY,
+                easing: Konva.Easings.BounceEaseOut
+            });
+            tween.play();
+            
             this.playSound('wrong-47985 (mp3cut.net).mp3');
-            this.shakeElement(e.target);
         }
     }
 
-    createSparkles(element) {
-        for (let i = 0; i < 5; i++) {
-            setTimeout(() => {
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.style.left = Math.random() * element.offsetWidth + 'px';
-                sparkle.style.top = Math.random() * element.offsetHeight + 'px';
-                element.appendChild(sparkle);
-                
-                setTimeout(() => sparkle.remove(), 1500);
-            }, i * 100);
-        }
-    }
-
-    shakeElement(element) {
-        element.style.animation = 'shake 0.5s ease-in-out';
-        setTimeout(() => {
-            element.style.animation = '';
-        }, 500);
+    createSparkleEffect(x, y) {
+        const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726'];
         
-        // הוספת אנימציית רעידה
-        if (!document.getElementById('shake-style')) {
-            const style = document.createElement('style');
-            style.id = 'shake-style';
-            style.textContent = `
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-5px); }
-                    75% { transform: translateX(5px); }
+        for (let i = 0; i < 8; i++) {
+            const sparkle = new Konva.Circle({
+                x: x,
+                y: y,
+                radius: 3,
+                fill: colors[Math.floor(Math.random() * colors.length)],
+                opacity: 1
+            });
+            
+            this.mainLayer.add(sparkle);
+            
+            const angle = (i / 8) * Math.PI * 2;
+            const distance = 30 + Math.random() * 20;
+            
+            const tween = new Konva.Tween({
+                node: sparkle,
+                duration: 1,
+                x: x + Math.cos(angle) * distance,
+                y: y + Math.sin(angle) * distance,
+                opacity: 0,
+                scaleX: 0,
+                scaleY: 0,
+                onFinish: () => {
+                    sparkle.destroy();
                 }
-            `;
-            document.head.appendChild(style);
+            });
+            tween.play();
+        }
+    }
+
+    shufflePieces() {
+        // ערבוב מיקומי החלקים
+        const positions = [];
+        this.pieces.forEach(piece => {
+            if (!piece.isPlaced) {
+                positions.push({ x: piece.originalX, y: piece.originalY });
+            }
+        });
+        
+        // ערבוב המערך
+        for (let i = positions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [positions[i], positions[j]] = [positions[j], positions[i]];
+        }
+        
+        // הקצאת מיקומים חדשים
+        let posIndex = 0;
+        this.pieces.forEach(piece => {
+            if (!piece.isPlaced && positions[posIndex]) {
+                piece.x(positions[posIndex].x);
+                piece.y(positions[posIndex].y);
+                piece.originalX = positions[posIndex].x;
+                piece.originalY = positions[posIndex].y;
+                posIndex++;
+            }
+        });
+        
+        this.mainLayer.draw();
+    }
+
+    showHint() {
+        // הצגת רמז - הדגשת החלק הבא שצריך להציב
+        const unplacedPieces = this.pieces.filter(piece => !piece.isPlaced);
+        if (unplacedPieces.length === 0) return;
+        
+        const hintPiece = unplacedPieces[0];
+        const correctSlot = this.puzzleBoard.find(slot => 
+            slot.row === hintPiece.correctRow && slot.col === hintPiece.correctCol
+        );
+        
+        if (correctSlot) {
+            // הדגשת המיקום הנכון
+            const highlight = new Konva.Rect({
+                x: correctSlot.x - 5,
+                y: correctSlot.y - 5,
+                width: this.pieceWidth + 10,
+                height: this.pieceHeight + 10,
+                stroke: '#FFD700',
+                strokeWidth: 4,
+                dash: [10, 5],
+                opacity: 0.8
+            });
+            
+            this.mainLayer.add(highlight);
+            
+            // אנימציית הדגשה
+            const tween = new Konva.Tween({
+                node: highlight,
+                duration: 2,
+                opacity: 0,
+                onFinish: () => {
+                    highlight.destroy();
+                }
+            });
+            tween.play();
+            
+            // הדגשת החלק
+            const pieceTween = new Konva.Tween({
+                node: hintPiece,
+                duration: 0.5,
+                scaleX: 1.1,
+                scaleY: 1.1,
+                onFinish: () => {
+                    const backTween = new Konva.Tween({
+                        node: hintPiece,
+                        duration: 0.5,
+                        scaleX: 1,
+                        scaleY: 1
+                    });
+                    backTween.play();
+                }
+            });
+            pieceTween.play();
         }
     }
 
@@ -622,6 +720,8 @@ class ProfessionalPuzzleGame {
     setupEventListeners() {
         document.getElementById('pieces-select')?.addEventListener('change', (e) => {
             this.gridSize = parseInt(e.target.value);
+            this.pieceWidth = Math.max(80, 300 / this.gridSize);
+            this.pieceHeight = this.pieceWidth;
             this.createPuzzle();
         });
         
@@ -639,6 +739,10 @@ class ProfessionalPuzzleGame {
             previewContainer.style.display = isVisible ? 'none' : 'block';
             document.getElementById('preview-btn').textContent = 
                 isVisible ? '👁️ תצוגה מקדימה' : '❌ סגור תצוגה';
+        });
+        
+        document.getElementById('hint-btn')?.addEventListener('click', () => {
+            this.showHint();
         });
     }
 
@@ -699,7 +803,7 @@ window['simple-puzzle'] = {
         
         // אתחול המשחק
         setTimeout(() => {
-            this.game = new ProfessionalPuzzleGame();
+            this.game = new KonvaPuzzleGame();
         }, 100);
     }
 };
@@ -708,11 +812,11 @@ window['simple-puzzle'] = {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         if (!document.querySelector('.game-modal')) {
-            new ProfessionalPuzzleGame();
+            new KonvaPuzzleGame();
         }
     });
 } else {
     if (!document.querySelector('.game-modal')) {
-        new ProfessionalPuzzleGame();
+        new KonvaPuzzleGame();
     }
 } 

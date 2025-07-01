@@ -39,7 +39,7 @@ function startSimplePuzzleGame() {
             
             <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <iframe id="puzzleFrame" 
-                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0" 
+                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
                         width="600" 
                         height="450" 
                         style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
@@ -85,8 +85,8 @@ function createNewPuzzle() {
     // בחירת תמונה אקראית חדשה
     const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
     
-    // עדכון הפאזל
-    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=${pieces}&bg=f0f0f0`;
+    // עדכון הפאזל עם פרמטרים מתקדמים
+    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
     
     // הודעה לשחקן
     showNotification(`🎲 פאזל חדש עם ${pieces} חלקים!`, '#4CAF50');
@@ -103,8 +103,8 @@ function updatePuzzlePieces() {
     const currentImageUrl = urlMatch ? decodeURIComponent(urlMatch[1]) : null;
     
     if (currentImageUrl) {
-        // עדכון רק מספר החלקים, שמירת אותה תמונה
-        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(currentImageUrl)}&pieces=${pieces}&bg=f0f0f0`;
+        // עדכון רק מספר החלקים, שמירת אותה תמונה עם פרמטרים מתקדמים
+        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(currentImageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
         
         // הודעה לשחקן
         showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');

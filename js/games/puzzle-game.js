@@ -315,46 +315,44 @@ class PuzzleGame {
     }
 }
 
-// פאזל עם jigsawpuzzle-rhill - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
+// פאזל עם puzzlejs - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
 function startPuzzleGame() {
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
         <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
-                <canvas id="jigsaw-canvas" width="480" height="480" style="background:#fff;border-radius:8px;box-shadow:0 2px 8px #0003;"></canvas>
+                <img id="puzzlejs-img" src="puzzle/6.png" style="display:none;" />
+                <div id="puzzlejs-canvas"></div>
             </div>
             <div style="margin-bottom:16px;">
-                <button onclick="window.jigsaw && window.jigsaw.shuffle();" class="pz-btn">ערבב</button>
-                <button onclick="window.jigsaw && window.jigsaw.solve();" class="pz-btn">פתור</button>
+                <button onclick="window.puzzlejs && window.puzzlejs.shuffle();" class="pz-btn">ערבב</button>
             </div>
         </div>
     `;
     // טען את הספרייה אם לא קיימת
-    if (!window.JigsawPuzzle) {
+    if (!window.pz) {
         const script = document.createElement('script');
-        script.src = 'js/games/jigsawpuzzle-rhill.js';
+        script.src = 'https://cdn.jsdelivr.net/gh/abidibo/puzzlejs/js/puzzle.js';
         script.onload = () => createPuzzle();
         document.body.appendChild(script);
     } else {
         createPuzzle();
     }
     function createPuzzle() {
-        const img = new window.Image();
-        img.src = 'puzzle/6.png';
-        img.onload = () => {
-            window.jigsaw = new window.JigsawPuzzle({
-                canvas: document.getElementById('jigsaw-canvas'),
-                image: img,
+        setTimeout(() => {
+            window.puzzlejs = new window.pz.Puzzle('puzzlejs-img', {
+                render_to: 'puzzlejs-canvas',
                 rows: 3,
                 cols: 3,
-                pieceBorder: true,
-                snapDistance: 30,
-                showPreview: false,
-                shuffleOnInit: true,
-                onComplete: function() { setTimeout(()=>alert('כל הכבוד!'), 300); }
+                margin: 20,
+                snap_offset: 40,
+                grid_color: '#222',
+                slot_color: '#666',
+                puzzle_completed_text: 'כל הכבוד!',
+                hide_original: true
             });
-            window.jigsaw.shuffle();
-        };
+            window.puzzlejs.shuffle();
+        }, 200);
     }
 }
 

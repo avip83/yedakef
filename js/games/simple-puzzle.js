@@ -97,8 +97,8 @@ window['simple-puzzle'] = {
       <p style="color: #ff9800; font-weight: bold;">כאן נטען הפאזל עם הספריה הנבחרת</p>
     `;
     
-         // ספריה 3: Fabric.js - ספריית Canvas מקצועית ועוצמתית
-     this.loadFabricJS(imageSrc, pieces);
+         // ספריה 4: פתרון מותאם אישית מושלם - HTML5 + Canvas מתקדם
+     this.createPerfectPuzzle(imageSrc, pieces);
   },
 
   showPreview() {
@@ -134,309 +134,351 @@ window['simple-puzzle'] = {
     document.body.appendChild(preview);
   },
 
-  loadFabricJS(imageSrc, pieces) {
-    const puzzleArea = document.getElementById('puzzle-area');
-    const puzzleInfo = document.getElementById('puzzle-info');
-    
-    // טעינת ספריית Fabric.js - ספריית Canvas מקצועית ועוצמתית
-    if (!window.fabric) {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js';
-      script.onload = () => {
-        this.initFabricJS(imageSrc, pieces);
-      };
-      script.onerror = () => {
-        // אם לא עובד, ננסה עם ספריית Paper.js
-        this.loadPaperJS(imageSrc, pieces);
-      };
-      document.head.appendChild(script);
-    } else {
-      this.initFabricJS(imageSrc, pieces);
-    }
-  },
-
-  initFabricJS(imageSrc, pieces) {
+  createPerfectPuzzle(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
     puzzleArea.innerHTML = `
-      <canvas id="fabric-canvas" width="700" height="600" style="border: 2px solid #ddd; border-radius: 10px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); box-shadow: 0 8px 25px rgba(0,0,0,0.1);"></canvas>
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+        <canvas id="perfect-puzzle-canvas" width="700" height="500" style="
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+          display: block;
+          margin: 0 auto;
+        "></canvas>
+      </div>
     `;
     
-    try {
-      const canvas = new fabric.Canvas('fabric-canvas', {
-        backgroundColor: 'rgba(245, 247, 250, 0.8)',
-        selection: false
-      });
-      
-      // טעינת התמונה
-      fabric.Image.fromURL(imageSrc, (img) => {
-        this.createFabricPuzzlePieces(canvas, img, pieces);
-      }, { crossOrigin: 'anonymous' });
-      
-      puzzleInfo.innerHTML = `
-        <p style="color: #4CAF50; font-weight: bold;">ספריה: Fabric.js</p>
-        <p>גרור את החתיכות למקום הנכון! חתיכות נכונות יהפכו לירוקות 🟢</p>
-      `;
-      
-    } catch (error) {
-      console.error('Fabric.js error:', error);
-      this.loadPaperJS(imageSrc, pieces);
-    }
+    const canvas = document.getElementById('perfect-puzzle-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // טעינת התמונה
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      this.initPerfectPuzzle(canvas, ctx, image, pieces);
+    };
+    image.src = imageSrc;
+    
+    puzzleInfo.innerHTML = `
+      <div style="text-align: center; margin-top: 15px;">
+        <p style="color: #4CAF50; font-weight: bold; font-size: 18px; margin: 5px 0;">🧩 פאזל מותאם אישית מושלם</p>
+        <p style="color: #666; margin: 5px 0;">גרור את החתיכות למקום הנכון! 🎯</p>
+        <div id="progress-bar" style="width: 300px; height: 20px; background: #e0e0e0; border-radius: 10px; margin: 10px auto; overflow: hidden;">
+          <div id="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s;"></div>
+        </div>
+        <p id="pieces-counter" style="color: #4CAF50; font-weight: bold; margin: 5px 0;">0 מתוך ${pieces} חתיכות</p>
+      </div>
+    `;
   },
 
-  createFabricPuzzlePieces(canvas, img, pieces) {
-    const puzzleInfo = document.getElementById('puzzle-info');
+  initPerfectPuzzle(canvas, ctx, image, pieces) {
     const gridSize = Math.sqrt(pieces);
-    const boardWidth = 400;
-    const boardHeight = 300;
-    const pieceWidth = boardWidth / gridSize;
-    const pieceHeight = boardHeight / gridSize;
+    const boardSize = 350;
+    const pieceSize = boardSize / gridSize;
+    const boardX = 50;
+    const boardY = 50;
+    const piecesAreaY = boardY + boardSize + 50;
     
-    // שינוי גודל התמונה
-    img.scaleToWidth(boardWidth);
-    img.scaleToHeight(boardHeight);
-    
+    let draggedPiece = null;
+    let dragOffset = { x: 0, y: 0 };
     let solvedPieces = 0;
-    const tolerance = 25;
     
-    // יצירת אזור הלוח
-    const boardRect = new fabric.Rect({
-      left: 50,
-      top: 50,
-      width: boardWidth,
-      height: boardHeight,
-      fill: 'rgba(255,255,255,0.3)',
-      stroke: '#4CAF50',
-      strokeWidth: 3,
-      strokeDashArray: [10, 5],
-      selectable: false,
-      evented: false
-    });
-    canvas.add(boardRect);
-    
-    // טקסט הדרכה
-    const instructionText = new fabric.Text('גרור את החתיכות לכאן ⬆️', {
-      left: 150,
-      top: 20,
-      fontSize: 18,
-      fill: '#4CAF50',
-      fontFamily: 'Arial, sans-serif',
-      fontWeight: 'bold',
-      selectable: false,
-      evented: false
-    });
-    canvas.add(instructionText);
-    
+    // יצירת מערך החתיכות
+    const puzzlePieces = [];
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
-        const correctX = 50 + col * pieceWidth;
-        const correctY = 50 + row * pieceHeight;
-        
-        // יצירת מסיכה לחתיכת הפאזל
-        const clipPath = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: pieceWidth,
-          height: pieceHeight
-        });
-        
-        // שיבוט התמונה לכל חתיכה
-        img.clone((clonedImg) => {
-          clonedImg.set({
-            left: Math.random() * 300 + 400, // מיקום התחלתי באזור החתיכות
-            top: Math.random() * 200 + 400,
-            clipPath: clipPath,
-            originX: 'left',
-            originY: 'top',
-            scaleX: 1,
-            scaleY: 1
-          });
-          
-          // קביעת איזה חלק של התמונה להציג
-          clonedImg.filters.push(new fabric.Image.filters.Crop({
-            left: col / gridSize,
-            top: row / gridSize,
-            width: 1 / gridSize,
-            height: 1 / gridSize
-          }));
-          clonedImg.applyFilters();
-          
-          // הוספת מסגרת יפה
-          const group = new fabric.Group([clonedImg], {
-            left: Math.random() * 250 + 450,
-            top: Math.random() * 150 + 420,
-            shadow: new fabric.Shadow({
-              color: 'rgba(0,0,0,0.3)',
-              blur: 10,
-              offsetX: 3,
-              offsetY: 3
-            }),
-            borderColor: '#2196F3',
-            borderScaleFactor: 2,
-            cornerColor: '#2196F3',
-            cornerStyle: 'circle',
-            cornerSize: 12,
-            transparentCorners: false
-          });
-          
-          // הוספת אירועי גרירה
-          group.on('moving', () => {
-            group.set({
-              shadow: new fabric.Shadow({
-                color: 'rgba(33, 150, 243, 0.5)',
-                blur: 15,
-                offsetX: 5,
-                offsetY: 5
-              })
-            });
-            canvas.renderAll();
-          });
-          
-          group.on('modified', () => {
-            const pos = group.getCenterPoint();
-            const targetX = correctX + pieceWidth / 2;
-            const targetY = correctY + pieceHeight / 2;
-            
-            if (Math.abs(pos.x - targetX) < tolerance && Math.abs(pos.y - targetY) < tolerance) {
-              // חתיכה במקום הנכון!
-              group.set({
-                left: correctX,
-                top: correctY,
-                selectable: false,
-                evented: false,
-                shadow: new fabric.Shadow({
-                  color: 'rgba(76, 175, 80, 0.8)',
-                  blur: 20,
-                  offsetX: 0,
-                  offsetY: 0
-                })
-              });
-              
-              // הוספת אפקט הצלחה
-              const successCircle = new fabric.Circle({
-                left: correctX + pieceWidth / 2,
-                top: correctY + pieceHeight / 2,
-                radius: 30,
-                fill: 'rgba(76, 175, 80, 0.8)',
-                originX: 'center',
-                originY: 'center',
-                selectable: false,
-                evented: false
-              });
-              
-              const checkmark = new fabric.Text('✓', {
-                left: correctX + pieceWidth / 2,
-                top: correctY + pieceHeight / 2,
-                fontSize: 24,
-                fill: 'white',
-                fontWeight: 'bold',
-                originX: 'center',
-                originY: 'center',
-                selectable: false,
-                evented: false
-              });
-              
-              canvas.add(successCircle, checkmark);
-              
-              // הסרת האפקט אחרי 2 שניות
-              setTimeout(() => {
-                canvas.remove(successCircle, checkmark);
-              }, 2000);
-              
-              solvedPieces++;
-              this.playSound('success');
-              
-              if (solvedPieces === pieces) {
-                this.playSound('complete');
-                puzzleInfo.innerHTML = `
-                  <div style="color: #4CAF50; font-size: 18px; font-weight: bold;">
-                    🎉 מדהים! פתרת את הפאזל! 🎉
-                  </div>
-                `;
-                
-                // אפקט זיקוקים
-                this.createFireworks(canvas);
-              }
-            } else {
-              // החזרת הצל הרגיל
-              group.set({
-                shadow: new fabric.Shadow({
-                  color: 'rgba(0,0,0,0.3)',
-                  blur: 10,
-                  offsetX: 3,
-                  offsetY: 3
-                })
-              });
-            }
-            canvas.renderAll();
-          });
-          
-          canvas.add(group);
+        puzzlePieces.push({
+          id: row * gridSize + col,
+          correctRow: row,
+          correctCol: col,
+          currentX: Math.random() * (canvas.width - pieceSize - 100) + 50,
+          currentY: piecesAreaY + Math.random() * 50,
+          width: pieceSize,
+          height: pieceSize,
+          solved: false,
+          dragging: false
         });
       }
     }
-  },
-
-  createFireworks(canvas) {
-    for (let i = 0; i < 20; i++) {
-      const star = new fabric.Text('⭐', {
-        left: Math.random() * canvas.width,
-        top: Math.random() * canvas.height,
-        fontSize: Math.random() * 20 + 15,
-        fill: `hsl(${Math.random() * 360}, 70%, 60%)`,
-        selectable: false,
-        evented: false
+    
+    // ערבוב החתיכות
+    for (let i = puzzlePieces.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = puzzlePieces[i].currentX;
+      puzzlePieces[i].currentX = puzzlePieces[j].currentX;
+      puzzlePieces[j].currentX = temp;
+    }
+    
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // רקע הלוח
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.strokeStyle = '#4CAF50';
+      ctx.lineWidth = 4;
+      ctx.setLineDash([15, 10]);
+      ctx.fillRect(boardX, boardY, boardSize, boardSize);
+      ctx.strokeRect(boardX, boardY, boardSize, boardSize);
+      ctx.setLineDash([]);
+      
+      // קווי רשת
+      ctx.strokeStyle = 'rgba(76, 175, 80, 0.3)';
+      ctx.lineWidth = 2;
+      for (let i = 1; i < gridSize; i++) {
+        const x = boardX + i * pieceSize;
+        const y = boardY + i * pieceSize;
+        ctx.beginPath();
+        ctx.moveTo(x, boardY);
+        ctx.lineTo(x, boardY + boardSize);
+        ctx.moveTo(boardX, y);
+        ctx.lineTo(boardX + boardSize, y);
+        ctx.stroke();
+      }
+      
+      // כותרת הלוח
+      ctx.fillStyle = '#4CAF50';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎯 הרכיב כאן את הפאזל 🎯', boardX + boardSize / 2, boardY - 15);
+      
+      // קו הפרדה
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, piecesAreaY - 20);
+      ctx.lineTo(canvas.width, piecesAreaY - 20);
+      ctx.stroke();
+      
+      // כותרת אזור החתיכות
+      ctx.fillStyle = '#2196F3';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('🧩 גרור מכאן את החתיכות 🧩', canvas.width / 2, piecesAreaY - 5);
+      
+      // ציור החתיכות
+      puzzlePieces.forEach(piece => {
+        const sourceX = piece.correctCol * (image.width / gridSize);
+        const sourceY = piece.correctRow * (image.height / gridSize);
+        const sourceWidth = image.width / gridSize;
+        const sourceHeight = image.height / gridSize;
+        
+        // צל לחתיכה
+        if (!piece.solved) {
+          ctx.save();
+          ctx.shadowColor = piece.dragging ? 'rgba(33, 150, 243, 0.8)' : 'rgba(0, 0, 0, 0.3)';
+          ctx.shadowBlur = piece.dragging ? 20 : 10;
+          ctx.shadowOffsetX = piece.dragging ? 8 : 5;
+          ctx.shadowOffsetY = piece.dragging ? 8 : 5;
+          
+          // מסגרת לחתיכה
+          ctx.strokeStyle = piece.dragging ? '#2196F3' : '#666';
+          ctx.lineWidth = piece.dragging ? 4 : 2;
+          ctx.strokeRect(piece.currentX - 2, piece.currentY - 2, piece.width + 4, piece.height + 4);
+          
+          ctx.restore();
+        }
+        
+        // ציור החתיכה
+        if (piece.solved) {
+          // חתיכה פתורה - עם הדגשה ירוקה
+          const correctX = boardX + piece.correctCol * pieceSize;
+          const correctY = boardY + piece.correctRow * pieceSize;
+          
+          ctx.save();
+          ctx.shadowColor = 'rgba(76, 175, 80, 0.8)';
+          ctx.shadowBlur = 15;
+          ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight,
+                       correctX, correctY, piece.width, piece.height);
+          
+          // מסגרת ירוקה
+          ctx.strokeStyle = '#4CAF50';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(correctX, correctY, piece.width, piece.height);
+          ctx.restore();
+          
+          // סימן V
+          ctx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+          ctx.beginPath();
+          ctx.arc(correctX + piece.width - 15, correctY + 15, 12, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('✓', correctX + piece.width - 15, correctY + 20);
+        } else {
+          // חתיכה רגילה
+          ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight,
+                       piece.currentX, piece.currentY, piece.width, piece.height);
+        }
       });
-      
-      canvas.add(star);
-      
-      setTimeout(() => {
-        canvas.remove(star);
-      }, 3000);
     }
-  },
-
-  loadPaperJS(imageSrc, pieces) {
-    const puzzleArea = document.getElementById('puzzle-area');
-    const puzzleInfo = document.getElementById('puzzle-info');
     
-    // ננסה עם ספריית Paper.js
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/paper@0.12.17/dist/paper-full.min.js';
-    script.onload = () => {
-      this.initPaperJS(imageSrc, pieces);
-    };
-    script.onerror = () => {
-      // אם שום דבר לא עובד, ניצור פאזל מותאם אישית
-      this.createCustomPuzzle(imageSrc, pieces);
-    };
-    document.head.appendChild(script);
-  },
-
-  initPaperJS(imageSrc, pieces) {
-    const puzzleArea = document.getElementById('puzzle-area');
-    const puzzleInfo = document.getElementById('puzzle-info');
-    
-    puzzleArea.innerHTML = `
-      <canvas id="paper-canvas" width="700" height="600" style="border: 2px solid #ddd; border-radius: 10px; background: #f0f8ff; box-shadow: 0 8px 25px rgba(0,0,0,0.1);"></canvas>
-    `;
-    
-    try {
-      paper.setup('paper-canvas');
-      
-      puzzleInfo.innerHTML = `
-        <p style="color: #4CAF50; font-weight: bold;">ספריה: Paper.js</p>
-        <p>פאזל עם גרפיקה וקטורית מתקדמת!</p>
-      `;
-      
-      // כאן יהיה הקוד של Paper.js
-      this.createCustomPuzzle(imageSrc, pieces);
-      
-    } catch (error) {
-      console.error('Paper.js error:', error);
-      this.createCustomPuzzle(imageSrc, pieces);
+    function getPieceAt(x, y) {
+      for (let i = puzzlePieces.length - 1; i >= 0; i--) {
+        const piece = puzzlePieces[i];
+        if (!piece.solved && x >= piece.currentX && x <= piece.currentX + piece.width &&
+            y >= piece.currentY && y <= piece.currentY + piece.height) {
+          return piece;
+        }
+      }
+      return null;
     }
+    
+    function updateProgress() {
+      const progress = (solvedPieces / pieces) * 100;
+      document.getElementById('progress-fill').style.width = progress + '%';
+      document.getElementById('pieces-counter').textContent = `${solvedPieces} מתוך ${pieces} חתיכות`;
+    }
+    
+    function checkWin() {
+      if (solvedPieces === pieces) {
+        window['simple-puzzle'].playSound('complete');
+        
+        // אנימציית זיקוקים
+        setTimeout(() => {
+          for (let i = 0; i < 30; i++) {
+            setTimeout(() => {
+              ctx.save();
+              ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 60%)`;
+              ctx.font = `${Math.random() * 20 + 20}px Arial`;
+              ctx.fillText('🎉', Math.random() * canvas.width, Math.random() * canvas.height);
+              ctx.restore();
+            }, i * 100);
+          }
+        }, 500);
+        
+        document.getElementById('puzzle-info').innerHTML = `
+          <div style="text-align: center; margin-top: 15px;">
+            <div style="font-size: 24px; color: #4CAF50; font-weight: bold; margin: 10px 0;">
+              🎉 מזל טוב! פתרת את הפאזל! 🎉
+            </div>
+            <div style="font-size: 18px; color: #666; margin: 5px 0;">
+              השלמת ${pieces} חתיכות בהצלחה! 🏆
+            </div>
+            <button onclick="window['simple-puzzle'].newPuzzle()" style="
+              padding: 12px 24px; margin: 15px 5px; border: none; border-radius: 25px;
+              background: linear-gradient(45deg, #4CAF50, #45a049); color: white;
+              font-size: 16px; cursor: pointer; font-weight: bold;
+              box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            ">פאזל חדש 🧩</button>
+          </div>
+        `;
+      }
+    }
+    
+    // אירועי עכבר
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      draggedPiece = getPieceAt(x, y);
+      if (draggedPiece) {
+        draggedPiece.dragging = true;
+        dragOffset.x = x - draggedPiece.currentX;
+        dragOffset.y = y - draggedPiece.currentY;
+        
+        // העברת החתיכה לחזית
+        const index = puzzlePieces.indexOf(draggedPiece);
+        puzzlePieces.splice(index, 1);
+        puzzlePieces.push(draggedPiece);
+      }
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      if (draggedPiece) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        draggedPiece.currentX = x - dragOffset.x;
+        draggedPiece.currentY = y - dragOffset.y;
+        draw();
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      if (draggedPiece) {
+        const correctX = boardX + draggedPiece.correctCol * pieceSize;
+        const correctY = boardY + draggedPiece.correctRow * pieceSize;
+        const tolerance = 30;
+        
+        if (Math.abs(draggedPiece.currentX - correctX) < tolerance &&
+            Math.abs(draggedPiece.currentY - correctY) < tolerance) {
+          // חתיכה במקום הנכון!
+          draggedPiece.solved = true;
+          solvedPieces++;
+          window['simple-puzzle'].playSound('success');
+          updateProgress();
+          checkWin();
+        }
+        
+        draggedPiece.dragging = false;
+        draggedPiece = null;
+        draw();
+      }
+    });
+    
+    // תמיכה במגע למובייל
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      
+      draggedPiece = getPieceAt(x, y);
+      if (draggedPiece) {
+        draggedPiece.dragging = true;
+        dragOffset.x = x - draggedPiece.currentX;
+        dragOffset.y = y - draggedPiece.currentY;
+        
+        const index = puzzlePieces.indexOf(draggedPiece);
+        puzzlePieces.splice(index, 1);
+        puzzlePieces.push(draggedPiece);
+      }
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (draggedPiece) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        draggedPiece.currentX = x - dragOffset.x;
+        draggedPiece.currentY = y - dragOffset.y;
+        draw();
+      }
+    });
+    
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (draggedPiece) {
+        const correctX = boardX + draggedPiece.correctCol * pieceSize;
+        const correctY = boardY + draggedPiece.correctRow * pieceSize;
+        const tolerance = 30;
+        
+        if (Math.abs(draggedPiece.currentX - correctX) < tolerance &&
+            Math.abs(draggedPiece.currentY - correctY) < tolerance) {
+          draggedPiece.solved = true;
+          solvedPieces++;
+          window['simple-puzzle'].playSound('success');
+          updateProgress();
+          checkWin();
+        }
+        
+        draggedPiece.dragging = false;
+        draggedPiece = null;
+        draw();
+      }
+    });
+    
+    // ציור ראשוני
+    draw();
+    updateProgress();
   },
 
   createCustomPuzzle(imageSrc, pieces) {

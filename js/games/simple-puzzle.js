@@ -170,13 +170,13 @@ window['simple-puzzle'] = {
     const puzzleInfo = document.getElementById('puzzle-info');
     
     puzzleArea.innerHTML = `
-      <div style="background: #fffde4; padding: 25px; border-radius: 20px; box-shadow: 0 8px 32px rgba(30, 136, 229, 0.10); border: 3px solid #90caf9;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #1976d2; margin: 0; font-size: 24px; font-weight: 900; text-shadow: 1px 1px 0 #fff;">🧩 פאזל ${pieces} חלקים</h2>
+      <div style="background: #fffde4; padding: 15px; border-radius: 15px; box-shadow: 0 8px 32px rgba(30, 136, 229, 0.10); border: 3px solid #90caf9;">
+        <div style="text-align: center; margin-bottom: 10px;">
+          <h2 style="color: #1976d2; margin: 0; font-size: 20px; font-weight: 900; text-shadow: 1px 1px 0 #fff;">🧩 פאזל ${pieces} חלקים</h2>
         </div>
         
-        <div style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(30, 136, 229, 0.15); border: 2px solid #90caf9;">
-          <div id="jigsaw-puzzle-container" style="width: 100%; height: 500px; border: 2px solid #1976d2; border-radius: 10px; overflow: hidden; position: relative;">
+        <div style="background: white; border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(30, 136, 229, 0.15); border: 2px solid #90caf9;">
+          <div id="jigsaw-puzzle-container" style="width: 100%; height: 350px; border: 2px solid #1976d2; border-radius: 10px; overflow: hidden; position: relative;">
             <!-- JigsawExplorer יטען כאן -->
           </div>
         </div>
@@ -184,20 +184,13 @@ window['simple-puzzle'] = {
     `;
     
     puzzleInfo.innerHTML = `
-      <div style="text-align: center; margin-top: 20px;">
-        <div style="color: #1976d2; font-weight: bold; font-size: 18px; margin-bottom: 10px;">
+      <div style="text-align: center; margin-top: 10px;">
+        <div style="color: #1976d2; font-weight: bold; font-size: 16px; margin-bottom: 8px;">
           🧩 פאזל מקצועי עם JigsawExplorer
         </div>
-        <div style="color: #666; font-size: 14px; margin-bottom: 15px;">
-          גרור והניח את החתיכות למקום הנכון • השתמש בכלים למטה לעזרה
-        </div>
-        <div style="background: rgba(144, 202, 249, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #90caf9;">
-          <div style="color: #1976d2; font-weight: bold; margin-bottom: 5px;">📋 הוראות:</div>
-          <div style="color: #666; font-size: 13px; line-height: 1.4;">
-            • לחץ וגרור חתיכות מהצד לתמונה<br>
-            • השתמש בגלגל העכבר לזום פנימה/החוצה<br>
-            • לחץ על "Preview" לראות את התמונה המלאה<br>
-            • לחץ על "Edge Pieces" לראות רק את החתיכות הצדדיות
+        <div style="background: rgba(144, 202, 249, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #90caf9;">
+          <div style="color: #666; font-size: 12px; line-height: 1.3;">
+            גרור חתיכות • זום עם גלגל העכבר • Preview לתמונה מלאה
           </div>
         </div>
       </div>
@@ -292,74 +285,68 @@ window['simple-puzzle'] = {
       text-align: center;
     `;
     
-    controlsDiv.innerHTML = `
-      <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 15px;">
-        <h3 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 18px;">🎮 כלי עזרה</h3>
-        
-                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-           <button onclick="window['simple-puzzle'].nextLevel()" style="
-             padding: 10px 20px; 
-             border: none; 
-             border-radius: 25px; 
-             background: linear-gradient(45deg, #1976d2, #42a5f5); 
-             color: white; 
-             font-size: 14px; 
-             font-weight: bold; 
-             cursor: pointer;
-             box-shadow: 0 3px 10px rgba(25, 118, 210, 0.3);
-             transition: transform 0.2s;
-           " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-             ➡️ שלב הבא
-           </button>
-           
-           <button onclick="window['simple-puzzle'].newPuzzle()" style="
-             padding: 10px 20px; 
-             border: none; 
-             border-radius: 25px; 
-             background: linear-gradient(45deg, #90caf9, #bbdefb); 
-             color: #1976d2; 
-             font-size: 14px; 
-             font-weight: bold; 
-             cursor: pointer;
-             box-shadow: 0 3px 10px rgba(144, 202, 249, 0.3);
-             transition: transform 0.2s;
-           " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-             🔄 פאזל חדש
-           </button>
-           
-           <button onclick="window['simple-puzzle'].showPreview()" style="
-             padding: 10px 20px; 
-             border: none; 
-             border-radius: 25px; 
-             background: linear-gradient(45deg, #2196F3, #42A5F5); 
-             color: white; 
-             font-size: 14px; 
-             font-weight: bold; 
-             cursor: pointer;
-             box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
-             transition: transform 0.2s;
-           " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-             👁️ תצוגה מקדימה
-           </button>
-           
-           <button onclick="window['simple-puzzle'].showHints()" style="
-             padding: 10px 20px; 
-             border: none; 
-             border-radius: 25px; 
-             background: linear-gradient(45deg, #FF9800, #FFB74D); 
-             color: white; 
-             font-size: 14px; 
-             font-weight: bold; 
-             cursor: pointer;
-             box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
-             transition: transform 0.2s;
-           " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-             💡 רמזים
-           </button>
-         </div>
-        
-        <div style="margin-top: 15px; color: #666; font-size: 12px;">
-          ⚡ טיפ: השתמש בגלגל העכבר לזום והחזק Shift לסיבוב חתיכות
+        controlsDiv.innerHTML = `
+      <div style="background: white; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 8px;">
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+          <button onclick="window['simple-puzzle'].nextLevel()" style="
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 20px; 
+            background: linear-gradient(45deg, #1976d2, #42a5f5); 
+            color: white; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            ➡️ שלב הבא
+          </button>
+          
+          <button onclick="window['simple-puzzle'].newPuzzle()" style="
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 20px; 
+            background: linear-gradient(45deg, #90caf9, #bbdefb); 
+            color: #1976d2; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(144, 202, 249, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            🔄 חדש
+          </button>
+          
+          <button onclick="window['simple-puzzle'].showPreview()" style="
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 20px; 
+            background: linear-gradient(45deg, #2196F3, #42A5F5); 
+            color: white; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            👁️ תצוגה
+          </button>
+          
+          <button onclick="window['simple-puzzle'].showHints()" style="
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 20px; 
+            background: linear-gradient(45deg, #FF9800, #FFB74D); 
+            color: white; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            💡 רמזים
+          </button>
         </div>
       </div>
     `;

@@ -23,18 +23,25 @@ window['simple-puzzle'] = {
   },
 
   getRandomPuzzleImage() {
-    // תמונות פאזל מתיקיית puzzle (1.png עד 20.png)
+    // נשתמש בתמונות מתיקיית fruits כחלופה לפאזל
     // כתובת נכונה לאתר GitHub Pages
-    const baseUrl = 'https://avip83.github.io/yedakef/puzzle/';
-    const imageNumber = Math.floor(Math.random() * 20) + 1;
-    const imageUrl = `${baseUrl}${imageNumber}.png`;
+    const baseUrl = 'https://avip83.github.io/yedakef/fruits/';
+    const fruitImages = ['apple.jpg', 'banana.jpg', 'lemon.jpg', 'orange.jpeg', 'pear.jpg', 'strawberry.jpg', 'water melon.jpg'];
+    const randomIndex = Math.floor(Math.random() * fruitImages.length);
+    const imageUrl = `${baseUrl}${fruitImages[randomIndex]}`;
     
-    console.log('Selected puzzle image:', imageUrl);
+    console.log('Selected fruit image for puzzle:', imageUrl);
     
-    // בדיקה שהתמונה זמינה (אופציונלי)
+    // בדיקה שהתמונה זמינה
     const img = new Image();
     img.onload = () => console.log('✅ Image loaded successfully:', imageUrl);
-    img.onerror = () => console.error('❌ Failed to load image:', imageUrl);
+    img.onerror = () => {
+      console.error('❌ Failed to load image:', imageUrl);
+      // נסיון חלופי עם תמונות פאזל
+      const fallbackUrl = `https://avip83.github.io/yedakef/puzzle/${Math.floor(Math.random() * 20) + 1}.png`;
+      console.log('Trying fallback puzzle image:', fallbackUrl);
+      return fallbackUrl;
+    };
     img.src = imageUrl;
     
     return imageUrl;

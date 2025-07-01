@@ -653,7 +653,66 @@ class ProfessionalPuzzleGame {
     }
 }
 
-// אתחול המשחק
-document.addEventListener('DOMContentLoaded', () => {
-    new ProfessionalPuzzleGame();
-}); 
+// הגדרת המשחק כאובייקט גלובלי
+window['simple-puzzle'] = {
+    game: null,
+    init: function() {
+        // יצירת מודאל למשחק
+        const modal = document.createElement('div');
+        modal.className = 'game-modal';
+        modal.innerHTML = `
+            <div class="game-modal-content" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.95);
+                z-index: 1000;
+                overflow-y: auto;
+            ">
+                <button class="close-button" onclick="this.parentElement.parentElement.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = '';" style="
+                    position: fixed;
+                    top: 15px;
+                    right: 15px;
+                    z-index: 2000;
+                    font-size: 2rem;
+                    width: 50px;
+                    height: 50px;
+                    background: #fff;
+                    border: 2px solid #f44336;
+                    border-radius: 50%;
+                    color: #f44336;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                ">×</button>
+                <div id="game-container" style="width: 100%; height: 100vh;"></div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        
+        // אתחול המשחק
+        setTimeout(() => {
+            this.game = new ProfessionalPuzzleGame();
+        }, 100);
+    }
+};
+
+// אתחול המשחק אם הדף נטען ישירות
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!document.querySelector('.game-modal')) {
+            new ProfessionalPuzzleGame();
+        }
+    });
+} else {
+    if (!document.querySelector('.game-modal')) {
+        new ProfessionalPuzzleGame();
+    }
+} 

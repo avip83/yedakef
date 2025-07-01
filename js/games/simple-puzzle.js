@@ -23,10 +23,21 @@ window['simple-puzzle'] = {
   },
 
   getRandomPuzzleImage() {
-    // תמונות פאזל מהאתר עם URL מלא
+    // תמונות פאזל מתיקיית puzzle (1.png עד 20.png)
+    // נבדוק תמונות זמינות באתר GitHub Pages
     const baseUrl = 'https://avip83.github.io/yedakef/puzzle/';
     const imageNumber = Math.floor(Math.random() * 20) + 1;
-    return `${baseUrl}${imageNumber}.png`;
+    const imageUrl = `${baseUrl}${imageNumber}.png`;
+    
+    console.log('Selected puzzle image:', imageUrl);
+    
+    // בדיקה שהתמונה זמינה (אופציונלי)
+    const img = new Image();
+    img.onload = () => console.log('✅ Image loaded successfully:', imageUrl);
+    img.onerror = () => console.error('❌ Failed to load image:', imageUrl);
+    img.src = imageUrl;
+    
+    return imageUrl;
   },
 
   startRandomPuzzle() {
@@ -190,27 +201,18 @@ window['simple-puzzle'] = {
   loadJigsawExplorer(imageSrc, pieces) {
     const container = document.getElementById('jigsaw-puzzle-container');
     
-    // פרמטרים עבור JigsawExplorer
-    const jigsawParams = {
-      image: imageSrc,
-      pieces: pieces,
-      width: 680,
-      height: 480,
-      background: '#f0f0f0',
-      border: 1,
-      borderColor: '#4CAF50',
-      previewSize: 150
-    };
+    console.log('Loading JigsawExplorer with image:', imageSrc, 'pieces:', pieces);
     
-    // יצירת URL עבור JigsawExplorer
+    // יצירת URL עבור JigsawExplorer עם התמונות מתיקיית puzzle
     const jigsawUrl = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?` + 
       `url=${encodeURIComponent(imageSrc)}&` +
       `pieces=${pieces}&` +
-      `bgcolor=%23f0f0f0&` +
-      `bcolor=%234CAF50&` +
-      `title=${encodeURIComponent('פאזל מותאם אישית')}&` +
-      `width=${jigsawParams.width}&` +
-      `height=${jigsawParams.height}`;
+      `bgcolor=%23fffde4&` +
+      `bcolor=%231976d2&` +
+      `title=${encodeURIComponent('פאזל לילדים')}&` +
+      `autostart=true`;
+    
+    console.log('JigsawExplorer URL:', jigsawUrl);
     
     container.innerHTML = `
       <iframe 
@@ -219,15 +221,14 @@ window['simple-puzzle'] = {
         height="100%" 
         frameborder="0" 
         allowfullscreen
-        style="border-radius: 8px;"
-        onload="this.style.opacity='1'"
-        style="opacity: 0; transition: opacity 0.5s;"
+        style="border-radius: 8px; transition: opacity 0.5s;"
+        onload="console.log('JigsawExplorer iframe loaded'); document.getElementById('loading-overlay').style.display='none';"
       ></iframe>
       
       <div id="loading-overlay" style="
         position: absolute; 
         top: 0; left: 0; right: 0; bottom: 0; 
-        background: rgba(255,255,255,0.9); 
+        background: rgba(255,255,255,0.95); 
         display: flex; 
         flex-direction: column;
         align-items: center; 
@@ -236,8 +237,9 @@ window['simple-puzzle'] = {
         z-index: 1000;
       ">
         <div style="font-size: 48px; margin-bottom: 15px; animation: spin 2s linear infinite;">🧩</div>
-        <div style="color: #4CAF50; font-weight: bold; font-size: 18px;">טוען פאזל...</div>
-        <div style="color: #666; font-size: 14px; margin-top: 5px;">זה יכול לקחת כמה שניות</div>
+        <div style="color: #1976d2; font-weight: bold; font-size: 18px;">טוען פאזל...</div>
+        <div style="color: #666; font-size: 14px; margin-top: 5px;">טוען תמונה מתיקיית הפאזלים</div>
+        <div style="color: #888; font-size: 12px; margin-top: 8px; font-family: monospace;">${imageSrc}</div>
       </div>
       
       <style>
@@ -248,7 +250,7 @@ window['simple-puzzle'] = {
       </style>
     `;
     
-    // הסרת overlay הטעינה אחרי 3 שניות
+    // הסרת overlay הטעינה אחרי 4 שניות (יותר זמן לטעינת תמונות)
     setTimeout(() => {
       const overlay = document.getElementById('loading-overlay');
       if (overlay) {

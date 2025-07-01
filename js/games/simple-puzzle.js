@@ -97,8 +97,8 @@ window['simple-puzzle'] = {
       <p style="color: #ff9800; font-weight: bold;">כאן נטען הפאזל עם הספריה הנבחרת</p>
     `;
     
-         // פתרון פשוט וגומלם שיעבוד בוודאות
-     this.createSimplePuzzle(imageSrc, pieces);
+         // חזרה ל-JigsawExplorer - הספרייה הטובה ביותר
+     this.createJigsawExplorerPuzzle(imageSrc, pieces);
   },
 
   showPreview() {
@@ -134,7 +134,7 @@ window['simple-puzzle'] = {
     document.body.appendChild(preview);
   },
 
-  createSimplePuzzle(imageSrc, pieces) {
+  createJigsawExplorerPuzzle(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
@@ -144,34 +144,9 @@ window['simple-puzzle'] = {
           <h2 style="color: white; margin: 0; font-size: 24px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🧩 פאזל ${pieces} חלקים</h2>
         </div>
         
-        <div id="puzzle-board" style="
-          background: white; 
-          border-radius: 15px; 
-          padding: 20px; 
-          margin-bottom: 20px;
-          box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
-          min-height: 300px;
-          position: relative;
-        ">
-          <div style="text-align: center; padding: 40px; color: #666;">
-            <div style="font-size: 48px; margin-bottom: 15px;">🎯</div>
-            <div style="font-size: 18px; font-weight: bold;">הרכיב כאן את החתיכות</div>
-            <div style="font-size: 14px; margin-top: 10px;">גרור חתיכה מהתחתית לכאן</div>
-          </div>
-        </div>
-        
-        <div id="puzzle-pieces" style="
-          background: rgba(255,255,255,0.9); 
-          border-radius: 15px; 
-          padding: 20px;
-          min-height: 150px;
-          box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
-        ">
-          <div style="text-align: center; margin-bottom: 15px; font-weight: bold; color: #4CAF50;">
-            🧩 חתיכות הפאזל
-          </div>
-          <div id="pieces-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-            <!-- החתיכות יתווספו כאן -->
+        <div style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+          <div id="jigsaw-puzzle-container" style="width: 100%; height: 500px; border: 2px solid #4CAF50; border-radius: 10px; overflow: hidden; position: relative;">
+            <!-- JigsawExplorer יטען כאן -->
           </div>
         </div>
       </div>
@@ -179,242 +154,291 @@ window['simple-puzzle'] = {
     
     puzzleInfo.innerHTML = `
       <div style="text-align: center; margin-top: 20px;">
-        <div id="progress-info" style="margin-bottom: 15px;">
-          <div style="background: #e0e0e0; border-radius: 20px; height: 30px; width: 300px; margin: 10px auto; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-            <div id="progress-bar" style="height: 100%; background: linear-gradient(90deg, #4CAF50, #66BB6A); width: 0%; transition: width 0.5s; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;"></div>
-          </div>
-          <div id="progress-text" style="color: #4CAF50; font-weight: bold; font-size: 16px;">0 מתוך ${pieces} חתיכות הושלמו</div>
+        <div style="color: #4CAF50; font-weight: bold; font-size: 18px; margin-bottom: 10px;">
+          🧩 פאזל מקצועי עם JigsawExplorer
         </div>
-        <div style="color: #666; font-size: 14px;">
-          💡 עצה: גרור כל חתיכה למקום שנראה לך נכון בלוח העליון
+        <div style="color: #666; font-size: 14px; margin-bottom: 15px;">
+          גרור והניח את החתיכות למקום הנכון • השתמש בכלים למטה לעזרה
+        </div>
+        <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #4CAF50;">
+          <div style="color: #2E7D32; font-weight: bold; margin-bottom: 5px;">📋 הוראות:</div>
+          <div style="color: #666; font-size: 13px; line-height: 1.4;">
+            • לחץ וגרור חתיכות מהצד לתמונה<br>
+            • השתמש בגלגל העכבר לזום פנימה/החוצה<br>
+            • לחץ על "Preview" לראות את התמונה המלאה<br>
+            • לחץ על "Edge Pieces" לראות רק את החתיכות הצדדיות
+          </div>
         </div>
       </div>
     `;
     
-    // טעינת התמונה ויצירת החתיכות
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      this.initSimplePuzzle(img, pieces);
-    };
-    img.onerror = () => {
-      puzzleArea.innerHTML = `
-        <div style="text-align: center; padding: 40px; background: #ffebee; border-radius: 15px; border: 2px solid #f44336;">
-          <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
-          <div style="color: #d32f2f; font-size: 18px; font-weight: bold;">שגיאה בטעינת התמונה</div>
-          <div style="color: #666; margin-top: 10px;">נסה לבחור תמונה אחרת</div>
-        </div>
-      `;
-    };
-    img.src = imageSrc;
+    // יצירת iframe עם JigsawExplorer
+    this.loadJigsawExplorer(imageSrc, pieces);
   },
 
-  initSimplePuzzle(image, pieces) {
-    const gridSize = Math.sqrt(pieces);
-    const pieceSize = 80;
-    const board = document.getElementById('puzzle-board');
-    const piecesContainer = document.getElementById('pieces-container');
+  loadJigsawExplorer(imageSrc, pieces) {
+    const container = document.getElementById('jigsaw-puzzle-container');
     
-    let solvedPieces = 0;
-    let draggedElement = null;
+    // פרמטרים עבור JigsawExplorer
+    const jigsawParams = {
+      image: imageSrc,
+      pieces: pieces,
+      width: 680,
+      height: 480,
+      background: '#f0f0f0',
+      border: 1,
+      borderColor: '#4CAF50',
+      previewSize: 150
+    };
     
-    // יצירת אזור הלוח
-    board.innerHTML = `
-      <div id="board-grid" style="
-        display: grid; 
-        grid-template-columns: repeat(${gridSize}, ${pieceSize}px);
-        grid-template-rows: repeat(${gridSize}, ${pieceSize}px);
-        gap: 2px;
+    // יצירת URL עבור JigsawExplorer
+    const jigsawUrl = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?` + 
+      `url=${encodeURIComponent(imageSrc)}&` +
+      `pieces=${pieces}&` +
+      `bgcolor=%23f0f0f0&` +
+      `bcolor=%234CAF50&` +
+      `title=${encodeURIComponent('פאזל מותאם אישית')}&` +
+      `width=${jigsawParams.width}&` +
+      `height=${jigsawParams.height}`;
+    
+    container.innerHTML = `
+      <iframe 
+        src="${jigsawUrl}" 
+        width="100%" 
+        height="100%" 
+        frameborder="0" 
+        allowfullscreen
+        style="border-radius: 8px;"
+        onload="this.style.opacity='1'"
+        style="opacity: 0; transition: opacity 0.5s;"
+      ></iframe>
+      
+      <div id="loading-overlay" style="
+        position: absolute; 
+        top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(255,255,255,0.9); 
+        display: flex; 
+        flex-direction: column;
+        align-items: center; 
         justify-content: center;
-        margin: 20px auto;
-      "></div>
+        border-radius: 8px;
+        z-index: 1000;
+      ">
+        <div style="font-size: 48px; margin-bottom: 15px; animation: spin 2s linear infinite;">🧩</div>
+        <div style="color: #4CAF50; font-weight: bold; font-size: 18px;">טוען פאזל...</div>
+        <div style="color: #666; font-size: 14px; margin-top: 5px;">זה יכול לקחת כמה שניות</div>
+      </div>
+      
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
     `;
     
-    const boardGrid = document.getElementById('board-grid');
-    
-    // יצירת משבצות הלוח
-    for (let i = 0; i < pieces; i++) {
-      const slot = document.createElement('div');
-      slot.className = 'puzzle-slot';
-      slot.dataset.pieceId = i;
-      slot.style.cssText = `
-        width: ${pieceSize}px;
-        height: ${pieceSize}px;
-        border: 3px dashed #4CAF50;
-        border-radius: 8px;
-        background: rgba(76, 175, 80, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: #4CAF50;
-        transition: all 0.3s;
-        position: relative;
-      `;
-      slot.innerHTML = '🧩';
-      
-      // אירועי drop
-      slot.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        slot.style.background = 'rgba(76, 175, 80, 0.3)';
-        slot.style.transform = 'scale(1.05)';
-      });
-      
-      slot.addEventListener('dragleave', () => {
-        slot.style.background = 'rgba(76, 175, 80, 0.1)';
-        slot.style.transform = 'scale(1)';
-      });
-      
-      slot.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const pieceId = e.dataTransfer.getData('text/plain');
-        const piece = document.querySelector(`[data-piece-id="${pieceId}"]`);
-        
-        if (piece && slot.dataset.pieceId === pieceId) {
-          // חתיכה נכונה!
-          slot.innerHTML = '';
-          slot.appendChild(piece.cloneNode(true));
-          slot.style.background = 'rgba(76, 175, 80, 0.8)';
-          slot.style.border = '3px solid #4CAF50';
-          piece.remove();
-          
-          solvedPieces++;
-          this.playSound('success');
-          this.updateProgress(solvedPieces, pieces);
-          
-          if (solvedPieces === pieces) {
-            this.onPuzzleComplete();
-          }
-        } else {
-          // חתיכה לא נכונה
-          this.playSound('wrong');
-          slot.style.background = 'rgba(244, 67, 54, 0.3)';
-          setTimeout(() => {
-            slot.style.background = 'rgba(76, 175, 80, 0.1)';
-          }, 1000);
-        }
-        slot.style.transform = 'scale(1)';
-      });
-      
-      boardGrid.appendChild(slot);
-    }
-    
-    // יצירת החתיכות
-    for (let i = 0; i < pieces; i++) {
-      const row = Math.floor(i / gridSize);
-      const col = i % gridSize;
-      
-      const piece = document.createElement('div');
-      piece.className = 'puzzle-piece';
-      piece.dataset.pieceId = i;
-      piece.draggable = true;
-      
-      piece.style.cssText = `
-        width: ${pieceSize}px;
-        height: ${pieceSize}px;
-        border: 2px solid #666;
-        border-radius: 8px;
-        cursor: grab;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        transition: transform 0.2s;
-      `;
-      
-      // יצירת canvas לכל חתיכה
-      const canvas = document.createElement('canvas');
-      canvas.width = pieceSize;
-      canvas.height = pieceSize;
-      const ctx = canvas.getContext('2d');
-      
-      // ציור החתיכה
-      const sourceWidth = image.width / gridSize;
-      const sourceHeight = image.height / gridSize;
-      const sourceX = col * sourceWidth;
-      const sourceY = row * sourceHeight;
-      
-      ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, pieceSize, pieceSize);
-      
-      piece.appendChild(canvas);
-      
-      // אירועי גרירה
-      piece.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', i);
-        piece.style.opacity = '0.5';
-        piece.style.transform = 'rotate(5deg)';
-      });
-      
-      piece.addEventListener('dragend', () => {
-        piece.style.opacity = '1';
-        piece.style.transform = 'rotate(0deg)';
-      });
-      
-      piece.addEventListener('mouseenter', () => {
-        piece.style.transform = 'scale(1.1)';
-        piece.style.zIndex = '10';
-      });
-      
-      piece.addEventListener('mouseleave', () => {
-        piece.style.transform = 'scale(1)';
-        piece.style.zIndex = '1';
-      });
-      
-      piecesContainer.appendChild(piece);
-    }
-    
-    // ערבוב החתיכות
-    this.shuffleArray(Array.from(piecesContainer.children));
-  },
-
-  shuffleArray(array) {
-    const container = array[0].parentNode;
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      container.appendChild(array[j]);
-    }
-  },
-
-  updateProgress(solved, total) {
-    const progress = (solved / total) * 100;
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    
-    progressBar.style.width = progress + '%';
-    progressBar.textContent = Math.round(progress) + '%';
-    progressText.textContent = `${solved} מתוך ${total} חתיכות הושלמו`;
-    
-    if (progress === 100) {
-      progressBar.style.background = 'linear-gradient(90deg, #FF9800, #FFC107)';
-      progressBar.textContent = '🎉 הושלם!';
-    }
-  },
-
-  onPuzzleComplete() {
-    this.playSound('complete');
-    
+    // הסרת overlay הטעינה אחרי 3 שניות
     setTimeout(() => {
-      document.getElementById('puzzle-info').innerHTML = `
-        <div style="text-align: center; margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #4CAF50, #66BB6A); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);">
-          <div style="font-size: 48px; margin-bottom: 15px;">🎉</div>
-          <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">מזל טוב!</div>
-          <div style="font-size: 18px; margin-bottom: 15px;">פתרת את הפאזל בהצלחה! 🏆</div>
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+          overlay.remove();
+        }, 500);
+      }
+    }, 3000);
+    
+    // הוספת פונקציונליות נוספת
+    this.addJigsawControls();
+  },
+
+  addJigsawControls() {
+    // הוספת כפתורי עזרה מותאמים
+    const puzzleInfo = document.getElementById('puzzle-info');
+    const controlsDiv = document.createElement('div');
+    controlsDiv.style.cssText = `
+      margin-top: 20px; 
+      text-align: center;
+    `;
+    
+    controlsDiv.innerHTML = `
+      <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 15px;">
+        <h3 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 18px;">🎮 כלי עזרה</h3>
+        
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
           <button onclick="window['simple-puzzle'].newPuzzle()" style="
-            padding: 12px 24px; 
+            padding: 10px 20px; 
             border: none; 
             border-radius: 25px; 
-            background: white; 
-            color: #4CAF50; 
-            font-size: 16px; 
+            background: linear-gradient(45deg, #4CAF50, #66BB6A); 
+            color: white; 
+            font-size: 14px; 
             font-weight: bold; 
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
             transition: transform 0.2s;
           " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            🧩 פאזל חדש
+            🔄 פאזל חדש
+          </button>
+          
+          <button onclick="window['simple-puzzle'].showPreview()" style="
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 25px; 
+            background: linear-gradient(45deg, #2196F3, #42A5F5); 
+            color: white; 
+            font-size: 14px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            👁️ תצוגה מקדימה
+          </button>
+          
+          <button onclick="window['simple-puzzle'].showHints()" style="
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 25px; 
+            background: linear-gradient(45deg, #FF9800, #FFB74D); 
+            color: white; 
+            font-size: 14px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            💡 רמזים
           </button>
         </div>
-      `;
-    }, 1000);
+        
+        <div style="margin-top: 15px; color: #666; font-size: 12px;">
+          ⚡ טיפ: השתמש בגלגל העכבר לזום והחזק Shift לסיבוב חתיכות
+        </div>
+      </div>
+    `;
+    
+    puzzleInfo.appendChild(controlsDiv);
+  },
+
+  showPreview() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(0,0,0,0.8); 
+      display: flex; align-items: center; justify-content: center; 
+      z-index: 10000;
+      animation: fadeIn 0.3s;
+    `;
+    
+    const currentImage = this.getCurrentImageSrc();
+    modal.innerHTML = `
+      <div style="
+        background: white; 
+        padding: 20px; 
+        border-radius: 15px; 
+        max-width: 90%; 
+        max-height: 90%; 
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      ">
+        <h3 style="color: #4CAF50; margin-bottom: 15px;">👁️ תצוגה מקדימה</h3>
+        <img src="${currentImage}" style="max-width: 100%; max-height: 400px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <br>
+        <button onclick="this.parentElement.parentElement.remove()" style="
+          margin-top: 15px; 
+          padding: 10px 20px; 
+          border: none; 
+          border-radius: 25px; 
+          background: #4CAF50; 
+          color: white; 
+          font-weight: bold; 
+          cursor: pointer;
+        ">סגור</button>
+      </div>
+      
+      <style>
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      </style>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // סגירה בלחיצה על הרקע
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  },
+
+  showHints() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(0,0,0,0.8); 
+      display: flex; align-items: center; justify-content: center; 
+      z-index: 10000;
+      animation: fadeIn 0.3s;
+    `;
+    
+    modal.innerHTML = `
+      <div style="
+        background: white; 
+        padding: 25px; 
+        border-radius: 15px; 
+        max-width: 500px; 
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      ">
+        <h3 style="color: #FF9800; margin-bottom: 20px; font-size: 24px;">💡 רמזים ועצות</h3>
+        
+        <div style="text-align: right; line-height: 2; color: #555;">
+          <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <strong style="color: #4CAF50;">🔍 התחל עם הקצוות:</strong><br>
+            חפש חתיכות עם קו ישר - אלה החתיכות של המסגרת
+          </div>
+          
+          <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <strong style="color: #2196F3;">🎨 קבץ לפי צבעים:</strong><br>
+            חפש חתיכות עם צבעים דומים ונסה לחבר אותן
+          </div>
+          
+          <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <strong style="color: #FF9800;">🔗 חפש תבניות:</strong><br>
+            שים לב לפרטים כמו עלים, פסים או צורות מיוחדות
+          </div>
+          
+          <div style="padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <strong style="color: #9C27B0;">⚡ שלבים קטנים:</strong><br>
+            אל תנסה לפתור הכל בבת אחת - עבוד על אזורים קטנים
+          </div>
+        </div>
+        
+        <button onclick="this.parentElement.parentElement.remove()" style="
+          margin-top: 20px; 
+          padding: 12px 24px; 
+          border: none; 
+          border-radius: 25px; 
+          background: linear-gradient(45deg, #FF9800, #FFB74D); 
+          color: white; 
+          font-weight: bold; 
+          cursor: pointer;
+          font-size: 16px;
+        ">הבנתי! 👍</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
   },
 
   createCustomPuzzle(imageSrc, pieces) {

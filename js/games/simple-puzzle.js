@@ -19,37 +19,33 @@ function startSimplePuzzleGame() {
     // בחירת תמונה אקראית
     const randomImage = puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
     
-    gameArea.innerHTML = `
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-            <div style="background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 20px; max-width: 90vw;">
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.5em;">🧩 פאזל תמונות</h2>
-                    <div style="margin-bottom: 15px;">
-                        <label style="color: #666; font-weight: bold;">מספר חלקים:</label>
-                        <select id="piecesSelect" style="margin: 0 10px; padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
-                            <option value="9">9 חלקים (3x3)</option>
-                            <option value="16">16 חלקים (4x4)</option>
-                            <option value="25">25 חלקים (5x5)</option>
-                            <option value="36">36 חלקים (6x6)</option>
-                            <option value="49">49 חלקים (7x7)</option>
-                        </select>
-                        <button onclick="createNewPuzzle()" style="padding: 5px 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">פאזל חדש</button>
-                        <button onclick="showHint()" style="padding: 5px 15px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">💡 טיפים</button>
-                    </div>
+        gameArea.innerHTML = `
+        <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: #666; font-weight: bold; margin-left: 10px;">מספר חלקים:</label>
+                    <select id="piecesSelect" style="margin: 0 10px; padding: 8px; border-radius: 8px; border: 2px solid #ddd; font-size: 14px;">
+                        <option value="9">9 חלקים (3x3)</option>
+                        <option value="16">16 חלקים (4x4)</option>
+                        <option value="25">25 חלקים (5x5)</option>
+                        <option value="36">36 חלקים (6x6)</option>
+                        <option value="49">49 חלקים (7x7)</option>
+                    </select>
+                    <button onclick="createNewPuzzle()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔄 פאזל חדש</button>
+                    <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">💡 טיפים</button>
                 </div>
-                
-                <div id="puzzleContainer" style="text-align: center;">
-                    <iframe id="puzzleFrame" 
-                            src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0" 
-                            width="600" 
-                            height="450" 
-                            style="border: 2px solid #ddd; border-radius: 10px; max-width: 100%; max-height: 70vh;"
-                            frameborder="0"
-                            allowfullscreen>
-                    </iframe>
-                </div>
-                
-
+            </div>
+            
+            <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <iframe id="puzzleFrame" 
+                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0" 
+                        width="600" 
+                        height="450" 
+                        style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
+                        frameborder="0"
+                        allowfullscreen>
+                </iframe>
             </div>
         </div>
     `;

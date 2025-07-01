@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧩 פאזל אמיתי חדש</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .puzzle-area {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 30px;
+        }
+        
+        .puzzle-board {
+            width: 480px;
+            height: 480px;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid white;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .pieces-container {
+            width: 400px;
+            min-height: 500px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+        }
+        
+        .puzzle-piece {
+            position: absolute;
+            cursor: grab;
+            transition: transform 0.2s ease;
+            z-index: 10;
+        }
+        
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+        }
+        
+        .puzzle-piece:active {
+            cursor: grabbing;
+            z-index: 1000;
+        }
+        
+        .puzzle-piece.placed {
+            cursor: default;
+        }
+        
+        .puzzle-slot {
+            position: absolute;
+            border: 2px dashed rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .puzzle-slot.highlight {
+            border-color: #ffeb3b;
+            background: rgba(255,235,59,0.2);
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #f0f0f0;
+        }
+        
+        .status {
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 פאזל אמיתי חדש</h1>
+        <div class="status">
+            <div>חלקים במקום: <span id="placed-count">0</span>/9</div>
+        </div>
+        
+        <div class="puzzle-area">
+            <div class="pieces-container" id="pieces-container">
+                <h3 style="width: 100%; margin-top: 0;">חלקי הפאזל</h3>
+            </div>
+            
+            <div class="puzzle-board" id="puzzle-board"></div>
+        </div>
+        
+        <button onclick="resetPuzzle()">איפוס פאזל</button>
+        <button onclick="showShapes()">הצג צורות</button>
+    </div>
+
+    <script>
+        class RealPuzzle {
+            constructor() {
+                this.gridSize = 3;
+                this.pieceSize = 160;
+                this.pieces = [];
+                this.placedPieces = 0;
+                this.currentImage = 'puzzle/6.png';
+                
+                // הגדרות צורות בדיוק לפי מה שביקשת
+                // false = קו ישר, true = בליטה, -1 = חור
+                this.pieceShapes = {
+                    0: { top: false, right: true, bottom: true, left: false },    // פינה שמאל עליון: קו עליון ושמאלי, בליטה ימינה ולמטה
+                    1: { top: false, right: -1, bottom: true, left: -1 },         // אמצע עליון: קו עליון, חור משמאל ומימין, בליטה למטה
+                    2: { top: false, right: false, bottom: -1, left: true },      // פינה ימין עליון: קו עליון וימני, חור למטה, בליטה שמאלה
+                    3: { top: -1, right: true, bottom: true, left: false },       // אמצע שמאל: קו שמאלי, חור למעלה, בליטות ימינה ולמטה
+                    4: { top: -1, right: -1, bottom: -1, left: -1 },              // מרכז: חורים מכל הצדדים
+                    5: { top: true, right: false, bottom: true, left: true },     // אמצע ימין: קו ימני, בליטות בשאר הצדדים
+                    6: { top: -1, right: -1, bottom: false, left: false },        // פינה שמאל תחתון: קו תחתון ושמאלי, חורים למעלה ולימין
+                    7: { top: true, right: true, bottom: false, left: true },     // אמצע תחתון: קו תחתון, בליטות בשאר הצדדים
+                    8: { top: -1, right: false, bottom: false, left: -1 }         // פינה ימין תחתון: קו תחתון וימני, חור למעלה ושמאלה
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('יוצר פאזל חדש מאפס!');
+                this.createPuzzleSlots();
+                this.createPuzzlePieces();
+                this.shufflePieces();
+            }
+            
+            createPuzzleSlots() {
+                const board = document.getElementById('puzzle-board');
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const slot = document.createElement('div');
+                        slot.className = 'puzzle-slot';
+                        slot.style.left = (col * this.pieceSize) + 'px';
+                        slot.style.top = (row * this.pieceSize) + 'px';
+                        slot.style.width = this.pieceSize + 'px';
+                        slot.style.height = this.pieceSize + 'px';
+                        slot.dataset.row = row;
+                        slot.dataset.col = col;
+                        board.appendChild(slot);
+                    }
+                }
+            }
+            
+            createPuzzlePieces() {
+                const container = document.getElementById('pieces-container');
+                
+                for (let i = 0; i < 9; i++) {
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    const shape = this.pieceShapes[i];
+                    
+                    console.log(`יוצר חלק ${i} (${row},${col}):`, shape);
+                    
+                    const piece = this.createSinglePiece(i, row, col, shape);
+                    container.appendChild(piece);
+                    this.pieces.push(piece);
+                    this.addDragEvents(piece);
+                }
+            }
+            
+            createSinglePiece(index, row, col, shape) {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.dataset.index = index;
+                piece.dataset.correctRow = row;
+                piece.dataset.correctCol = col;
+                piece.style.width = this.pieceSize + 'px';
+                piece.style.height = this.pieceSize + 'px';
+                
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', this.pieceSize);
+                svg.setAttribute('height', this.pieceSize);
+                svg.style.pointerEvents = 'none';
+                
+                // יצירת הצורה
+                const path = this.generatePiecePath(shape);
+                console.log(`חלק ${index} - צורה:`, shape, 'נתיב:', path.substring(0, 50) + '...');
+                
+                // דפוס לחיתוך התמונה
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+                clipPath.setAttribute('id', `clip-${index}`);
+                
+                const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                clipPathEl.setAttribute('d', path);
+                clipPath.appendChild(clipPathEl);
+                defs.appendChild(clipPath);
+                svg.appendChild(defs);
+                
+                // התמונה
+                const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                image.setAttribute('href', this.currentImage);
+                image.setAttribute('x', -col * this.pieceSize);
+                image.setAttribute('y', -row * this.pieceSize);
+                image.setAttribute('width', this.pieceSize * 3);
+                image.setAttribute('height', this.pieceSize * 3);
+                image.setAttribute('clip-path', `url(#clip-${index})`);
+                svg.appendChild(image);
+                
+                // מסגרת
+                const border = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                border.setAttribute('d', path);
+                border.setAttribute('fill', 'none');
+                border.setAttribute('stroke', '#333');
+                border.setAttribute('stroke-width', '2');
+                svg.appendChild(border);
+                
+                piece.appendChild(svg);
+                return piece;
+            }
+            
+            generatePiecePath(shape) {
+                const size = this.pieceSize;
+                const knobSize = 25;
+                const knobDepth = 15;
+                
+                let path = `M 0,0`;
+                
+                // צד עליון
+                if (shape.top === false) {
+                    // קו ישר
+                    path += ` L ${size},0`;
+                } else if (shape.top === true) {
+                    // בליטה
+                    const mid = size / 2;
+                    path += ` L ${mid - knobSize},0`;
+                    path += ` Q ${mid - knobSize/2},${-knobDepth} ${mid},${-knobDepth}`;
+                    path += ` Q ${mid + knobSize/2},${-knobDepth} ${mid + knobSize},0`;
+                    path += ` L ${size},0`;
+                } else {
+                    // חור (shape.top === -1)
+                    const mid = size / 2;
+                    path += ` L ${mid - knobSize},0`;
+                    path += ` Q ${mid - knobSize/2},${knobDepth} ${mid},${knobDepth}`;
+                    path += ` Q ${mid + knobSize/2},${knobDepth} ${mid + knobSize},0`;
+                    path += ` L ${size},0`;
+                }
+                
+                // צד ימין
+                if (shape.right === false) {
+                    // קו ישר
+                    path += ` L ${size},${size}`;
+                } else if (shape.right === true) {
+                    // בליטה
+                    const mid = size / 2;
+                    path += ` L ${size},${mid - knobSize}`;
+                    path += ` Q ${size + knobDepth},${mid - knobSize/2} ${size + knobDepth},${mid}`;
+                    path += ` Q ${size + knobDepth},${mid + knobSize/2} ${size},${mid + knobSize}`;
+                    path += ` L ${size},${size}`;
+                } else {
+                    // חור
+                    const mid = size / 2;
+                    path += ` L ${size},${mid - knobSize}`;
+                    path += ` Q ${size - knobDepth},${mid - knobSize/2} ${size - knobDepth},${mid}`;
+                    path += ` Q ${size - knobDepth},${mid + knobSize/2} ${size},${mid + knobSize}`;
+                    path += ` L ${size},${size}`;
+                }
+                
+                // צד תחתון
+                if (shape.bottom === false) {
+                    // קו ישר
+                    path += ` L 0,${size}`;
+                } else if (shape.bottom === true) {
+                    // בליטה
+                    const mid = size / 2;
+                    path += ` L ${mid + knobSize},${size}`;
+                    path += ` Q ${mid + knobSize/2},${size + knobDepth} ${mid},${size + knobDepth}`;
+                    path += ` Q ${mid - knobSize/2},${size + knobDepth} ${mid - knobSize},${size}`;
+                    path += ` L 0,${size}`;
+                } else {
+                    // חור
+                    const mid = size / 2;
+                    path += ` L ${mid + knobSize},${size}`;
+                    path += ` Q ${mid + knobSize/2},${size - knobDepth} ${mid},${size - knobDepth}`;
+                    path += ` Q ${mid - knobSize/2},${size - knobDepth} ${mid - knobSize},${size}`;
+                    path += ` L 0,${size}`;
+                }
+                
+                // צד שמאל
+                if (shape.left === false) {
+                    // קו ישר
+                    path += ` L 0,0`;
+                } else if (shape.left === true) {
+                    // בליטה
+                    const mid = size / 2;
+                    path += ` L 0,${mid + knobSize}`;
+                    path += ` Q ${-knobDepth},${mid + knobSize/2} ${-knobDepth},${mid}`;
+                    path += ` Q ${-knobDepth},${mid - knobSize/2} 0,${mid - knobSize}`;
+                    path += ` L 0,0`;
+                } else {
+                    // חור
+                    const mid = size / 2;
+                    path += ` L 0,${mid + knobSize}`;
+                    path += ` Q ${knobDepth},${mid + knobSize/2} ${knobDepth},${mid}`;
+                    path += ` Q ${knobDepth},${mid - knobSize/2} 0,${mid - knobSize}`;
+                    path += ` L 0,0`;
+                }
+                
+                path += ' Z';
+                return path;
+            }
+            
+            addDragEvents(piece) {
+                let isDragging = false;
+                let startX, startY, initialX, initialY;
+                
+                piece.addEventListener('mousedown', (e) => {
+                    if (piece.classList.contains('placed')) return;
+                    
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    const rect = piece.getBoundingClientRect();
+                    initialX = rect.left;
+                    initialY = rect.top;
+                    
+                    piece.style.zIndex = '1000';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    
+                    piece.style.position = 'fixed';
+                    piece.style.left = (initialX + deltaX) + 'px';
+                    piece.style.top = (initialY + deltaY) + 'px';
+                    
+                    this.highlightNearestSlot(piece);
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    if (!isDragging) return;
+                    
+                    isDragging = false;
+                    piece.style.zIndex = '10';
+                    this.checkPiecePlacement(piece);
+                    this.clearHighlights();
+                });
+            }
+            
+            highlightNearestSlot(piece) {
+                this.clearHighlights();
+                
+                const correctRow = parseInt(piece.dataset.correctRow);
+                const correctCol = parseInt(piece.dataset.correctCol);
+                const slot = document.querySelector(`[data-row="${correctRow}"][data-col="${correctCol}"]`);
+                
+                if (slot) {
+                    const slotRect = slot.getBoundingClientRect();
+                    const pieceRect = piece.getBoundingClientRect();
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(slotRect.left - pieceRect.left, 2) +
+                        Math.pow(slotRect.top - pieceRect.top, 2)
+                    );
+                    
+                    if (distance < 80) {
+                        slot.classList.add('highlight');
+                    }
+                }
+            }
+            
+            clearHighlights() {
+                document.querySelectorAll('.puzzle-slot').forEach(slot => {
+                    slot.classList.remove('highlight');
+                });
+            }
+            
+            checkPiecePlacement(piece) {
+                const correctRow = parseInt(piece.dataset.correctRow);
+                const correctCol = parseInt(piece.dataset.correctCol);
+                const board = document.getElementById('puzzle-board');
+                const boardRect = board.getBoundingClientRect();
+                
+                const targetX = boardRect.left + (correctCol * this.pieceSize);
+                const targetY = boardRect.top + (correctRow * this.pieceSize);
+                
+                const pieceRect = piece.getBoundingClientRect();
+                const distance = Math.sqrt(
+                    Math.pow(pieceRect.left - targetX, 2) +
+                    Math.pow(pieceRect.top - targetY, 2)
+                );
+                
+                if (distance < 60) {
+                    // מקם את החלק במקום הנכון
+                    piece.style.position = 'absolute';
+                    piece.style.left = (correctCol * this.pieceSize) + 'px';
+                    piece.style.top = (correctRow * this.pieceSize) + 'px';
+                    piece.classList.add('placed');
+                    
+                    board.appendChild(piece);
+                    this.placedPieces++;
+                    this.updateStatus();
+                    
+                    if (this.placedPieces === 9) {
+                        setTimeout(() => {
+                            alert('🎉 כל הכבוד! השלמת את הפאזל!');
+                        }, 500);
+                    }
+                }
+            }
+            
+            updateStatus() {
+                document.getElementById('placed-count').textContent = this.placedPieces;
+            }
+            
+            shufflePieces() {
+                this.pieces.forEach((piece, index) => {
+                    const x = (index % 3) * 120 + Math.random() * 30;
+                    const y = Math.floor(index / 3) * 120 + Math.random() * 30 + 50;
+                    piece.style.left = x + 'px';
+                    piece.style.top = y + 'px';
+                });
+            }
+        }
+        
+        function resetPuzzle() {
+            location.reload();
+        }
+        
+        function showShapes() {
+            const shapes = {
+                0: 'פינה שמאל עליון: קו עליון ושמאלי, בליטה ימינה ולמטה',
+                1: 'אמצע עליון: קו עליון, חור משמאל ומימין, בליטה למטה',
+                2: 'פינה ימין עליון: קו עליון וימני, חור למטה, בליטה שמאלה',
+                3: 'אמצע שמאל: קו שמאלי, חור למעלה, בליטות ימינה ולמטה',
+                4: 'מרכז: חורים מכל הצדדים',
+                5: 'אמצע ימין: קו ימני, בליטות בשאר הצדדים',
+                6: 'פינה שמאל תחתון: קו תחתון ושמאלי, חורים למעלה ולימין',
+                7: 'אמצע תחתון: קו תחתון, בליטות בשאר הצדדים',
+                8: 'פינה ימין תחתון: קו תחתון וימני, חור למעלה ושמאלה'
+            };
+            
+            let text = 'צורות החלקים:\n\n';
+            for (let i = 0; i < 9; i++) {
+                text += `${i}: ${shapes[i]}\n`;
+            }
+            alert(text);
+        }
+        
+        // יצירת הפאזל
+        window.addEventListener('load', () => {
+            new RealPuzzle();
+        });
+    </script>
+</body>
+</html>

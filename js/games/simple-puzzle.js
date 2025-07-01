@@ -22,12 +22,24 @@ window['simple-puzzle'] = {
     }
   },
 
+  getRandomPuzzleImage() {
+    // 20 תמונות פאזל זמינות (1.png עד 20.png)
+    const imageNumber = Math.floor(Math.random() * 20) + 1;
+    return `puzzle/${imageNumber}.png`;
+  },
+
+  startRandomPuzzle() {
+    const imageSrc = this.getRandomPuzzleImage();
+    const pieces = 9; // ברירת מחדל 9 חלקים
+    this.createJigsawExplorerPuzzle(imageSrc, pieces);
+  },
+
   init() {
     this.loadSounds();
     this.showModal();
     // התחלה ישירה עם פאזל ברירת מחדל
     setTimeout(() => {
-      this.newPuzzle();
+      this.startRandomPuzzle();
     }, 100);
   },
 
@@ -47,15 +59,6 @@ window['simple-puzzle'] = {
         </div>
         <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center;">
           <div class="puzzle-controls" style="margin-bottom: 20px;">
-            <select id="puzzle-image" style="padding: 10px; margin: 5px; border-radius: 8px; border: 2px solid #ddd; font-size: 16px;">
-              <option value="fruits/apple.jpg">תפוח 🍎</option>
-              <option value="fruits/banana.jpg">בננה 🍌</option>
-              <option value="fruits/orange.jpeg">תפוז 🍊</option>
-              <option value="fruits/strawberry.jpg">תות 🍓</option>
-              <option value="fruits/pear.jpg">אגס 🍐</option>
-              <option value="fruits/lemon.jpg">לימון 🍋</option>
-              <option value="fruits/water melon.jpg">אבטיח 🍉</option>
-            </select>
             <select id="puzzle-difficulty" style="padding: 10px; margin: 5px; border-radius: 8px; border: 2px solid #ddd; font-size: 16px;">
               <option value="4">קל מאוד (4 חלקים)</option>
               <option value="9" selected>קל (9 חלקים)</option>
@@ -80,38 +83,38 @@ window['simple-puzzle'] = {
 
   newPuzzle() {
     this.playSound('click');
-    const imageSelect = document.getElementById('puzzle-image');
     const difficultySelect = document.getElementById('puzzle-difficulty');
     const puzzleArea = document.getElementById('puzzle-area');
-    const puzzleInfo = document.getElementById('puzzle-info');
     
-    const imageSrc = imageSelect.value;
-    const pieces = parseInt(difficultySelect.value);
+    // בחירת תמונה רנדומלית חדשה
+    const imageSrc = this.getRandomPuzzleImage();
+    const pieces = difficultySelect ? parseInt(difficultySelect.value) : 9;
     
     puzzleArea.innerHTML = `
-      <div style="text-align: center;">
-        <div style="font-size: 24px; margin-bottom: 15px;">🔄</div>
-        <div>טוען פאזל...</div>
+      <div style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 15px; animation: spin 1s linear infinite;">🧩</div>
+        <div style="color: #1976d2; font-size: 18px; font-weight: bold;">טוען פאזל חדש...</div>
       </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
     `;
     
-    puzzleInfo.innerHTML = `
-      <p>נבחר: ${imageSelect.options[imageSelect.selectedIndex].text}</p>
-      <p>רמת קושי: ${difficultySelect.options[difficultySelect.selectedIndex].text}</p>
-      <p style="color: #ff9800; font-weight: bold;">כאן נטען הפאזל עם הספריה הנבחרת</p>
-    `;
-    
-         // חזרה ל-JigsawExplorer - הספרייה הטובה ביותר
-     this.createJigsawExplorerPuzzle(imageSrc, pieces);
+    // טעינת הפאזל החדש
+    setTimeout(() => {
+      this.createJigsawExplorerPuzzle(imageSrc, pieces);
+    }, 500);
   },
 
   nextLevel() {
     this.playSound('click');
     const difficultySelect = document.getElementById('puzzle-difficulty');
-    const imageSelect = document.getElementById('puzzle-image');
     
     // מעבר לרמת קושי הבאה
-    const currentDifficulty = parseInt(difficultySelect.value);
+    const currentDifficulty = difficultySelect ? parseInt(difficultySelect.value) : 9;
     let nextDifficulty;
     
     if (currentDifficulty === 4) {
@@ -119,23 +122,23 @@ window['simple-puzzle'] = {
     } else if (currentDifficulty === 9) {
       nextDifficulty = 16;
     } else {
-      // אם זה הרמה הקשה ביותר, עבור לתמונה הבאה ברמה הקלה
+      // אם זה הרמה הקשה ביותר, עבור לתמונה חדשה ברמה הקלה
       nextDifficulty = 4;
-      const currentIndex = imageSelect.selectedIndex;
-      const nextIndex = (currentIndex + 1) % imageSelect.options.length;
-      imageSelect.selectedIndex = nextIndex;
     }
     
-    difficultySelect.value = nextDifficulty;
+    if (difficultySelect) {
+      difficultySelect.value = nextDifficulty;
+    }
     
-    // התחלת פאזל חדש עם הרמה החדשה
-    this.newPuzzle();
+    // תמונה חדשה רנדומלית עם הרמה החדשה
+    const imageSrc = this.getRandomPuzzleImage();
+    this.createJigsawExplorerPuzzle(imageSrc, nextDifficulty);
   },
 
   showPreview() {
     this.playSound('click');
-    const imageSelect = document.getElementById('puzzle-image');
-    const imageSrc = imageSelect.value;
+    // נשתמש בתמונה רנדומלית לתצוגה מקדימה
+    const imageSrc = this.getRandomPuzzleImage();
     
     const preview = document.createElement('div');
     preview.style.cssText = `
@@ -183,18 +186,7 @@ window['simple-puzzle'] = {
       </div>
     `;
     
-    puzzleInfo.innerHTML = `
-      <div style="text-align: center; margin-top: 10px;">
-        <div style="color: #1976d2; font-weight: bold; font-size: 16px; margin-bottom: 8px;">
-          🧩 פאזל מקצועי עם JigsawExplorer
-        </div>
-        <div style="background: rgba(144, 202, 249, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #90caf9;">
-          <div style="color: #666; font-size: 12px; line-height: 1.3;">
-            גרור חתיכות • זום עם גלגל העכבר • Preview לתמונה מלאה
-          </div>
-        </div>
-      </div>
-    `;
+    puzzleInfo.innerHTML = '';
     
     // יצירת iframe עם JigsawExplorer
     this.loadJigsawExplorer(imageSrc, pieces);
@@ -364,8 +356,8 @@ window['simple-puzzle'] = {
       animation: fadeIn 0.3s;
     `;
     
-    const imageSelect = document.getElementById('puzzle-image');
-    const currentImage = imageSelect ? imageSelect.value : 'fruits/apple.jpg';
+    // נשתמש בתמונה רנדומלית
+    const currentImage = this.getRandomPuzzleImage();
     modal.innerHTML = `
       <div style="
         background: white; 

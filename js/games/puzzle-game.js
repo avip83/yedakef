@@ -34,15 +34,14 @@ class PuzzleGame {
     createGameContainer() {
         const gameArea = document.getElementById('gameArea');
         gameArea.innerHTML = `
-            <div class="pz-root" style="background:#7fffa0;min-height:100vh;padding:0;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                <div class="pz-frame" style="margin:32px 0 16px 0;padding:18px 18px 18px 18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
-                    <div id="pz-board" style="position:relative;width:${this.boardSize}px;height:${this.boardSize}px;background:#fff;border-radius:8px;box-shadow:0 2px 8px #0003;overflow:visible;"></div>
+            <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
+                    <div id="puzzle-headbreaker"></div>
                 </div>
                 <div style="margin-bottom:16px;">
-                    <button id="pz-preview-btn" class="pz-btn">Preview</button>
-                    <button id="pz-restart-btn" class="pz-btn">Restart</button>
+                    <button onclick="window.puzzleCanvas && window.puzzleCanvas.shuffle(0.7);window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">ערבב</button>
+                    <button onclick="window.puzzleCanvas && window.puzzleCanvas.solve();window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">פתור</button>
                 </div>
-                <div id="pz-pieces" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:${this.boardSize+60}px;"></div>
             </div>
         `;
     }
@@ -317,7 +316,50 @@ class PuzzleGame {
 }
 
 function startPuzzleGame() {
-    window.puzzleGame = new PuzzleGame();
+    // צור wrapper לעיצוב
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+        <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
+                <div id="puzzle-headbreaker"></div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <button onclick="window.puzzleCanvas && window.puzzleCanvas.shuffle(0.7);window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">ערבב</button>
+                <button onclick="window.puzzleCanvas && window.puzzleCanvas.solve();window.puzzleCanvas && window.puzzleCanvas.draw();" class="pz-btn">פתור</button>
+            </div>
+        </div>
+    `;
+    // טען את הספרייה אם לא קיימת
+    if (!window.headbreaker) {
+        const script = document.createElement('script');
+        script.src = 'https://flbulgarelli.github.io/headbreaker/js/headbreaker.js';
+        script.onload = () => createPuzzle();
+        document.body.appendChild(script);
+    } else {
+        createPuzzle();
+    }
+    function createPuzzle() {
+        let img = new window.Image();
+        img.src = 'puzzle/6.png';
+        img.onload = () => {
+            const canvas = new window.headbreaker.Canvas('puzzle-headbreaker', {
+                width: 360, height: 360,
+                image: img,
+                pieceSize: 120,
+                proximity: 20,
+                borderFill: 10,
+                strokeWidth: 2,
+                lineSoftness: 0.18,
+            });
+            canvas.autogenerate({
+                horizontalPiecesCount: 3,
+                verticalPiecesCount: 3
+            });
+            canvas.shuffle(0.7);
+            canvas.draw();
+            window.puzzleCanvas = canvas;
+        };
+    }
 }
 
 window['puzzle-game'] = {

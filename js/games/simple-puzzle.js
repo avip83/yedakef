@@ -97,8 +97,8 @@ window['simple-puzzle'] = {
       <p style="color: #ff9800; font-weight: bold;">כאן נטען הפאזל עם הספריה הנבחרת</p>
     `;
     
-         // ספריה 2: Headbreaker - ספריה מתקדמת עם חתיכות פאזל אמיתיות
-     this.loadHeadbreaker(imageSrc, pieces);
+         // ספריה 3: Fabric.js - ספריית Canvas מקצועית ועוצמתית
+     this.loadFabricJS(imageSrc, pieces);
   },
 
   showPreview() {
@@ -134,198 +134,321 @@ window['simple-puzzle'] = {
     document.body.appendChild(preview);
   },
 
-  loadHeadbreaker(imageSrc, pieces) {
+  loadFabricJS(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
-    // טעינת ספריית Headbreaker - מתקדמת ועם חתיכות פאזל אמיתיות
-    if (!window.Headbreaker) {
+    // טעינת ספריית Fabric.js - ספריית Canvas מקצועית ועוצמתית
+    if (!window.fabric) {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/headbreaker@1.1.0/lib/headbreaker.js';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js';
       script.onload = () => {
-        this.initHeadbreaker(imageSrc, pieces);
+        this.initFabricJS(imageSrc, pieces);
       };
       script.onerror = () => {
-        // אם לא עובד, ננסה עם Canvas2D
-        this.loadCanvas2D(imageSrc, pieces);
+        // אם לא עובד, ננסה עם ספריית Paper.js
+        this.loadPaperJS(imageSrc, pieces);
       };
       document.head.appendChild(script);
     } else {
-      this.initHeadbreaker(imageSrc, pieces);
+      this.initFabricJS(imageSrc, pieces);
     }
   },
 
-  initHeadbreaker(imageSrc, pieces) {
+  initFabricJS(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
     puzzleArea.innerHTML = `
-      <canvas id="headbreaker-canvas" style="width: 100%; max-width: 600px; height: 500px; background: #fff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></canvas>
+      <canvas id="fabric-canvas" width="700" height="600" style="border: 2px solid #ddd; border-radius: 10px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); box-shadow: 0 8px 25px rgba(0,0,0,0.1);"></canvas>
     `;
     
     try {
-      const canvas = document.getElementById('headbreaker-canvas');
-      canvas.width = 600;
-      canvas.height = 500;
-      
-      // יצירת הפאזל עם Headbreaker
-      const puzzle = new Headbreaker.Puzzle({
-        canvas: canvas,
-        image: imageSrc,
-        pieces: pieces,
-        pieceSize: 80,
-        proximity: 15,
-        borderFill: 10,
-        strokeWidth: 2,
-        lineSoftness: 0.18,
-        preventOffstageDragging: true,
-        onComplete: () => {
-          this.playSound('complete');
-          puzzleInfo.innerHTML = `
-            <div style="color: #4CAF50; font-size: 18px; font-weight: bold;">
-              🎉 מזל טוב! פתרת את הפאזל! 🎉
-            </div>
-          `;
-        }
+      const canvas = new fabric.Canvas('fabric-canvas', {
+        backgroundColor: 'rgba(245, 247, 250, 0.8)',
+        selection: false
       });
       
-      puzzle.shuffle(0.8);
-      puzzle.draw();
+      // טעינת התמונה
+      fabric.Image.fromURL(imageSrc, (img) => {
+        this.createFabricPuzzlePieces(canvas, img, pieces);
+      }, { crossOrigin: 'anonymous' });
       
       puzzleInfo.innerHTML = `
-        <p style="color: #4CAF50; font-weight: bold;">ספריה: Headbreaker</p>
-        <p>גרור את החתיכות למקום הנכון! החתיכות יצטמדו אוטומטית</p>
+        <p style="color: #4CAF50; font-weight: bold;">ספריה: Fabric.js</p>
+        <p>גרור את החתיכות למקום הנכון! חתיכות נכונות יהפכו לירוקות 🟢</p>
       `;
       
     } catch (error) {
-      console.error('Headbreaker error:', error);
-      this.loadCanvas2D(imageSrc, pieces);
+      console.error('Fabric.js error:', error);
+      this.loadPaperJS(imageSrc, pieces);
     }
   },
 
-  loadCanvas2D(imageSrc, pieces) {
+  createFabricPuzzlePieces(canvas, img, pieces) {
+    const puzzleInfo = document.getElementById('puzzle-info');
+    const gridSize = Math.sqrt(pieces);
+    const boardWidth = 400;
+    const boardHeight = 300;
+    const pieceWidth = boardWidth / gridSize;
+    const pieceHeight = boardHeight / gridSize;
+    
+    // שינוי גודל התמונה
+    img.scaleToWidth(boardWidth);
+    img.scaleToHeight(boardHeight);
+    
+    let solvedPieces = 0;
+    const tolerance = 25;
+    
+    // יצירת אזור הלוח
+    const boardRect = new fabric.Rect({
+      left: 50,
+      top: 50,
+      width: boardWidth,
+      height: boardHeight,
+      fill: 'rgba(255,255,255,0.3)',
+      stroke: '#4CAF50',
+      strokeWidth: 3,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false
+    });
+    canvas.add(boardRect);
+    
+    // טקסט הדרכה
+    const instructionText = new fabric.Text('גרור את החתיכות לכאן ⬆️', {
+      left: 150,
+      top: 20,
+      fontSize: 18,
+      fill: '#4CAF50',
+      fontFamily: 'Arial, sans-serif',
+      fontWeight: 'bold',
+      selectable: false,
+      evented: false
+    });
+    canvas.add(instructionText);
+    
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const correctX = 50 + col * pieceWidth;
+        const correctY = 50 + row * pieceHeight;
+        
+        // יצירת מסיכה לחתיכת הפאזל
+        const clipPath = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: pieceWidth,
+          height: pieceHeight
+        });
+        
+        // שיבוט התמונה לכל חתיכה
+        img.clone((clonedImg) => {
+          clonedImg.set({
+            left: Math.random() * 300 + 400, // מיקום התחלתי באזור החתיכות
+            top: Math.random() * 200 + 400,
+            clipPath: clipPath,
+            originX: 'left',
+            originY: 'top',
+            scaleX: 1,
+            scaleY: 1
+          });
+          
+          // קביעת איזה חלק של התמונה להציג
+          clonedImg.filters.push(new fabric.Image.filters.Crop({
+            left: col / gridSize,
+            top: row / gridSize,
+            width: 1 / gridSize,
+            height: 1 / gridSize
+          }));
+          clonedImg.applyFilters();
+          
+          // הוספת מסגרת יפה
+          const group = new fabric.Group([clonedImg], {
+            left: Math.random() * 250 + 450,
+            top: Math.random() * 150 + 420,
+            shadow: new fabric.Shadow({
+              color: 'rgba(0,0,0,0.3)',
+              blur: 10,
+              offsetX: 3,
+              offsetY: 3
+            }),
+            borderColor: '#2196F3',
+            borderScaleFactor: 2,
+            cornerColor: '#2196F3',
+            cornerStyle: 'circle',
+            cornerSize: 12,
+            transparentCorners: false
+          });
+          
+          // הוספת אירועי גרירה
+          group.on('moving', () => {
+            group.set({
+              shadow: new fabric.Shadow({
+                color: 'rgba(33, 150, 243, 0.5)',
+                blur: 15,
+                offsetX: 5,
+                offsetY: 5
+              })
+            });
+            canvas.renderAll();
+          });
+          
+          group.on('modified', () => {
+            const pos = group.getCenterPoint();
+            const targetX = correctX + pieceWidth / 2;
+            const targetY = correctY + pieceHeight / 2;
+            
+            if (Math.abs(pos.x - targetX) < tolerance && Math.abs(pos.y - targetY) < tolerance) {
+              // חתיכה במקום הנכון!
+              group.set({
+                left: correctX,
+                top: correctY,
+                selectable: false,
+                evented: false,
+                shadow: new fabric.Shadow({
+                  color: 'rgba(76, 175, 80, 0.8)',
+                  blur: 20,
+                  offsetX: 0,
+                  offsetY: 0
+                })
+              });
+              
+              // הוספת אפקט הצלחה
+              const successCircle = new fabric.Circle({
+                left: correctX + pieceWidth / 2,
+                top: correctY + pieceHeight / 2,
+                radius: 30,
+                fill: 'rgba(76, 175, 80, 0.8)',
+                originX: 'center',
+                originY: 'center',
+                selectable: false,
+                evented: false
+              });
+              
+              const checkmark = new fabric.Text('✓', {
+                left: correctX + pieceWidth / 2,
+                top: correctY + pieceHeight / 2,
+                fontSize: 24,
+                fill: 'white',
+                fontWeight: 'bold',
+                originX: 'center',
+                originY: 'center',
+                selectable: false,
+                evented: false
+              });
+              
+              canvas.add(successCircle, checkmark);
+              
+              // הסרת האפקט אחרי 2 שניות
+              setTimeout(() => {
+                canvas.remove(successCircle, checkmark);
+              }, 2000);
+              
+              solvedPieces++;
+              this.playSound('success');
+              
+              if (solvedPieces === pieces) {
+                this.playSound('complete');
+                puzzleInfo.innerHTML = `
+                  <div style="color: #4CAF50; font-size: 18px; font-weight: bold;">
+                    🎉 מדהים! פתרת את הפאזל! 🎉
+                  </div>
+                `;
+                
+                // אפקט זיקוקים
+                this.createFireworks(canvas);
+              }
+            } else {
+              // החזרת הצל הרגיל
+              group.set({
+                shadow: new fabric.Shadow({
+                  color: 'rgba(0,0,0,0.3)',
+                  blur: 10,
+                  offsetX: 3,
+                  offsetY: 3
+                })
+              });
+            }
+            canvas.renderAll();
+          });
+          
+          canvas.add(group);
+        });
+      }
+    }
+  },
+
+  createFireworks(canvas) {
+    for (let i = 0; i < 20; i++) {
+      const star = new fabric.Text('⭐', {
+        left: Math.random() * canvas.width,
+        top: Math.random() * canvas.height,
+        fontSize: Math.random() * 20 + 15,
+        fill: `hsl(${Math.random() * 360}, 70%, 60%)`,
+        selectable: false,
+        evented: false
+      });
+      
+      canvas.add(star);
+      
+      setTimeout(() => {
+        canvas.remove(star);
+      }, 3000);
+    }
+  },
+
+  loadPaperJS(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
-    // ננסה עם ספריית Canvas2D פשוטה
+    // ננסה עם ספריית Paper.js
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/konva@9/konva.min.js';
+    script.src = 'https://unpkg.com/paper@0.12.17/dist/paper-full.min.js';
     script.onload = () => {
-      this.initKonvaPuzzle(imageSrc, pieces);
+      this.initPaperJS(imageSrc, pieces);
     };
     script.onerror = () => {
-      // אם שום דבר לא עובד, ניצור פאזל HTML פשוט
-      this.createHTMLPuzzle(imageSrc, pieces);
+      // אם שום דבר לא עובד, ניצור פאזל מותאם אישית
+      this.createCustomPuzzle(imageSrc, pieces);
     };
     document.head.appendChild(script);
   },
 
-  initKonvaPuzzle(imageSrc, pieces) {
+  initPaperJS(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
     puzzleArea.innerHTML = `
-      <div id="konva-container" style="width: 100%; height: 500px; background: #f5f5f5; border-radius: 10px; display: flex; justify-content: center; align-items: center;"></div>
+      <canvas id="paper-canvas" width="700" height="600" style="border: 2px solid #ddd; border-radius: 10px; background: #f0f8ff; box-shadow: 0 8px 25px rgba(0,0,0,0.1);"></canvas>
     `;
     
     try {
-      const stage = new Konva.Stage({
-        container: 'konva-container',
-        width: 600,
-        height: 500
-      });
-      
-      const layer = new Konva.Layer();
-      stage.add(layer);
-      
-      // טעינת התמונה
-      const imageObj = new Image();
-      imageObj.onload = () => {
-        this.createKonvaPuzzlePieces(stage, layer, imageObj, pieces);
-      };
-      imageObj.src = imageSrc;
+      paper.setup('paper-canvas');
       
       puzzleInfo.innerHTML = `
-        <p style="color: #4CAF50; font-weight: bold;">ספריה: Konva.js</p>
-        <p>גרור את החתיכות למקום הנכון!</p>
+        <p style="color: #4CAF50; font-weight: bold;">ספריה: Paper.js</p>
+        <p>פאזל עם גרפיקה וקטורית מתקדמת!</p>
       `;
       
+      // כאן יהיה הקוד של Paper.js
+      this.createCustomPuzzle(imageSrc, pieces);
+      
     } catch (error) {
-      console.error('Konva error:', error);
-      this.createHTMLPuzzle(imageSrc, pieces);
+      console.error('Paper.js error:', error);
+      this.createCustomPuzzle(imageSrc, pieces);
     }
   },
 
-  createKonvaPuzzlePieces(stage, layer, imageObj, pieces) {
-    const puzzleInfo = document.getElementById('puzzle-info');
-    const gridSize = Math.sqrt(pieces);
-    const pieceWidth = 400 / gridSize;
-    const pieceHeight = 300 / gridSize;
-    
-    let solvedPieces = 0;
-    
-    for (let row = 0; row < gridSize; row++) {
-      for (let col = 0; col < gridSize; col++) {
-        const piece = new Konva.Image({
-          image: imageObj,
-          x: Math.random() * 200 + 50,
-          y: Math.random() * 200 + 300,
-          width: pieceWidth,
-          height: pieceHeight,
-          crop: {
-            x: col * (imageObj.width / gridSize),
-            y: row * (imageObj.height / gridSize),
-            width: imageObj.width / gridSize,
-            height: imageObj.height / gridSize
-          },
-          draggable: true,
-          shadowColor: 'black',
-          shadowBlur: 10,
-          shadowOpacity: 0.3
-        });
-        
-        const correctX = 100 + col * pieceWidth;
-        const correctY = 50 + row * pieceHeight;
-        
-        piece.on('dragend', () => {
-          const pos = piece.position();
-          if (Math.abs(pos.x - correctX) < 30 && Math.abs(pos.y - correctY) < 30) {
-            piece.position({ x: correctX, y: correctY });
-            piece.draggable(false);
-            piece.shadowColor('green');
-            piece.shadowBlur(5);
-            solvedPieces++;
-            this.playSound('success');
-            
-            if (solvedPieces === pieces) {
-              this.playSound('complete');
-              puzzleInfo.innerHTML = `
-                <div style="color: #4CAF50; font-size: 18px; font-weight: bold;">
-                  🎉 מזל טוב! פתרת את הפאזל! 🎉
-                </div>
-              `;
-            }
-          }
-          layer.draw();
-        });
-        
-        layer.add(piece);
-      }
-    }
-    
-    layer.draw();
-  },
-
-  createHTMLPuzzle(imageSrc, pieces) {
+  createCustomPuzzle(imageSrc, pieces) {
     const puzzleArea = document.getElementById('puzzle-area');
     const puzzleInfo = document.getElementById('puzzle-info');
     
     puzzleArea.innerHTML = `
       <div style="text-align: center; padding: 40px;">
         <div style="font-size: 48px; margin-bottom: 20px;">🧩</div>
-        <div style="font-size: 20px; color: #4CAF50; margin-bottom: 15px;">פאזל HTML פשוט</div>
+        <div style="font-size: 20px; color: #4CAF50; margin-bottom: 15px;">פאזל מותאם אישית</div>
         <img src="${imageSrc}" style="max-width: 400px; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; color: #1565c0;">
+        <div style="margin-top: 20px; padding: 15px; background: #fff3e0; border-radius: 10px; color: #e65100;">
           <strong>תמונה נטענה בהצלחה!</strong><br>
           רמת קושי: ${pieces} חלקים<br>
           <small>מצב גיבוי - הספריות החיצוניות לא זמינות</small>
@@ -334,7 +457,7 @@ window['simple-puzzle'] = {
     `;
     
     puzzleInfo.innerHTML = `
-      <p style="color: #ff9800; font-weight: bold;">מצב גיבוי: HTML פשוט</p>
+      <p style="color: #ff9800; font-weight: bold;">מצב גיבוי: פתרון מותאם אישית</p>
       <p>הספריות החיצוניות לא זמינות, אבל התמונה נטענה בהצלחה!</p>
     `;
   }

@@ -315,43 +315,40 @@ class PuzzleGame {
     }
 }
 
-// פאזל עם svg-puzzle - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
+// פאזל עם jigsaw-puzzle (erikthalen) - 9 חלקים, snap, גרירה חופשית, עיצוב תואם
 function startPuzzleGame() {
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
         <div style="background:#7fffa0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <div style="margin:32px 0 16px 0;padding:18px;background:#222;border-radius:12px;box-shadow:0 4px 16px #0006;display:inline-block;">
-                <div id="svgpuzzle-canvas"></div>
+                <div id="jigsaw-erikthalen"></div>
             </div>
             <div style="margin-bottom:16px;">
-                <button onclick="window.svgPuzzle && window.svgPuzzle.shuffle();" class="pz-btn">ערבב</button>
+                <button onclick="window.jigsawInstance && window.jigsawInstance.newGame();" class="pz-btn">ערבב</button>
             </div>
         </div>
     `;
     // טען את הספרייה אם לא קיימת
-    if (!window.SVGPuzzle) {
+    if (!window.puzzle) {
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/gh/dmitruk/svg-puzzle/js/puzzle.js';
+        script.src = 'js/games/jigsaw-puzzle.min.js';
         script.onload = () => createPuzzle();
         document.body.appendChild(script);
     } else {
         createPuzzle();
     }
     function createPuzzle() {
-        setTimeout(() => {
-            window.svgPuzzle = new window.SVGPuzzle({
-                container: document.getElementById('svgpuzzle-canvas'),
-                image: 'puzzle/6.png',
-                size: {x: 3, y: 3},
-                width: 420,
-                height: 420,
-                padding: 0,
-                stroke: 2,
-                shadow: true,
-                onComplete: function() { setTimeout(()=>alert('כל הכבוד!'), 300); }
-            });
-            window.svgPuzzle.shuffle();
-        }, 200);
+        window.puzzle({
+            element: '#jigsaw-erikthalen',
+            image: 'puzzle/6.png',
+            pieces: { x: 3, y: 3 },
+            attraction: 5,
+            aligned: true,
+            zoom: 1,
+            onComplete: () => setTimeout(()=>alert('כל הכבוד!'), 300)
+        }).then(instance => {
+            window.jigsawInstance = instance;
+        });
     }
 }
 

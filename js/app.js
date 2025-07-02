@@ -100,7 +100,7 @@ class KidsApp {
         // הצג את כל המשחקים ברשימה אחת
         const gamesGrid = document.getElementById('gamesGrid');
         gamesGrid.innerHTML = allGames.map(game => {
-            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'find-differences' || game.id === 'digital-coloring';
+            const isReady = (game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'digital-coloring') && !game.locked;
             return `
                 <div class="game-card" data-age="${ageId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}
@@ -157,7 +157,7 @@ class KidsApp {
         const gamesGrid = document.getElementById('gamesGrid');
         const games = DataManager.getGamesForCategory(ageId, categoryId);
         gamesGrid.innerHTML = games.map(game => {
-            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'find-differences' || game.id === 'digital-coloring';
+            const isReady = (game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'digital-coloring') && !game.locked;
             return `
                 <div class="game-card" data-age="${ageId}" data-category="${categoryId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}
@@ -198,6 +198,12 @@ class KidsApp {
 
     startGame(ageId, categoryId, gameId) {
         const game = DataManager.getGame(ageId, categoryId, gameId);
+        
+        // בדיקה אם המשחק חסום
+        if (game.locked) {
+            this.showLockedGameMessage(game);
+            return;
+        }
         
         // טעינה דינמית של קובץ המשחק
         const scriptId = `game-script-${gameId}`;
@@ -275,6 +281,37 @@ class KidsApp {
         
         document.body.appendChild(modal);
         this.playSound('game-start');
+    }
+
+    showLockedGameMessage(game) {
+        // יצירת חלון מודאלי למשחק חסום
+        const modal = document.createElement('div');
+        modal.className = 'game-modal';
+        modal.innerHTML = `
+            <div class="game-modal-content">
+                <button class="close-button" onclick="this.parentElement.parentElement.remove()" style="position:fixed;top:12px;right:12px;z-index:2000;">×</button>
+                <div class="game-modal-header">
+                    <h2>🔒 ${game.name}</h2>
+                </div>
+                <div class="game-modal-body">
+                    <div class="game-icon-large" style="font-size: 4em; opacity: 0.5;">🔒</div>
+                    <p style="color: #666;">${game.description}</p>
+                    <div class="game-status" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                        <p style="color: #856404; font-weight: bold;">🔧 המשחק זמנית לא זמין</p>
+                        <p style="color: #856404;">אנחנו עובדים על שיפורים במשחק זה</p>
+                        <p style="color: #856404;">בינתיים תוכלו ליהנות ממשחקים אחרים!</p>
+                    </div>
+                </div>
+                <div class="game-modal-footer">
+                    <button class="back-button" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        חזור לקטגוריות
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        this.playSound('click');
     }
 
     getDifficultyText(difficulty) {

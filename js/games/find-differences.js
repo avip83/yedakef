@@ -376,7 +376,11 @@ class FindDifferencesGame {
 
         document.getElementById('find-diff-home-btn').addEventListener('click', () => {
             this.sounds.click.play();
-            showCategories();
+            if (window.app) {
+                window.app.showCategories(window.app.currentAge);
+            } else {
+                window.location.reload();
+            }
         });
     }
 
@@ -396,6 +400,22 @@ let findDifferencesGame = null;
 // פונקציה להתחלת המשחק
 function startFindDifferences() {
     const gameArea = document.getElementById('game-area');
+    if (!gameArea) {
+        console.error('game-area element not found');
+        return;
+    }
+    
+    // הסתר את כל החלקים האחרים
+    const ageSelector = document.getElementById('ageSelector');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const gamesContainer = document.getElementById('gamesContainer');
+    
+    if (ageSelector) ageSelector.style.display = 'none';
+    if (categoriesContainer) categoriesContainer.style.display = 'none';
+    if (gamesContainer) gamesContainer.style.display = 'none';
+    
+    // הצג את אזור המשחק
+    gameArea.style.display = 'block';
     gameArea.className = 'game-active find-differences-active';
     
     findDifferencesGame = new FindDifferencesGame();

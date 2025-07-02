@@ -1023,11 +1023,15 @@ button, .game-card, .category-card {
     border-radius: 50%;
     transition: all 0.3s ease;
     z-index: 10;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .find-differences-container .difference-spot:hover {
-    background: rgba(255, 255, 0, 0.3);
+    background: rgba(255, 255, 0, 0.5);
+    border: 2px solid #ffff00;
     transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.7);
 }
 
 /* Positioning for each difference spot based on Prabhatyadav60's coordinates */

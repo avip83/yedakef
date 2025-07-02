@@ -73,25 +73,41 @@ class FindDifferencesGame {
     }
 
     setupEventListeners() {
-        // הוספת מאזינים לנקודות ההבדל
-        for (let i = 1; i <= this.totalDifferences; i++) {
-            const diffSpot = document.getElementById(`diff${i}`);
-            if (diffSpot) {
-                diffSpot.addEventListener('click', (e) => this.handleDifferenceClick(e, i));
+        // המתן לטעינת ה-DOM ואז הוסף מאזינים
+        setTimeout(() => {
+            // הוספת מאזינים לנקודות ההבדל
+            for (let i = 1; i <= this.totalDifferences; i++) {
+                const diffSpot = document.getElementById(`diff${i}`);
+                if (diffSpot) {
+                    diffSpot.addEventListener('click', (e) => this.handleDifferenceClick(e, i));
+                    console.log(`Added listener to diff${i}`); // Debug
+                } else {
+                    console.log(`Could not find diff${i}`); // Debug
+                }
             }
-        }
 
-        // כפתור רמז
-        document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
-        
-        // כפתור התחלה מחדש
-        document.getElementById('restart-btn').addEventListener('click', () => this.restartGame());
-        
-        // כפתור חזרה
-        document.getElementById('back-btn').addEventListener('click', () => this.backToMenu());
+            // כפתור רמז
+            const hintBtn = document.getElementById('hint-btn');
+            if (hintBtn) {
+                hintBtn.addEventListener('click', () => this.showHint());
+            }
+            
+            // כפתור התחלה מחדש
+            const restartBtn = document.getElementById('restart-btn');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', () => this.restartGame());
+            }
+            
+            // כפתור חזרה
+            const backBtn = document.getElementById('back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', () => this.backToMenu());
+            }
+        }, 100);
     }
 
     handleDifferenceClick(event, diffNumber) {
+        console.log(`Clicked on difference ${diffNumber}`); // Debug
         if (!this.gameActive) return;
 
         const clickedSpot = event.target;

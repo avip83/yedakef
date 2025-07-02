@@ -48,20 +48,21 @@ function startSimplePuzzleGame() {
     window.createNewPuzzle = createNewPuzzle;
     window.showHint = showHint;
     window.updatePuzzlePieces = updatePuzzlePieces;
+    window.createCustomPuzzle = createCustomPuzzle;
     window.currentPuzzleImages = puzzleImages;
     
-    // יצירת הפאזל הראשון
-    createCustomPuzzle(randomImage, 9);
-    
-    // האזנה לשינויים בבחירת מספר החלקים
+    // יצירת הפאזל הראשון אחרי שה-DOM נטען
     setTimeout(() => {
+        createCustomPuzzle(randomImage, 9);
+        
+        // האזנה לשינויים בבחירת מספר החלקים
         const piecesSelect = document.getElementById('piecesSelect');
         if (piecesSelect) {
             piecesSelect.addEventListener('change', function() {
                 updatePuzzlePieces();
             });
         }
-    }, 100);
+    }, 200);
     
     // האזנה להשלמת פאזל
     window.addEventListener('message', function(event) {
@@ -75,8 +76,15 @@ function startSimplePuzzleGame() {
 }
 
 async function createCustomPuzzle(imagePath, pieces) {
+    console.log('createCustomPuzzle called with:', imagePath, pieces);
+    
     const puzzleLoading = document.getElementById('puzzleLoading');
     const puzzleFrame = document.getElementById('puzzleFrame');
+    
+    if (!puzzleLoading || !puzzleFrame) {
+        console.error('Elements not found:', { puzzleLoading, puzzleFrame });
+        return;
+    }
     
     puzzleLoading.style.display = 'block';
     puzzleFrame.style.display = 'none';
@@ -84,9 +92,11 @@ async function createCustomPuzzle(imagePath, pieces) {
     try {
         // יצירת URL מלא לתמונה
         const imageUrl = window.location.origin + '/' + imagePath;
+        console.log('Image URL:', imageUrl);
         
         // יצירת פאזל מותאם אישית עם הפרמטרים הנכונים
         const customPuzzleUrl = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(imageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+        console.log('Puzzle URL:', customPuzzleUrl);
         
         // יצירת iframe עם הפאזל
         puzzleFrame.innerHTML = `
@@ -103,6 +113,7 @@ async function createCustomPuzzle(imagePath, pieces) {
         setTimeout(() => {
             puzzleLoading.style.display = 'none';
             puzzleFrame.style.display = 'block';
+            console.log('Puzzle should be visible now');
         }, 1000);
         
     } catch (error) {

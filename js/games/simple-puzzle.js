@@ -41,7 +41,7 @@ function startSimplePuzzleGame() {
     const randomImage = puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
     
         gameArea.innerHTML = `
-        <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px;">
+        <div style="background: #fffbe9; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px;">
             <!-- בר התקדמות שלבים -->
             <div id="progressBar" style="width: 100%; max-width: 600px; margin-bottom: 12px;">
                 <div style="background: #e0e0e0; height: 6px; border-radius: 3px; overflow: hidden;">
@@ -216,7 +216,7 @@ window['simple-puzzle'] = {
         const modal = document.createElement('div');
         modal.className = 'game-modal';
         modal.innerHTML = `
-            <div class="game-modal-content" style="max-width: 95vw; width: 95%; max-height: 95vh; overflow: auto;">
+            <div class="game-modal-content" style="max-width: 95vw; width: 95%; max-height: 95vh; overflow: auto; background: #fffbe9 !important;">
                 <div id="gameArea"></div>
             </div>
         `;

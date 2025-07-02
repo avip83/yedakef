@@ -1,14 +1,47 @@
-// משחק צביעה דיגיטלית מתקדם - מבוסס על jl-coloringbook
-class DigitalColoringGame {
+// משחק צביעה מתקדם עם דלי צבע - מבוסס על floodfill.js
+class FloodFillColoringGame {
     constructor() {
         this.gameContainer = null;
         this.isInitialized = false;
-        this.backgroundImages = [
-            'coloring-images/astronaut.png',
-            'coloring-images/eagle.png', 
-            'coloring-images/glass.jpg'
+        this.canvas = null;
+        this.ctx = null;
+        this.currentColor = '#FF6B6B';
+        this.tolerance = 32;
+        this.currentImageIndex = 0;
+        this.sounds = {
+            success: 'sounds/success-340660 (mp3cut.net).mp3',
+            click: 'sounds/click-tap-computer-mouse-352734.mp3',
+            complete: 'sounds/game-level-complete-143022.mp3'
+        };
+        
+        // תמונות לצביעה
+        this.coloringImages = [
+            { name: 'עיגול', src: 'coloring-images/circle-outline.png' },
+            { name: 'כוכב', src: 'coloring-images/star-outline.png' },
+            { name: 'אסטרונאוט', src: 'coloring-images/astronaut.png' },
+            { name: 'נשר', src: 'coloring-images/eagle.png' },
+            { name: 'כוס', src: 'coloring-images/glass.jpg' }
         ];
-        this.currentBackgroundIndex = 0;
+        
+        // פלטת צבעים עשירה
+        this.colorPalette = [
+            { name: 'אדום', color: '#FF6B6B' },
+            { name: 'כתום', color: '#FF9F43' },
+            { name: 'צהוב', color: '#FEE135' },
+            { name: 'ירוק בהיר', color: '#26de81' },
+            { name: 'ירוק כהה', color: '#20bf6b' },
+            { name: 'תכלת', color: '#0fb9b1' },
+            { name: 'כחול', color: '#45aaf2' },
+            { name: 'כחול כהה', color: '#2d98da' },
+            { name: 'סגול', color: '#a55eea' },
+            { name: 'ורוד', color: '#fd79a8' },
+            { name: 'חום', color: '#8b4513' },
+            { name: 'אפור', color: '#57606f' },
+            { name: 'שחור', color: '#2f3542' },
+            { name: 'לבן', color: '#ffffff' },
+            { name: 'זהב', color: '#f39c12' },
+            { name: 'כסף', color: '#bdc3c7' }
+        ];
     }
 
     async init() {
@@ -21,36 +54,30 @@ class DigitalColoringGame {
         }
 
         try {
-            await this.loadCSS();
+            await this.loadFloodFillLibrary();
             await this.setupHTML();
-            await this.loadScript();
-            await this.initializePaint();
-            this.setupBackgroundSelector();
+            await this.setupCanvas();
+            await this.loadFirstImage();
+            this.setupEventListeners();
             this.isInitialized = true;
             
-            // הוספת הודעת הצלחה
-            this.showMessage('🎨 ברוכים הבאים למשחק הצביעה המתקדם!', 'success');
+            this.showMessage('🪣 ברוכים הבאים למשחק דלי הצבע!', 'success');
+            this.playSound('success');
         } catch (error) {
-            console.error('Error initializing Digital Coloring Game:', error);
+            console.error('Error initializing Flood Fill Coloring Game:', error);
             this.showFallbackMessage();
         }
     }
 
-    async loadCSS() {
+    async loadFloodFillLibrary() {
         return new Promise((resolve, reject) => {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'canvas-web-paint.css';
-            link.onload = resolve;
-            link.onerror = reject;
-            document.head.appendChild(link);
-        });
-    }
-
-    async loadScript() {
-        return new Promise((resolve, reject) => {
+            if (typeof floodfill !== 'undefined') {
+                resolve();
+                return;
+            }
+            
             const script = document.createElement('script');
-            script.src = 'js/canvas-web-paint.js';
+            script.src = 'js/floodfill.js';
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);
@@ -59,188 +86,255 @@ class DigitalColoringGame {
 
     async setupHTML() {
         this.gameContainer.innerHTML = `
-            <div class="coloring-header">
-                <h2>🎨 משחק צביעה דיגיטלי מתקדם</h2>
-                <div class="background-selector">
-                    <label>בחר תמונת רקע:</label>
-                    <select id="background-selector">
-                        <option value="">ללא רקע</option>
-                        <option value="0">אסטרונאוט</option>
-                        <option value="1">נשר</option>
-                        <option value="2">כוס</option>
-                    </select>
-                </div>
-                <div class="game-instructions">
-                    <p>🖌️ בחר כלי ציור | 🎨 בחר צבע | 📏 התאם גודל מברשת | 🗂️ השתמש בטאבים ליצירות מרובות</p>
-                </div>
-            </div>
-
-            <div style="position: relative; height: 600px; border: 3px solid #2196F3; border-radius: 15px; overflow: hidden; background: #f0f0f0;">
-                <div id="paintPage" style="width: 100%; height: 100%;">
-                    <div id="paintTabs">
-                        <ul id="paintTabsCon">
-                            <li class="paintTabBase paintTab active" data-id="1">
-                                <label>יצירה 1</label>
-                                <svg height="24" viewBox="0 0 512 512" width="24" xmlns="http://www.w3.org/2000/svg">
-                                    <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49"></polygon>
-                                </svg>
-                            </li>
-                        </ul>
-                        <div id="paintAdd" class="paintTabBase">
-                            <a>
-                                <svg height="16" viewBox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                    <div id="paintContainer">
-                        <label class="paintBtn show" id="paintBtn">
-                            <svg class="swap-on" height="24" viewBox="0 0 512 512" width="24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z"></path>
-                            </svg>
-                            <svg class="swap-off" height="24" viewBox="0 0 512 512" width="24" xmlns="http://www.w3.org/2000/svg">
-                                <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49"></polygon>
-                            </svg>
-                        </label>
-                        <div id="paintToolBar">
-                            <div id="paintTools">
-                                <span data-name="pencil"><i></i> עיפרון</span>
-                                <span class="active-tool" data-name="brush"><i></i> מברשת</span>
-                                <span data-name="eraser"><i></i> מחק</span>
-                            </div>
-                            <div id="paintSize">
-                                <label for="paintSizeRange">גודל</label>
-                                <div class="paintRangeSlider">
-                                    <input id="paintSizeRange" max="100" min="1" type="range" value="15">
-                                    <div id="paintSizeVal">15</div>
-                                </div>
-                            </div>
-                            <div id="paintColorCon">
-                                <div id="paintColors">
-                                    <span class="active-color" data-color="black" style="background-color: black;" title="שחור"></span>
-                                    <span data-color="white" style="background-color: white;" title="לבן"></span>
-                                    <span data-color="red" style="background-color: red;" title="אדום"></span>
-                                    <span data-color="orange" style="background-color: orange;" title="כתום"></span>
-                                    <span data-color="yellow" style="background-color: yellow;" title="צהוב"></span>
-                                    <span data-color="green" style="background-color: green;" title="ירוק"></span>
-                                    <span data-color="blue" style="background-color: blue;" title="כחול"></span>
-                                    <span data-color="purple" style="background-color: purple;" title="סגול"></span>
-                                    <span data-color="gold" style="background-color: gold;" title="זהב"></span>
-                                    <span data-color="violet" style="background-color: violet;" title="ויולט"></span>
-                                    <span data-color="silver" style="background-color: silver;" title="כסף"></span>
-                                    <span data-color="gray" style="background-color: gray;" title="אפור"></span>
-                                    <span data-color="pink" style="background-color: pink;" title="ורוד"></span>
-                                    <span data-color="brown" style="background-color: brown;" title="חום"></span>
-                                    <span data-color="lime" style="background-color: lime;" title="ליים"></span>
-                                    <span data-color="cyan" style="background-color: cyan;" title="ציאן"></span>
-                                </div>
-                                <div id="paintPicker">
-                                    <label for="paintColorInput">בחר צבע</label>
-                                    <input id="paintColorInput" type="color" value="#ff6b6b">
-                                </div>
-                            </div>
-                            <div id="paintButtons">
-                                <button id="paintReset">נקה</button>
-                                <a download="my-artwork.png" href="" id="paintSave" target="_blank">שמור</a>
-                            </div>
-                        </div>
-                        <div>
-                            <canvas id="paintDraw"></canvas>
-                        </div>
+            <div class="coloring-game-container">
+                <div class="game-header">
+                    <h2>🪣 משחק דלי הצבע</h2>
+                    <div class="game-instructions">
+                        <p>🖱️ לחץ על אזור כדי למלא אותו בצבע | 🎨 בחר צבע מהפלטה | 🖼️ החלף תמונות</p>
                     </div>
                 </div>
-            </div>
 
-            <div class="game-footer">
-                <div class="tips">
-                    <h3>💡 טיפים:</h3>
+                <div class="game-controls">
+                    <div class="color-palette">
+                        <h3>🎨 בחר צבע:</h3>
+                        <div class="colors-grid">
+                            ${this.colorPalette.map((color, index) => `
+                                <div class="color-option ${index === 0 ? 'active' : ''}" 
+                                     data-color="${color.color}" 
+                                     style="background-color: ${color.color};"
+                                     title="${color.name}">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="custom-color">
+                            <label for="color-picker">צבע מותאם:</label>
+                            <input type="color" id="color-picker" value="${this.currentColor}">
+                        </div>
+                    </div>
+
+                    <div class="tolerance-control">
+                        <h3>🎯 רגישות מילוי:</h3>
+                        <div class="tolerance-slider">
+                            <input type="range" id="tolerance-range" min="0" max="128" value="${this.tolerance}">
+                            <span id="tolerance-value">${this.tolerance}</span>
+                        </div>
+                        <p class="tolerance-help">0 = דיוק מלא | 128 = מילוי רחב</p>
+                    </div>
+
+                    <div class="image-controls">
+                        <h3>🖼️ תמונות לצביעה:</h3>
+                        <div class="image-selector">
+                            <button id="prev-image" class="nav-btn">◀ הקודמת</button>
+                            <span id="current-image-name">${this.coloringImages[0].name}</span>
+                            <button id="next-image" class="nav-btn">הבאה ▶</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="clear-canvas" class="action-btn clear-btn">🗑️ נקה הכל</button>
+                        <button id="save-image" class="action-btn save-btn">💾 שמור</button>
+                        <button id="undo-action" class="action-btn undo-btn">↶ בטל</button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="coloring-canvas" width="600" height="400"></canvas>
+                    <div class="canvas-overlay" id="canvas-loading">
+                        <div class="loading-spinner">🎨</div>
+                        <p>טוען תמונה...</p>
+                    </div>
+                </div>
+
+                <div class="game-tips">
+                    <h3>💡 טיפים לצביעה:</h3>
                     <ul>
-                        <li>🖱️ לחץ על כפתור התפריט להסתרה/הצגה של כלי הציור</li>
-                        <li>🗂️ השתמש בטאבים ליצירת יצירות מרובות</li>
-                        <li>📱 המשחק תומך במגע על מכשירים ניידים</li>
-                        <li>🎨 בחר צבע מותאם אישית עם בורר הצבעים</li>
+                        <li>🖱️ לחץ על אזור כדי למלא אותו בצבע הנבחר</li>
+                        <li>🎯 התאם את הרגישות למילוי מדויק או רחב</li>
+                        <li>🎨 נסה צבעים שונים ויצור יצירות מיוחדות</li>
                         <li>💾 שמור את היצירה שלך כתמונה</li>
+                        <li>↶ השתמש בביטול אם טעית</li>
                     </ul>
                 </div>
             </div>
         `;
     }
 
-    async initializePaint() {
-        // המתנה קצרה לוודא שהDOM מוכן
-        await new Promise(resolve => setTimeout(resolve, 100));
+    async setupCanvas() {
+        this.canvas = document.getElementById('coloring-canvas');
+        this.ctx = this.canvas.getContext('2d');
         
-        if (typeof paintInit === 'function') {
-            paintInit();
-        } else {
-            throw new Error('paintInit function not available');
-        }
+        // שמירת מצב לביטול
+        this.undoStack = [];
+        this.saveCanvasState();
     }
 
-    setupBackgroundSelector() {
-        const selector = document.getElementById('background-selector');
-        if (selector) {
-            selector.addEventListener('change', (e) => {
-                this.setBackgroundImage(e.target.value);
-            });
-        }
+    async loadFirstImage() {
+        await this.loadImage(this.currentImageIndex);
     }
 
-    async setBackgroundImage(imageIndex) {
-        if (imageIndex === '') {
-            this.clearBackground();
-            return;
-        }
-
-        const imageUrl = this.backgroundImages[parseInt(imageIndex)];
-        if (!imageUrl) return;
-
+    async loadImage(index) {
+        const loadingOverlay = document.getElementById('canvas-loading');
+        loadingOverlay.style.display = 'flex';
+        
         try {
-            const canvas = document.getElementById('paintDraw');
-            const ctx = canvas.getContext('2d');
-            
+            const imageData = this.coloringImages[index];
             const img = new Image();
-            img.onload = () => {
-                // שמירת הציור הנוכחי
-                const currentDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                
-                // הוספת תמונת הרקע
-                ctx.globalCompositeOperation = 'destination-over';
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // החזרת הציור מעל הרקע
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.putImageData(currentDrawing, 0, 0);
-                
-                this.showMessage('🖼️ תמונת הרקע נוספה בהצלחה!', 'success');
-            };
-            img.onerror = () => {
-                this.showMessage('❌ שגיאה בטעינת תמונת הרקע', 'error');
-            };
-            img.src = imageUrl;
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = imageData.src;
+            });
+            
+            // נקה את הקנבס
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // צייר את התמונה במרכז
+            const scale = Math.min(
+                this.canvas.width / img.width,
+                this.canvas.height / img.height
+            );
+            
+            const x = (this.canvas.width - img.width * scale) / 2;
+            const y = (this.canvas.height - img.height * scale) / 2;
+            
+            this.ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            
+            // עדכן שם התמונה
+            document.getElementById('current-image-name').textContent = imageData.name;
+            
+            // שמור מצב חדש
+            this.saveCanvasState();
+            
+            this.playSound('click');
+            
         } catch (error) {
-            console.error('Error setting background image:', error);
-            this.showMessage('❌ שגיאה בהוספת תמונת הרקע', 'error');
+            console.error('Error loading image:', error);
+            this.showMessage('❌ שגיאה בטעינת התמונה', 'error');
+        } finally {
+            loadingOverlay.style.display = 'none';
         }
     }
 
-    clearBackground() {
-        const canvas = document.getElementById('paintDraw');
-        const ctx = canvas.getContext('2d');
+    setupEventListeners() {
+        // בחירת צבעים
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentColor = e.target.dataset.color;
+                document.getElementById('color-picker').value = this.currentColor;
+                this.playSound('click');
+            });
+        });
+
+        // בורר צבע מותאם
+        document.getElementById('color-picker').addEventListener('change', (e) => {
+            this.currentColor = e.target.value;
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+        });
+
+        // רגישות מילוי
+        const toleranceRange = document.getElementById('tolerance-range');
+        const toleranceValue = document.getElementById('tolerance-value');
+        toleranceRange.addEventListener('input', (e) => {
+            this.tolerance = parseInt(e.target.value);
+            toleranceValue.textContent = this.tolerance;
+        });
+
+        // ניווט תמונות
+        document.getElementById('prev-image').addEventListener('click', () => {
+            this.currentImageIndex = (this.currentImageIndex - 1 + this.coloringImages.length) % this.coloringImages.length;
+            this.loadImage(this.currentImageIndex);
+        });
+
+        document.getElementById('next-image').addEventListener('click', () => {
+            this.currentImageIndex = (this.currentImageIndex + 1) % this.coloringImages.length;
+            this.loadImage(this.currentImageIndex);
+        });
+
+        // כפתורי פעולה
+        document.getElementById('clear-canvas').addEventListener('click', () => {
+            this.clearCanvas();
+        });
+
+        document.getElementById('save-image').addEventListener('click', () => {
+            this.saveImage();
+        });
+
+        document.getElementById('undo-action').addEventListener('click', () => {
+            this.undoLastAction();
+        });
+
+        // לחיצה על קנבס לצביעה
+        this.canvas.addEventListener('click', (e) => {
+            this.handleCanvasClick(e);
+        });
+    }
+
+    handleCanvasClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = Math.floor(e.clientX - rect.left);
+        const y = Math.floor(e.clientY - rect.top);
         
-        // שמירת הציור הנוכחי
-        const currentDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // ניקוי הקנבס
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // החזרת הציור בלבד
-        ctx.putImageData(currentDrawing, 0, 0);
-        
-        this.showMessage('🗑️ תמונת הרקע הוסרה', 'info');
+        try {
+            // שמור מצב לפני השינוי
+            this.saveCanvasState();
+            
+            // בצע מילוי צבע
+            this.ctx.fillStyle = this.currentColor;
+            this.ctx.fillFlood(x, y, this.tolerance);
+            
+            this.playSound('success');
+            this.showMessage('🎨 אזור נצבע בהצלחה!', 'success');
+            
+        } catch (error) {
+            console.error('Error during flood fill:', error);
+            this.showMessage('❌ שגיאה בצביעה', 'error');
+        }
+    }
+
+    saveCanvasState() {
+        if (this.undoStack.length >= 10) {
+            this.undoStack.shift(); // הסר מצב ישן אם יש יותר מ-10
+        }
+        this.undoStack.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height));
+    }
+
+    undoLastAction() {
+        if (this.undoStack.length > 1) {
+            this.undoStack.pop(); // הסר המצב הנוכחי
+            const previousState = this.undoStack[this.undoStack.length - 1];
+            this.ctx.putImageData(previousState, 0, 0);
+            this.playSound('click');
+            this.showMessage('↶ פעולה בוטלה', 'info');
+        } else {
+            this.showMessage('❌ אין פעולות לביטול', 'warning');
+        }
+    }
+
+    clearCanvas() {
+        if (confirm('האם אתה בטוח שתרצה לנקות את כל הצביעה?')) {
+            this.loadImage(this.currentImageIndex);
+            this.showMessage('🗑️ הקנבס נוקה', 'info');
+        }
+    }
+
+    saveImage() {
+        try {
+            const link = document.createElement('a');
+            link.download = `my-coloring-${this.coloringImages[this.currentImageIndex].name}-${Date.now()}.png`;
+            link.href = this.canvas.toDataURL('image/png');
+            link.click();
+            
+            this.playSound('complete');
+            this.showMessage('💾 התמונה נשמרה בהצלחה!', 'success');
+        } catch (error) {
+            console.error('Error saving image:', error);
+            this.showMessage('❌ שגיאה בשמירת התמונה', 'error');
+        }
     }
 
     showMessage(message, type = 'info') {
@@ -284,8 +378,8 @@ class DigitalColoringGame {
     showFallbackMessage() {
         this.gameContainer.innerHTML = `
             <div class="error-container">
-                <h2>❌ שגיאה בטעינת משחק הצביעה</h2>
-                <p>מצטערים, לא ניתן לטעון את משחק הצביעה המתקדם כרגע.</p>
+                <h2>❌ שגיאה בטעינת משחק דלי הצבע</h2>
+                <p>מצטערים, לא ניתן לטעון את משחק הצביעה כרגע.</p>
                 <div class="fallback-options">
                     <h3>אפשרויות חלופיות:</h3>
                     <ul>
@@ -301,6 +395,18 @@ class DigitalColoringGame {
         `;
     }
 
+    playSound(soundType) {
+        try {
+            if (this.sounds[soundType]) {
+                const audio = new Audio(this.sounds[soundType]);
+                audio.volume = 0.3;
+                audio.play().catch(() => {});
+            }
+        } catch (error) {
+            console.log('Could not play sound:', error);
+        }
+    }
+
     destroy() {
         if (this.gameContainer) {
             this.gameContainer.innerHTML = '';
@@ -309,74 +415,269 @@ class DigitalColoringGame {
     }
 }
 
-// CSS נוסף למשחק
-const additionalCSS = `
+// CSS מתקדם למשחק
+const floodFillCSS = `
 <style>
-.coloring-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+.coloring-game-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
-    border-radius: 15px 15px 0 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    color: white;
+}
+
+.game-header {
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
 }
 
-.coloring-header h2 {
-    margin: 0 0 15px 0;
-    font-size: 1.8em;
-}
-
-.background-selector {
-    margin: 10px 0;
-}
-
-.background-selector label {
-    display: inline-block;
-    margin-left: 10px;
-    font-weight: bold;
-}
-
-.background-selector select {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    background: white;
-    color: #333;
+.game-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .game-instructions {
     background: rgba(255,255,255,0.1);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
 }
 
-.game-instructions p {
-    margin: 0;
-    font-size: 0.9em;
-}
-
-.game-footer {
-    background: #f8f9fa;
+.game-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+    background: rgba(255,255,255,0.1);
     padding: 20px;
-    border-radius: 0 0 15px 15px;
-    margin-top: 10px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
 }
 
-.tips h3 {
-    color: #2196F3;
+.color-palette h3,
+.tolerance-control h3,
+.image-controls h3 {
+    margin: 0 0 15px 0;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.colors-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: #fff;
+}
+
+.color-option.active {
+    border-color: #FFD700;
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(255,215,0,0.5);
+}
+
+.custom-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.custom-color input[type="color"] {
+    width: 50px;
+    height: 35px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tolerance-control {
+    grid-column: span 2;
+}
+
+.tolerance-slider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.tolerance-slider input[type="range"] {
+    flex: 1;
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.3);
+    outline: none;
+}
+
+.tolerance-slider span {
+    background: rgba(255,255,255,0.2);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.tolerance-help {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.image-controls {
+    grid-column: span 2;
+}
+
+.image-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.nav-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+#current-image-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.action-buttons {
+    grid-column: span 2;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.action-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.clear-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.save-btn {
+    background: #27ae60;
+    color: white;
+}
+
+.undo-btn {
+    background: #f39c12;
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.canvas-container {
+    position: relative;
+    text-align: center;
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+#coloring-canvas {
+    border: 3px solid #333;
+    border-radius: 10px;
+    cursor: crosshair;
+    max-width: 100%;
+    height: auto;
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+}
+
+.loading-spinner {
+    font-size: 3em;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.game-tips {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.game-tips h3 {
     margin-top: 0;
+    color: #FFD700;
 }
 
-.tips ul {
-    margin: 10px 0;
+.game-tips ul {
+    margin: 15px 0;
     padding-right: 20px;
 }
 
-.tips li {
+.game-tips li {
     margin: 8px 0;
-    color: #555;
+    font-size: 0.95em;
 }
 
 .error-container {
@@ -388,16 +689,6 @@ const additionalCSS = `
     color: #856404;
 }
 
-.fallback-options {
-    margin: 20px 0;
-    text-align: right;
-}
-
-.fallback-options ul {
-    display: inline-block;
-    text-align: right;
-}
-
 .retry-button {
     background: #007bff;
     color: white;
@@ -407,10 +698,6 @@ const additionalCSS = `
     font-size: 16px;
     cursor: pointer;
     margin-top: 15px;
-}
-
-.retry-button:hover {
-    background: #0056b3;
 }
 
 @keyframes slideIn {
@@ -435,44 +722,35 @@ const additionalCSS = `
     }
 }
 
-/* התאמות לעברית */
-#paintTools span {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#paintButtons button,
-#paintButtons a {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* שיפור צבעים */
-#paintColors span {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    margin: 3px;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.2s ease;
-}
-
-#paintColors span:hover {
-    transform: scale(1.1);
-    border-color: #333;
-}
-
-#paintColors span.active-color {
-    border-color: #2196F3;
-    transform: scale(1.2);
+/* התאמות למובייל */
+@media (max-width: 768px) {
+    .game-controls {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .colors-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .image-selector {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 </style>
 `;
 
-// הוספת CSS נוסף לדף
-document.head.insertAdjacentHTML('beforeend', additionalCSS);
+// הוספת CSS לדף
+document.head.insertAdjacentHTML('beforeend', floodFillCSS);
 
 // יצירת אובייקט המשחק הגלובלי
-window.digitalColoringGame = new DigitalColoringGame();
+window.floodFillColoringGame = new FloodFillColoringGame();
 
 // יצירת אובייקט תואם למערכת הראשית
 window['digital-coloring'] = {
@@ -485,7 +763,7 @@ window['digital-coloring'] = {
             modal.innerHTML = `
                 <div class="game-modal-content" style="max-width: 95vw; max-height: 95vh; width: auto; height: auto; overflow: auto;">
                     <div class="game-modal-header">
-                        <h2>🎨 צביעה דיגיטלית מתקדמת</h2>
+                        <h2>🪣 דלי הצבע המתקדם</h2>
                         <button class="close-modal" onclick="this.closest('.game-modal').remove()">×</button>
                     </div>
                     <div class="game-modal-body" style="padding: 10px;">
@@ -497,8 +775,8 @@ window['digital-coloring'] = {
         }
         
         // אתחול המשחק
-        if (window.digitalColoringGame) {
-            window.digitalColoringGame.init();
+        if (window.floodFillColoringGame) {
+            window.floodFillColoringGame.init();
         }
     }
-};
+}; 

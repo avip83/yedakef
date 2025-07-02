@@ -16,23 +16,29 @@ function startSimplePuzzleGame() {
         'puzzle/10.png'
     ];
     
+    // משתנים גלובליים
+    window.currentLevel = 1;
+    window.totalLevels = 10;
+    window.currentPuzzleImages = puzzleImages;
+    
     // בחירת תמונה אקראית
     const randomImage = puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
     
         gameArea.innerHTML = `
         <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <!-- בר התקדמות שלבים -->
+            <div id="progressBar" style="width: 100%; max-width: 600px; margin-bottom: 20px;">
+                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div id="progressFill" style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: 10%; transition: width 0.3s ease;"></div>
+                </div>
+                <div style="text-align: center; margin-top: 5px; color: #666; font-size: 12px;">
+                    שלב <span id="currentLevel">1</span> מתוך 10
+                </div>
+            </div>
+
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
                 <div style="margin-bottom: 20px;">
-                    <label style="color: #666; font-weight: bold; margin-left: 10px;">מספר חלקים:</label>
-                    <select id="piecesSelect" style="margin: 0 10px; padding: 8px; border-radius: 8px; border: 2px solid #ddd; font-size: 14px;">
-                        <option value="9">9 חלקים (3x3)</option>
-                        <option value="16">16 חלקים (4x4)</option>
-                        <option value="25">25 חלקים (5x5)</option>
-                        <option value="36">36 חלקים (6x6)</option>
-                        <option value="49">49 חלקים (7x7)</option>
-                    </select>
-                    <button onclick="createNewPuzzle()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔄 פאזל חדש</button>
                     <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">💡 טיפים</button>
                 </div>
             </div>
@@ -47,68 +53,91 @@ function startSimplePuzzleGame() {
                         allowfullscreen>
                 </iframe>
             </div>
+
+            <!-- הסבר על החלון הפנימי -->
+            <div style="margin-top: 15px; max-width: 600px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; text-align: center;">
+                <p style="margin: 0; color: #856404; font-size: 14px;">
+                    💡 <strong>הסבר:</strong> כשהפאזל נטען, יופיע חלון קטן שמאפשר לבחור מספר חלקים ואפשרויות נוספות. 
+                    לחץ על "OK" כדי להתחיל עם ההגדרות או שנה אותן לפי הרצון שלך.
+                </p>
+            </div>
         </div>
     `;
     
     // הוספת פונקציות גלובליות
-    window.createNewPuzzle = createNewPuzzle;
     window.showHint = showHint;
-    window.updatePuzzlePieces = updatePuzzlePieces;
-    window.currentPuzzleImages = puzzleImages;
+    window.nextLevel = nextLevel;
+    window.updateProgressBar = updateProgressBar;
     
-    // האזנה לשינויים בבחירת מספר החלקים
+    // עדכון בר ההתקדמות הראשוני
     setTimeout(() => {
-        const piecesSelect = document.getElementById('piecesSelect');
-        if (piecesSelect) {
-            piecesSelect.addEventListener('change', function() {
-                updatePuzzlePieces();
-            });
-        }
+        updateProgressBar();
     }, 100);
     
     // האזנה להשלמת פאזל
     window.addEventListener('message', function(event) {
         if (event.origin === 'https://www.jigsawexplorer.com' && event.data === 'puzzle-complete') {
             setTimeout(() => {
-                alert('🎉 כל הכבוד! הצלחת להשלים את הפאזל!');
+                showNextLevelButton();
                 playSuccessSound();
             }, 500);
         }
     });
 }
 
-function createNewPuzzle() {
-    const piecesSelect = document.getElementById('piecesSelect');
-    const puzzleFrame = document.getElementById('puzzleFrame');
-    const pieces = piecesSelect.value;
-    
-    // בחירת תמונה אקראית חדשה
-    const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
-    
-    // עדכון הפאזל עם פרמטרים מתקדמים
-    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=${pieces}&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
-    
-    // הודעה לשחקן
-    showNotification(`🎲 פאזל חדש עם ${pieces} חלקים!`, '#4CAF50');
-}
-
-function updatePuzzlePieces() {
-    const piecesSelect = document.getElementById('piecesSelect');
-    const puzzleFrame = document.getElementById('puzzleFrame');
-    const pieces = piecesSelect.value;
-    
-    // שמירת התמונה הנוכחית
-    const currentSrc = puzzleFrame.src;
-    const urlMatch = currentSrc.match(/url=([^&]+)/);
-    const currentImageUrl = urlMatch ? decodeURIComponent(urlMatch[1]) : null;
-    
-    if (currentImageUrl) {
-        // עדכון רק מספר החלקים, שמירת אותה תמונה עם פרמטרים מתקדמים
-        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=${pieces}&url=${encodeURIComponent(currentImageUrl)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+function nextLevel() {
+    if (window.currentLevel < window.totalLevels) {
+        window.currentLevel++;
+        
+        // בחירת תמונה אקראית חדשה
+        const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
+        
+        // עדכון הפאזל
+        const puzzleFrame = document.getElementById('puzzleFrame');
+        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=9&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+        
+        // עדכון בר ההתקדמות
+        updateProgressBar();
+        
+        // הסרת כפתור השלב הבא אם קיים
+        const nextButton = document.getElementById('nextLevelButton');
+        if (nextButton) {
+            nextButton.remove();
+        }
         
         // הודעה לשחקן
-        showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');
+        showNotification(`🎯 שלב ${window.currentLevel}!`, '#4CAF50');
+    } else {
+        // סיום כל השלבים
+        showNotification('🏆 מזל טוב! סיימת את כל השלבים!', '#FFD700');
     }
+}
+
+function updateProgressBar() {
+    const progressFill = document.getElementById('progressFill');
+    const currentLevelSpan = document.getElementById('currentLevel');
+    
+    if (progressFill && currentLevelSpan) {
+        const progressPercent = (window.currentLevel / window.totalLevels) * 100;
+        progressFill.style.width = progressPercent + '%';
+        currentLevelSpan.textContent = window.currentLevel;
+    }
+}
+
+function showNextLevelButton() {
+    // יצירת כפתור שלב הבא
+    const nextButton = document.createElement('div');
+    nextButton.id = 'nextLevelButton';
+    nextButton.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; text-align: center;">
+            <h3 style="color: white; margin-bottom: 20px;">🎉 כל הכבוד!</h3>
+            <p style="color: #ddd; margin-bottom: 25px;">הצלחת להשלים את השלב!</p>
+            <button onclick="nextLevel()" style="padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                ${window.currentLevel < window.totalLevels ? '➡️ שלב הבא' : '🏆 סיום'}
+            </button>
+        </div>
+    `;
+    document.body.appendChild(nextButton);
 }
 
 function showNotification(message, color) {
@@ -182,7 +211,7 @@ window['simple-puzzle'] = {
         modal.className = 'game-modal';
         modal.innerHTML = `
             <div class="game-modal-content" style="max-width: 95vw; width: 95%; max-height: 95vh; overflow: auto;">
-                <button class="close-button" onclick="this.parentElement.parentElement.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = '';" style="position: absolute; top: 12px; right: 12px; z-index: 2000; background: #ff4444; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; cursor: pointer;">×</button>
+                <button class="close-button" onclick="this.parentElement.parentElement.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = '';" style="position: absolute; top: 12px; right: 12px; z-index: 2000; background: #ff4444; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; cursor: pointer;">←</button>
                 <div id="gameArea"></div>
             </div>
         `;

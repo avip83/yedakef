@@ -1,112 +1,34 @@
-// משחק צביעה דיגיטלית מתקדם
+// משחק צביעה דיגיטלית מתקדם - מבוסס על Canvas
 class DigitalColoringGame {
     constructor() {
         this.canvas = null;
-        this.ctx = null;
+        this.context = null;
         this.isDrawing = false;
-        this.currentTool = 'brush'; // brush, bucket, eraser
-        this.currentColor = '#e53935';
-        this.brushSize = 10;
-        this.tolerance = 30;
+        this.drawColor = '#000000';
+        this.drawWidth = 10;
+        this.startBackgroundColor = '#ffffff';
+        
+        // תמונות לצביעה - בוחר תמונות מתאימות לילדים
         this.coloringImages = [
-            'coloring-images/simple-cat.svg',
-            'coloring-images/simple-dog.svg',
-            'coloring-images/simple-flower.svg',
-            'coloring-images/astronaut.png',
-            'coloring-images/eagle.png',
-            'coloring-images/glass.jpg'
+            'coloring-images/bear-monokuma.png',
+            'coloring-images/chihiro-fujisaki.png',
+            'coloring-images/makoto-naegi.png',
+            'coloring-images/girls-with-monokuma.jpg',
+            'coloring-images/Beautiful-girls-with-Monokuma.png'
         ];
         this.currentImageIndex = 0;
+        
+        // מערכי ביטול וחזרה
+        this.storeArray = [];
+        this.index = -1;
+        this.removedArray = [];
+        this.indexRemoved = -1;
+        
         this.sounds = {
             success: 'sounds/success-340660 (mp3cut.net).mp3',
             click: 'sounds/click-tap-computer-mouse-352734.mp3',
             complete: 'sounds/game-level-complete-143022.mp3'
         };
-        this.originalImageData = null;
-        this.setupFloodFill();
-    }
-
-    setupFloodFill() {
-        // Flood fill algorithm implementation
-        this.floodFill = function(imageData, x, y, fillColor, tolerance) {
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            const length = data.length;
-            const Q = [];
-            const i = (x + y * width) * 4;
-            
-            if (i < 0 || i >= length) return false;
-            
-            const targetColor = [data[i], data[i + 1], data[i + 2], data[i + 3]];
-            
-            if (!this.pixelCompare(i, targetColor, fillColor, data, length, tolerance)) {
-                return false;
-            }
-            
-            Q.push(i);
-            while (Q.length) {
-                const currentI = Q.pop();
-                if (this.pixelCompareAndSet(currentI, targetColor, fillColor, data, length, tolerance, width)) {
-                    let e = currentI;
-                    let w = currentI;
-                    const mw = Math.floor(currentI / (width * 4)) * (width * 4);
-                    const me = mw + width * 4;
-                    
-                    while (mw < w && mw < (w -= 4) && this.pixelCompareAndSet(w, targetColor, fillColor, data, length, tolerance, width));
-                    while (me > e && me > (e += 4) && this.pixelCompareAndSet(e, targetColor, fillColor, data, length, tolerance, width));
-                    
-                    for (let j = w + 4; j < e; j += 4) {
-                        if (j - width * 4 >= 0 && this.pixelCompare(j - width * 4, targetColor, fillColor, data, length, tolerance)) {
-                            Q.push(j - width * 4);
-                        }
-                        if (j + width * 4 < length && this.pixelCompare(j + width * 4, targetColor, fillColor, data, length, tolerance)) {
-                            Q.push(j + width * 4);
-                        }
-                    }
-                }
-            }
-            return true;
-        };
-    }
-
-    pixelCompare(i, targetColor, fillColor, data, length, tolerance) {
-        if (i < 0 || i >= length) return false;
-        if (data[i + 3] === 0 && fillColor.a > 0) return true;
-        
-        if (Math.abs(targetColor[3] - fillColor.a) <= tolerance &&
-            Math.abs(targetColor[0] - fillColor.r) <= tolerance &&
-            Math.abs(targetColor[1] - fillColor.g) <= tolerance &&
-            Math.abs(targetColor[2] - fillColor.b) <= tolerance) {
-            return false;
-        }
-        
-        if (targetColor[3] === data[i + 3] &&
-            targetColor[0] === data[i] &&
-            targetColor[1] === data[i + 1] &&
-            targetColor[2] === data[i + 2]) {
-            return true;
-        }
-        
-        if (Math.abs(targetColor[3] - data[i + 3]) <= (255 - tolerance) &&
-            Math.abs(targetColor[0] - data[i]) <= tolerance &&
-            Math.abs(targetColor[1] - data[i + 1]) <= tolerance &&
-            Math.abs(targetColor[2] - data[i + 2]) <= tolerance) {
-            return true;
-        }
-        
-        return false;
-    }
-
-    pixelCompareAndSet(i, targetColor, fillColor, data, length, tolerance, width) {
-        if (this.pixelCompare(i, targetColor, fillColor, data, length, tolerance)) {
-            data[i] = fillColor.r;
-            data[i + 1] = fillColor.g;
-            data[i + 2] = fillColor.b;
-            data[i + 3] = fillColor.a;
-            return true;
-        }
-        return false;
     }
 
     init() {
@@ -129,142 +51,140 @@ class DigitalColoringGame {
                 </div>
                 <div class="game-modal-body" style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
                     
-                    <!-- כלי עבודה -->
-                    <div class="coloring-toolbar" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-                        <div class="tool-group">
-                            <label style="font-weight: bold; color: #333;">כלים:</label>
-                            <button class="tool-btn active" data-tool="brush" title="מברשת">🖌️</button>
-                            <button class="tool-btn" data-tool="bucket" title="דלי צבע">🪣</button>
-                            <button class="tool-btn" data-tool="eraser" title="מחק">🧽</button>
-                        </div>
+                    <!-- אזור הציור -->
+                    <div class="drawing-area" style="margin-bottom: 20px;">
+                        <canvas id="coloringCanvas" width="500" height="400" style="border: 3px solid #ddd; border-radius: 10px; background: white; cursor: crosshair;"></canvas>
+                    </div>
+
+                    <!-- כלי בקרה -->
+                    <div class="controls-section" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center; background: #f5f5f5; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                         
-                        <div class="tool-group">
-                            <label style="font-weight: bold; color: #333;">גודל מברשת:</label>
-                            <input type="range" id="brushSize" min="2" max="30" value="10" style="width: 100px;">
-                            <span id="brushSizeValue">10</span>
+                        <!-- בחירת צבע -->
+                        <div class="color-control" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <label style="font-weight: bold; color: #333;">צבע:</label>
+                            <input type="color" id="colorPicker" value="#000000" style="width: 60px; height: 40px; border: none; border-radius: 8px; cursor: pointer;">
                         </div>
-                        
-                        <div class="tool-group">
-                            <label style="font-weight: bold; color: #333;">רגישות דלי:</label>
-                            <input type="range" id="tolerance" min="0" max="100" value="30" style="width: 100px;">
-                            <span id="toleranceValue">30</span>
+
+                        <!-- גודל עט -->
+                        <div class="pen-control" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <label style="font-weight: bold; color: #333;">גודל עט: <span id="penWidth">10</span></label>
+                            <input type="range" id="penRange" min="1" max="50" value="10" style="width: 120px;">
                         </div>
-                    </div>
 
-                    <!-- פלטת צבעים -->
-                    <div class="color-palette" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-                        <div class="color-btn active" data-color="#e53935" style="background: #e53935;" title="אדום"></div>
-                        <div class="color-btn" data-color="#1e88e5" style="background: #1e88e5;" title="כחול"></div>
-                        <div class="color-btn" data-color="#43a047" style="background: #43a047;" title="ירוק"></div>
-                        <div class="color-btn" data-color="#fbc02d" style="background: #fbc02d;" title="צהוב"></div>
-                        <div class="color-btn" data-color="#ff7043" style="background: #ff7043;" title="כתום"></div>
-                        <div class="color-btn" data-color="#8e24aa" style="background: #8e24aa;" title="סגול"></div>
-                        <div class="color-btn" data-color="#795548" style="background: #795548;" title="חום"></div>
-                        <div class="color-btn" data-color="#607d8b" style="background: #607d8b;" title="אפור כהה"></div>
-                        <div class="color-btn" data-color="#f44336" style="background: #f44336;" title="אדום בהיר"></div>
-                        <div class="color-btn" data-color="#4caf50" style="background: #4caf50;" title="ירוק בהיר"></div>
-                        <div class="color-btn" data-color="#2196f3" style="background: #2196f3;" title="כחול בהיר"></div>
-                        <div class="color-btn" data-color="#ff9800" style="background: #ff9800;" title="כתום בהיר"></div>
-                        <div class="color-btn" data-color="#9c27b0" style="background: #9c27b0;" title="סגול בהיר"></div>
-                        <div class="color-btn" data-color="#000000" style="background: #000000;" title="שחור"></div>
-                        <div class="color-btn" data-color="#ffffff" style="background: #ffffff; border: 2px solid #ccc;" title="לבן"></div>
-                        <div class="color-btn" data-color="#ffeb3b" style="background: #ffeb3b;" title="צהוב בהיר"></div>
-                    </div>
-
-                    <!-- קנבס הצביעה -->
-                    <div class="canvas-container" style="position: relative; border: 3px solid #ddd; border-radius: 10px; overflow: hidden; background: white;">
-                        <canvas id="coloringCanvas" width="600" height="400" style="display: block; cursor: crosshair;"></canvas>
-                        <div class="canvas-loading" id="canvasLoading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #666;">
-                            טוען תמונה... 🎨
+                        <!-- כפתורי פעולה -->
+                        <div class="action-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="eraseBtn" class="control-btn" style="background: #ff9800; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">🧽 מחק</button>
+                            <button id="undoBtn" class="control-btn" style="background: #2196f3; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">↶ בטל</button>
+                            <button id="redoBtn" class="control-btn" style="background: #4caf50; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" disabled>↷ חזור</button>
                         </div>
                     </div>
 
-                    <!-- כפתורי פעולה -->
-                    <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; justify-content: center;">
-                        <button class="action-btn" id="clearCanvas" style="background: #f44336; color: white;">🗑️ נקה הכל</button>
-                        <button class="action-btn" id="undoAction" style="background: #ff9800; color: white;">↶ בטל</button>
-                        <button class="action-btn" id="saveImage" style="background: #4caf50; color: white;">💾 שמור</button>
-                        <button class="action-btn" id="nextImage" style="background: #2196f3; color: white;">🖼️ תמונה הבאה</button>
-                        <button class="action-btn" id="prevImage" style="background: #9c27b0; color: white;">🖼️ תמונה קודמת</button>
+                    <!-- גלריית תמונות -->
+                    <div class="gallery-section" style="margin-top: 20px; width: 100%;">
+                        <h3 style="text-align: center; color: #333; margin-bottom: 15px;">בחר תמונה לצביעה:</h3>
+                        <div class="gallery-images" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; background: #f9f9f9; padding: 20px; border-radius: 15px;">
+                            ${this.coloringImages.map((img, index) => `
+                                <div class="gallery-item" style="cursor: pointer; transition: transform 0.3s ease;">
+                                    <img class="gallery-image" data-index="${index}" src="${img}" alt="תמונה ${index + 1}" style="width: 120px; height: 90px; object-fit: cover; border: 3px solid #ddd; border-radius: 10px;">
+                                    <p style="text-align: center; margin: 5px 0; font-size: 12px; color: #666;">תמונה ${index + 1}</p>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
 
-                    <div class="image-counter" style="margin-top: 10px; font-size: 16px; color: #666;">
-                        תמונה <span id="currentImageNum">1</span> מתוך <span id="totalImages">6</span>
+                    <!-- כפתורי פעולה נוספים -->
+                    <div class="additional-controls" style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; justify-content: center;">
+                        <button id="resetBtn" class="action-btn" style="background: #f44336; color: white; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">🗑️ נקה הכל</button>
+                        <button id="saveBtn" class="action-btn" style="background: #4caf50; color: white; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">💾 שמור</button>
+                        <button id="nextImageBtn" class="action-btn" style="background: #9c27b0; color: white; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">🖼️ תמונה הבאה</button>
+                    </div>
+
+                    <div class="image-counter" style="margin-top: 15px; font-size: 16px; color: #666; background: #e3f2fd; padding: 10px 20px; border-radius: 20px; font-weight: bold;">
+                        תמונה <span id="currentImageNum">1</span> מתוך <span id="totalImages">${this.coloringImages.length}</span>
                     </div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(modal);
+        this.setupCanvas();
         this.setupEventListeners();
-        this.loadCurrentImage();
+        this.loadImage(this.coloringImages[0]);
+    }
+
+    setupCanvas() {
+        this.canvas = document.getElementById('coloringCanvas');
+        this.context = this.canvas.getContext('2d');
+        
+        // הגדרת רקע התחלתי
+        this.context.fillStyle = this.startBackgroundColor;
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // שמירת מצב התחלתי
+        this.storeArray.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+        this.index += 1;
     }
 
     setupEventListeners() {
-        this.canvas = document.getElementById('coloringCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        
-        // כלי עבודה
-        document.querySelectorAll('.tool-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.currentTool = e.target.dataset.tool;
-                this.updateCursor();
-                this.playSound('click');
-            });
-        });
-
-        // צבעים
-        document.querySelectorAll('.color-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.currentColor = e.target.dataset.color;
-                this.playSound('click');
-            });
-        });
-
-        // גודל מברשת
-        const brushSizeSlider = document.getElementById('brushSize');
-        const brushSizeValue = document.getElementById('brushSizeValue');
-        brushSizeSlider.addEventListener('input', (e) => {
-            this.brushSize = parseInt(e.target.value);
-            brushSizeValue.textContent = this.brushSize;
-            this.updateCursor();
-        });
-
-        // רגישות דלי
-        const toleranceSlider = document.getElementById('tolerance');
-        const toleranceValue = document.getElementById('toleranceValue');
-        toleranceSlider.addEventListener('input', (e) => {
-            this.tolerance = parseInt(e.target.value);
-            toleranceValue.textContent = this.tolerance;
-        });
-
-        // אירועי קנבס
+        // אירועי ציור
         this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
         this.canvas.addEventListener('mousemove', this.draw.bind(this));
         this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
         this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
-
+        
         // תמיכה במגע
         this.canvas.addEventListener('touchstart', this.handleTouch.bind(this));
         this.canvas.addEventListener('touchmove', this.handleTouch.bind(this));
         this.canvas.addEventListener('touchend', this.stopDrawing.bind(this));
 
+        // בחירת צבע
+        document.getElementById('colorPicker').addEventListener('input', (e) => {
+            this.drawColor = e.target.value;
+            this.playSound('click');
+        });
+
+        // גודל עט
+        const penRange = document.getElementById('penRange');
+        const penWidth = document.getElementById('penWidth');
+        penRange.addEventListener('input', (e) => {
+            this.drawWidth = e.target.value;
+            penWidth.textContent = e.target.value;
+        });
+
         // כפתורי פעולה
-        document.getElementById('clearCanvas').addEventListener('click', this.clearCanvas.bind(this));
-        document.getElementById('undoAction').addEventListener('click', this.undoAction.bind(this));
-        document.getElementById('saveImage').addEventListener('click', this.saveImage.bind(this));
-        document.getElementById('nextImage').addEventListener('click', this.nextImage.bind(this));
-        document.getElementById('prevImage').addEventListener('click', this.prevImage.bind(this));
+        document.getElementById('eraseBtn').addEventListener('click', this.eraseColor.bind(this));
+        document.getElementById('undoBtn').addEventListener('click', this.undoLast.bind(this));
+        document.getElementById('redoBtn').addEventListener('click', this.redoLast.bind(this));
+        document.getElementById('resetBtn').addEventListener('click', this.resetCanvas.bind(this));
+        document.getElementById('saveBtn').addEventListener('click', this.saveCanvas.bind(this));
+        document.getElementById('nextImageBtn').addEventListener('click', this.nextImage.bind(this));
+
+        // גלריית תמונות
+        document.querySelectorAll('.gallery-image').forEach(img => {
+            img.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.currentImageIndex = index;
+                this.loadImage(this.coloringImages[index]);
+                this.updateImageCounter();
+                this.playSound('click');
+            });
+            
+            // אפקט hover
+            img.addEventListener('mouseenter', (e) => {
+                e.target.style.transform = 'scale(1.1)';
+                e.target.style.borderColor = '#2196f3';
+            });
+            
+            img.addEventListener('mouseleave', (e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.borderColor = '#ddd';
+            });
+        });
     }
 
     handleTouch(e) {
         e.preventDefault();
         const touch = e.touches[0];
-        const rect = this.canvas.getBoundingClientRect();
         const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
                                          e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
             clientX: touch.clientX,
@@ -273,161 +193,155 @@ class DigitalColoringGame {
         this.canvas.dispatchEvent(mouseEvent);
     }
 
-    updateCursor() {
-        if (this.currentTool === 'brush') {
-            this.canvas.style.cursor = 'crosshair';
-        } else if (this.currentTool === 'bucket') {
-            this.canvas.style.cursor = 'pointer';
-        } else if (this.currentTool === 'eraser') {
-            this.canvas.style.cursor = 'grab';
-        }
+    startDrawing(event) {
+        this.isDrawing = true;
+        this.draw(event);
+        event.preventDefault();
     }
 
-    startDrawing(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor(e.clientX - rect.left);
-        const y = Math.floor(e.clientY - rect.top);
-
-        if (this.currentTool === 'bucket') {
-            this.bucketFill(x, y);
-            this.playSound('success');
-        } else {
-            this.isDrawing = true;
-            this.saveState();
-            if (this.currentTool === 'brush') {
-                this.ctx.globalCompositeOperation = 'source-over';
-                this.ctx.strokeStyle = this.currentColor;
-            } else if (this.currentTool === 'eraser') {
-                this.ctx.globalCompositeOperation = 'destination-out';
-            }
-            
-            this.ctx.lineWidth = this.brushSize;
-            this.ctx.lineCap = 'round';
-            this.ctx.lineJoin = 'round';
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, y);
-            this.playSound('click');
-        }
-    }
-
-    draw(e) {
-        if (!this.isDrawing || this.currentTool === 'bucket') return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor(e.clientX - rect.left);
-        const y = Math.floor(e.clientY - rect.top);
-        
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
-    }
-
-    stopDrawing() {
+    draw(event) {
         if (this.isDrawing) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            this.context.lineTo(x, y);
+            this.context.strokeStyle = this.drawColor;
+            this.context.lineWidth = this.drawWidth;
+            this.context.lineCap = 'round';
+            this.context.lineJoin = 'round';
+            this.context.stroke();
+            
+            this.context.beginPath();
+            this.context.moveTo(x, y);
+            
+            event.preventDefault();
+        }
+    }
+
+    stopDrawing(event) {
+        if (this.isDrawing) {
+            this.context.stroke();
+            this.context.closePath();
             this.isDrawing = false;
-            this.ctx.beginPath();
+            
+            // שמירת מצב לביטול
+            this.storeArray.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            this.index += 1;
+            
+            // איפוס מערך החזרה
+            this.removedArray = [];
+            this.indexRemoved = -1;
+            document.getElementById('redoBtn').disabled = true;
         }
+        this.context.beginPath();
+        event.preventDefault();
     }
 
-    bucketFill(x, y) {
-        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        const fillColor = this.hexToRgb(this.currentColor);
-        fillColor.a = 255;
-        
-        this.saveState();
-        if (this.floodFill(imageData, x, y, fillColor, this.tolerance)) {
-            this.ctx.putImageData(imageData, 0, 0);
-        }
-    }
-
-    hexToRgb(hex) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : {r: 0, g: 0, b: 0};
-    }
-
-    saveState() {
-        if (!this.states) this.states = [];
-        if (this.states.length > 10) this.states.shift();
-        this.states.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height));
-    }
-
-    undoAction() {
-        if (this.states && this.states.length > 0) {
-            const previousState = this.states.pop();
-            this.ctx.putImageData(previousState, 0, 0);
-            this.playSound('click');
-        }
-    }
-
-    clearCanvas() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        if (this.originalImageData) {
-            this.ctx.putImageData(this.originalImageData, 0, 0);
-        }
-        this.states = [];
+    eraseColor() {
+        this.drawColor = this.startBackgroundColor;
         this.playSound('click');
     }
 
-    saveImage() {
+    undoLast() {
+        if (this.index === 0) {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillStyle = this.startBackgroundColor;
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        } else if (this.index < 0) {
+            this.resetCanvas();
+        } else {
+            this.removedArray.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            this.indexRemoved += 1;
+            
+            this.storeArray.pop();
+            this.index -= 1;
+            
+            this.context.putImageData(this.storeArray[this.index], 0, 0);
+            document.getElementById('redoBtn').disabled = false;
+        }
+        this.playSound('click');
+    }
+
+    redoLast() {
+        if (this.removedArray.length > 0) {
+            this.context.putImageData(this.removedArray[this.indexRemoved], 0, 0);
+            this.removedArray.pop();
+            this.indexRemoved -= 1;
+            
+            this.storeArray.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            this.index += 1;
+            
+            if (this.removedArray.length === 0) {
+                document.getElementById('redoBtn').disabled = true;
+            }
+        }
+        this.playSound('click');
+    }
+
+    resetCanvas() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.fillStyle = this.startBackgroundColor;
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.loadImage(this.coloringImages[this.currentImageIndex]);
+        
+        this.storeArray = [];
+        this.index = -1;
+        this.removedArray = [];
+        this.indexRemoved = -1;
+        
+        document.getElementById('redoBtn').disabled = true;
+        this.playSound('click');
+    }
+
+    loadImage(imageSrc) {
+        const newImage = new Image();
+        newImage.onload = () => {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillStyle = this.startBackgroundColor;
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // חישוב גודל התמונה כך שתתאים לקנבס
+            const scale = Math.min(this.canvas.width / newImage.width, this.canvas.height / newImage.height);
+            const newWidth = newImage.width * scale;
+            const newHeight = newImage.height * scale;
+            const x = (this.canvas.width - newWidth) / 2;
+            const y = (this.canvas.height - newHeight) / 2;
+            
+            this.context.drawImage(newImage, x, y, newWidth, newHeight);
+            
+            this.storeArray.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            this.index += 1;
+        };
+        
+        newImage.onerror = () => {
+            console.error('Failed to load image:', imageSrc);
+        };
+        
+        newImage.src = imageSrc;
+    }
+
+    nextImage() {
+        this.currentImageIndex = (this.currentImageIndex + 1) % this.coloringImages.length;
+        this.loadImage(this.coloringImages[this.currentImageIndex]);
+        this.updateImageCounter();
+        this.playSound('click');
+    }
+
+    updateImageCounter() {
+        const currentNum = document.getElementById('currentImageNum');
+        if (currentNum) {
+            currentNum.textContent = this.currentImageIndex + 1;
+        }
+    }
+
+    saveCanvas() {
         const link = document.createElement('a');
         link.download = `coloring-${Date.now()}.png`;
         link.href = this.canvas.toDataURL();
         link.click();
         this.playSound('success');
-    }
-
-    nextImage() {
-        this.currentImageIndex = (this.currentImageIndex + 1) % this.coloringImages.length;
-        this.loadCurrentImage();
-        this.playSound('click');
-    }
-
-    prevImage() {
-        this.currentImageIndex = this.currentImageIndex === 0 ? 
-            this.coloringImages.length - 1 : this.currentImageIndex - 1;
-        this.loadCurrentImage();
-        this.playSound('click');
-    }
-
-    loadCurrentImage() {
-        const loading = document.getElementById('canvasLoading');
-        const currentNum = document.getElementById('currentImageNum');
-        const totalImages = document.getElementById('totalImages');
-        
-        if (loading) loading.style.display = 'block';
-        if (currentNum) currentNum.textContent = this.currentImageIndex + 1;
-        if (totalImages) totalImages.textContent = this.coloringImages.length;
-
-        const img = new Image();
-        img.onload = () => {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // חשב גודל התמונה כך שתתאים לקנבס
-            const scale = Math.min(this.canvas.width / img.width, this.canvas.height / img.height);
-            const newWidth = img.width * scale;
-            const newHeight = img.height * scale;
-            const x = (this.canvas.width - newWidth) / 2;
-            const y = (this.canvas.height - newHeight) / 2;
-            
-            this.ctx.drawImage(img, x, y, newWidth, newHeight);
-            this.originalImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            this.states = [];
-            
-            if (loading) loading.style.display = 'none';
-        };
-        
-        img.onerror = () => {
-            console.error('Failed to load image:', this.coloringImages[this.currentImageIndex]);
-            if (loading) {
-                loading.textContent = 'שגיאה בטעינת התמונה 😔';
-                loading.style.color = '#f44336';
-            }
-        };
-        
-        img.src = this.coloringImages[this.currentImageIndex];
     }
 
     playSound(soundType) {

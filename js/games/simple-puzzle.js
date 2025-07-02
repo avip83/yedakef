@@ -1,5 +1,26 @@
 // פאזל תמונות פשוט עם JigsawExplorer - 9 חלקים מתכוונן
 function startSimplePuzzleGame() {
+    // טעינת צלילים
+    const sounds = {
+        click: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
+        success: new Audio('sounds/success-340660 (mp3cut.net).mp3')
+    };
+    
+    // פונקציה להשמעת צליל
+    function playSound(type) {
+        if (window.__globalMute) return;
+        if (sounds[type]) {
+            try {
+                sounds[type].currentTime = 0;
+                sounds[type].play();
+            } catch (e) {
+                console.log('לא ניתן לנגן צליל:', e);
+            }
+        }
+    }
+    
+    // הוספת הפונקציה לחלון הגלובלי
+    window.playPuzzleSound = playSound;
     const gameArea = document.getElementById('gameArea');
     
     // רשימת תמונות לפאזל - כל התמונות בספרייה
@@ -20,38 +41,38 @@ function startSimplePuzzleGame() {
     const randomImage = puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
     
         gameArea.innerHTML = `
-        <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px;">
             <!-- בר התקדמות שלבים -->
-            <div id="progressBar" style="width: 100%; max-width: 600px; margin-bottom: 20px;">
-                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+            <div id="progressBar" style="width: 100%; max-width: 600px; margin-bottom: 12px;">
+                <div style="background: #e0e0e0; height: 6px; border-radius: 3px; overflow: hidden;">
                     <div id="progressFill" style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: 10%; transition: width 0.3s ease;"></div>
                 </div>
-                <div style="text-align: center; margin-top: 5px; color: #666; font-size: 12px;">
+                <div style="text-align: center; margin-top: 4px; color: #666; font-size: 11px;">
                     שלב <span id="currentLevel">1</span> מתוך <span id="totalLevels">20</span>
                 </div>
             </div>
 
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
-                <div style="margin-bottom: 20px;">
-                    <button onclick="nextLevel()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">➡️ שלב הבא</button>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.4em;">🧩 פאזל תמונות</h2>
+                <div style="margin-bottom: 12px;">
+                    <button onclick="window.playPuzzleSound('click'); nextLevel()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">➡️ שלב הבא</button>
                 </div>
             </div>
             
-            <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 12px; padding: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
                 <iframe id="puzzleFrame" 
                         src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=9&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
                         width="600" 
-                        height="450" 
-                        style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
+                        height="420" 
+                        style="border: none; border-radius: 8px; max-width: 100%; max-height: 65vh;"
                         frameborder="0"
                         allowfullscreen>
                 </iframe>
             </div>
 
             <!-- הסבר על החלון הפנימי -->
-            <div style="margin-top: 15px; max-width: 600px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; text-align: center;">
-                <p style="margin: 0; color: #856404; font-size: 14px;">
+            <div style="margin-top: 10px; max-width: 600px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; text-align: center;">
+                <p style="margin: 0; color: #856404; font-size: 12px;">
                     💡 <strong>הסבר:</strong> לחץ על "OK" כדי להתחיל או שנה את ההגדרות לפי הרצון שלך.
                 </p>
             </div>
@@ -71,7 +92,7 @@ function startSimplePuzzleGame() {
     window.addEventListener('message', function(event) {
         if (event.origin === 'https://www.jigsawexplorer.com' && event.data === 'puzzle-complete') {
             setTimeout(() => {
-                playSuccessSound();
+                window.playPuzzleSound('success');
                 showNotification('🎉 כל הכבוד! השלב הושלם!', '#4CAF50');
             }, 500);
         }
@@ -139,32 +160,9 @@ function showNotification(message, color) {
 
 
 
-function playSuccessSound() {
-    // ניגון צליל הצלחה עם תמיכה טובה יותר למובייל
-    try {
-        const audio = new Audio('sounds/success-340660 (mp3cut.net).mp3');
-        
-        // בדיקת תמיכה בפורמט
-        if (audio.canPlayType && audio.canPlayType('audio/mpeg') !== '') {
-            audio.volume = 0.5; // עוצמה בינונית
-            
-            // ניסיון להשמיע - במובייל זה עלול להיחסם
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // זה נורמלי במובייל - דפדפנים חוסמים autoplay
-                    console.log('שמע נחסם בדפדפן (זה נורמלי במובייל):', error.name);
-                });
-            }
-        }
-    } catch (e) {
-        // אם יש שגיאה ביצירת אובייקט האודיו
-        console.log('שגיאה ביצירת אודיו:', e);
-    }
-}
 
-// הוספת סגנונות CSS לאנימציות
+
+// הוספת סגנונות CSS לאנימציות ותמיכה מובייל
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -172,14 +170,42 @@ style.textContent = `
         to { transform: translateX(0); opacity: 1; }
     }
     
-    #piecesSelect:hover {
-        border-color: #4CAF50;
-    }
-    
     button:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
+    }
+    
+    /* תמיכה מובייל טובה יותר */
+    @media (max-width: 768px) {
+        #puzzleContainer iframe {
+            height: 350px !important;
+            max-height: 50vh !important;
+        }
+        
+        .game-modal-content {
+            padding: 10px !important;
+        }
+        
+        h2 {
+            font-size: 1.2em !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        #puzzleContainer iframe {
+            height: 300px !important;
+            max-height: 45vh !important;
+        }
+        
+        h2 {
+            font-size: 1.1em !important;
+        }
+        
+        button {
+            font-size: 12px !important;
+            padding: 6px 12px !important;
+        }
     }
 `;
 document.head.appendChild(style);

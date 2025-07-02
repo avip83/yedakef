@@ -1231,6 +1231,14 @@ button, .game-card, .category-card {
     }
 }
 
+/* Find Differences Modal Styles */
+.find-differences-modal {
+    max-width: 900px !important;
+    width: 95% !important;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
 /* Find Differences Game Styles */
 .find-differences-game {
     width: 100%;

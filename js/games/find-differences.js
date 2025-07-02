@@ -52,77 +52,83 @@ class FindDifferencesGame {
     }
 
     createGameHTML() {
-        const gameHTML = `
-            <div class="find-differences-game">
-                <div class="game-header">
-                    <h2>מצא את ההבדלים</h2>
-                    <div class="game-stats">
-                        <div class="stat">
-                            <span class="stat-label">חיים:</span>
-                            <span id="lives-count">${this.lives}</span>
+        // יצירת מודאל המשחק
+        const modal = document.createElement('div');
+        modal.className = 'game-modal';
+        modal.innerHTML = `
+            <div class="game-modal-content find-differences-modal">
+                <button class="close-button" onclick="this.parentElement.parentElement.remove()">×</button>
+                <div class="find-differences-game">
+                    <div class="game-header">
+                        <h2>מצא את ההבדלים</h2>
+                        <div class="game-stats">
+                            <div class="stat">
+                                <span class="stat-label">חיים:</span>
+                                <span id="lives-count">${this.lives}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">זמן:</span>
+                                <span id="timer">00:${this.timeLeft < 10 ? '0' + this.timeLeft : this.timeLeft}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">ניקוד:</span>
+                                <span id="score-count">${this.score}</span>
+                            </div>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">זמן:</span>
-                            <span id="timer">00:${this.timeLeft < 10 ? '0' + this.timeLeft : this.timeLeft}</span>
+                    </div>
+                    
+                    <div class="game-instructions">
+                        <p>מצא 4 הבדלים בין התמונות. לחץ על ההבדלים כדי לסמן אותם!</p>
+                    </div>
+                    
+                    <div class="images-container">
+                        <div class="image-wrapper" id="image1">
+                            <img src="${this.gameData.diff[0].a_src}" alt="תמונה 1" />
+                            <div class="differences-overlay">
+                                ${this.createDifferenceSpots()}
+                            </div>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">ניקוד:</span>
-                            <span id="score-count">${this.score}</span>
+                        <div class="image-wrapper" id="image2">
+                            <img src="${this.gameData.diff[0].b_src}" alt="תמונה 2" />
+                            <div class="differences-overlay">
+                                ${this.createDifferenceSpots()}
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div class="game-controls">
+                        <button id="restart-btn" class="game-btn">התחל מחדש</button>
+                        <button id="hint-btn" class="game-btn">רמז</button>
+                        <button id="back-btn" class="game-btn">חזור לתפריט</button>
                     </div>
                 </div>
                 
-                <div class="game-instructions">
-                    <p>מצא 4 הבדלים בין התמונות. לחץ על ההבדלים כדי לסמן אותם!</p>
-                </div>
-                
-                <div class="images-container">
-                    <div class="image-wrapper" id="image1">
-                        <img src="${this.gameData.diff[0].a_src}" alt="תמונה 1" />
-                        <div class="differences-overlay">
-                            ${this.createDifferenceSpots()}
-                        </div>
-                    </div>
-                    <div class="image-wrapper" id="image2">
-                        <img src="${this.gameData.diff[0].b_src}" alt="תמונה 2" />
-                        <div class="differences-overlay">
-                            ${this.createDifferenceSpots()}
-                        </div>
+                <!-- Win Modal -->
+                <div id="win-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3>כל הכבוד!</h3>
+                        <p>מצאת את כל ההבדלים!</p>
+                        <p>הניקוד שלך: <span id="final-score"></span></p>
+                        <button id="play-again-btn" class="modal-btn">שחק שוב</button>
+                        <button id="menu-btn" class="modal-btn">תפריט ראשי</button>
                     </div>
                 </div>
                 
-                <div class="game-controls">
-                    <button id="restart-btn" class="game-btn">התחל מחדש</button>
-                    <button id="hint-btn" class="game-btn">רמז</button>
-                    <button id="back-btn" class="game-btn">חזור לתפריט</button>
-                </div>
-            </div>
-            
-            <!-- Win Modal -->
-            <div id="win-modal" class="modal hidden">
-                <div class="modal-content">
-                    <h3>כל הכבוד!</h3>
-                    <p>מצאת את כל ההבדלים!</p>
-                    <p>הניקוד שלך: <span id="final-score"></span></p>
-                    <button id="play-again-btn" class="modal-btn">שחק שוב</button>
-                    <button id="menu-btn" class="modal-btn">תפריט ראשי</button>
-                </div>
-            </div>
-            
-            <!-- Game Over Modal -->
-            <div id="gameover-modal" class="modal hidden">
-                <div class="modal-content">
-                    <h3>המשחק הסתיים</h3>
-                    <p>הזמן נגמר או שנגמרו החיים</p>
-                    <p>הניקוד שלך: <span id="gameover-score"></span></p>
-                    <button id="try-again-btn" class="modal-btn">נסה שוב</button>
-                    <button id="gameover-menu-btn" class="modal-btn">תפריט ראשי</button>
+                <!-- Game Over Modal -->
+                <div id="gameover-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3>המשחק הסתיים</h3>
+                        <p>הזמן נגמר או שנגמרו החיים</p>
+                        <p>הניקוד שלך: <span id="gameover-score"></span></p>
+                        <button id="try-again-btn" class="modal-btn">נסה שוב</button>
+                        <button id="gameover-menu-btn" class="modal-btn">תפריט ראשי</button>
+                    </div>
                 </div>
             </div>
         `;
         
-        this.gameContainer = document.getElementById('game-container');
-        this.gameContainer.innerHTML = gameHTML;
+        document.body.appendChild(modal);
+        this.gameContainer = modal;
     }
 
     createDifferenceSpots() {
@@ -158,10 +164,15 @@ class FindDifferencesGame {
         document.getElementById('back-btn').addEventListener('click', () => this.backToMenu());
 
         // Modal buttons
-        document.getElementById('play-again-btn').addEventListener('click', () => this.playAgain());
-        document.getElementById('menu-btn').addEventListener('click', () => this.backToMenu());
-        document.getElementById('try-again-btn').addEventListener('click', () => this.playAgain());
-        document.getElementById('gameover-menu-btn').addEventListener('click', () => this.backToMenu());
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const gameoverMenuBtn = document.getElementById('gameover-menu-btn');
+        
+        if (playAgainBtn) playAgainBtn.addEventListener('click', () => this.playAgain());
+        if (menuBtn) menuBtn.addEventListener('click', () => this.backToMenu());
+        if (tryAgainBtn) tryAgainBtn.addEventListener('click', () => this.playAgain());
+        if (gameoverMenuBtn) gameoverMenuBtn.addEventListener('click', () => this.backToMenu());
     }
 
     handleDifferenceClick(e) {
@@ -354,7 +365,9 @@ class FindDifferencesGame {
 
     backToMenu() {
         clearInterval(this.timer);
-        showCategories();
+        if (this.gameContainer) {
+            this.gameContainer.remove();
+        }
     }
 
     playSound(type) {

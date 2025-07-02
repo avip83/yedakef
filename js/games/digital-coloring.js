@@ -473,3 +473,32 @@ document.head.insertAdjacentHTML('beforeend', additionalCSS);
 
 // יצירת אובייקט המשחק הגלובלי
 window.digitalColoringGame = new DigitalColoringGame();
+
+// יצירת אובייקט תואם למערכת הראשית
+window['digital-coloring'] = {
+    init: function() {
+        const gameContainer = document.getElementById('game-container');
+        if (!gameContainer) {
+            // יצירת מודל עם game-container
+            const modal = document.createElement('div');
+            modal.className = 'game-modal';
+            modal.innerHTML = `
+                <div class="game-modal-content" style="max-width: 95vw; max-height: 95vh; width: auto; height: auto; overflow: auto;">
+                    <div class="game-modal-header">
+                        <h2>🎨 צביעה דיגיטלית מתקדמת</h2>
+                        <button class="close-modal" onclick="this.closest('.game-modal').remove()">×</button>
+                    </div>
+                    <div class="game-modal-body" style="padding: 10px;">
+                        <div id="game-container"></div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // אתחול המשחק
+        if (window.digitalColoringGame) {
+            window.digitalColoringGame.init();
+        }
+    }
+};

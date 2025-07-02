@@ -23,7 +23,7 @@ function startSimplePuzzleGame() {
         <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
-                <div style="margin-bottom: 15px;">
+                <div style="margin-bottom: 20px;">
                     <label style="color: #666; font-weight: bold; margin-left: 10px;">מספר חלקים:</label>
                     <select id="piecesSelect" style="margin: 0 10px; padding: 8px; border-radius: 8px; border: 2px solid #ddd; font-size: 14px;">
                         <option value="9">9 חלקים (3x3)</option>
@@ -35,22 +35,11 @@ function startSimplePuzzleGame() {
                     <button onclick="createNewPuzzle()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔄 פאזל חדש</button>
                     <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">💡 טיפים</button>
                 </div>
-                <div style="background: #e3f2fd; padding: 8px 15px; border-radius: 8px; margin-bottom: 15px; border-right: 4px solid #2196F3;">
-                    <p style="margin: 0; color: #1976D2; font-size: 13px;">
-                        <strong>💡 הוראה:</strong> אם מופיעה הודעה לבחירת מספר חלקים - פשוט לחץ "OK" או בחר את מספר החלקים הרצוי ולחץ "OK"
-                    </p>
-                </div>
             </div>
             
             <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <iframe id="puzzleFrame" 
-                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
-                        width="600" 
-                        height="450" 
-                        style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
-                        frameborder="0"
-                        allowfullscreen>
-                </iframe>
+                <div id="puzzleLoading" style="padding: 50px; color: #666;">⏳ יוצר פאזל...</div>
+                <div id="puzzleFrame" style="display: none;"></div>
             </div>
         </div>
     `;
@@ -60,6 +49,9 @@ function startSimplePuzzleGame() {
     window.showHint = showHint;
     window.updatePuzzlePieces = updatePuzzlePieces;
     window.currentPuzzleImages = puzzleImages;
+    
+    // יצירת הפאזל הראשון
+    createCustomPuzzle(randomImage, 9);
     
     // האזנה לשינויים בבחירת מספר החלקים
     setTimeout(() => {
@@ -82,16 +74,52 @@ function startSimplePuzzleGame() {
     });
 }
 
+async function createCustomPuzzle(imagePath, pieces) {
+    const puzzleLoading = document.getElementById('puzzleLoading');
+    const puzzleFrame = document.getElementById('puzzleFrame');
+    
+    puzzleLoading.style.display = 'block';
+    puzzleFrame.style.display = 'none';
+    
+    try {
+        // יצירת URL מלא לתמונה
+        const imageUrl = window.location.origin + '/' + imagePath;
+        
+        // יצירת פאזל מותאם אישית עם הפרמטרים הנכונים
+        const customPuzzleUrl = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(imageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+        
+        // יצירת iframe עם הפאזל
+        puzzleFrame.innerHTML = `
+            <iframe src="${customPuzzleUrl}" 
+                    width="600" 
+                    height="450" 
+                    style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
+                    frameborder="0"
+                    allowfullscreen>
+            </iframe>
+        `;
+        
+        // הסתרת הטעינה והצגת הפאזל
+        setTimeout(() => {
+            puzzleLoading.style.display = 'none';
+            puzzleFrame.style.display = 'block';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('שגיאה ביצירת הפאזל:', error);
+        puzzleLoading.innerHTML = '❌ שגיאה ביצירת הפאזל';
+    }
+}
+
 function createNewPuzzle() {
     const piecesSelect = document.getElementById('piecesSelect');
-    const puzzleFrame = document.getElementById('puzzleFrame');
     const pieces = piecesSelect.value;
     
     // בחירת תמונה אקראית חדשה
     const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
     
-    // עדכון הפאזל עם פרמטרים מתקדמים
-    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+    // יצירת פאזל חדש
+    createCustomPuzzle(randomImage, pieces);
     
     // הודעה לשחקן
     showNotification(`🎲 פאזל חדש עם ${pieces} חלקים!`, '#4CAF50');
@@ -99,20 +127,25 @@ function createNewPuzzle() {
 
 function updatePuzzlePieces() {
     const piecesSelect = document.getElementById('piecesSelect');
-    const puzzleFrame = document.getElementById('puzzleFrame');
     const pieces = piecesSelect.value;
     
-    // שמירת התמונה הנוכחית
-    const currentSrc = puzzleFrame.src;
-    const urlMatch = currentSrc.match(/url=([^&]+)/);
-    const currentImageUrl = urlMatch ? decodeURIComponent(urlMatch[1]) : null;
+    // קבלת התמונה הנוכחית
+    const puzzleFrame = document.getElementById('puzzleFrame');
+    const iframe = puzzleFrame.querySelector('iframe');
     
-    if (currentImageUrl) {
-        // עדכון רק מספר החלקים, שמירת אותה תמונה עם פרמטרים מתקדמים
-        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(currentImageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
-        
-        // הודעה לשחקן
-        showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');
+    if (iframe && iframe.src) {
+        // חילוץ URL התמונה מה-iframe הנוכחי
+        const urlMatch = iframe.src.match(/url=([^&]+)/);
+        if (urlMatch) {
+            const currentImageUrl = decodeURIComponent(urlMatch[1]);
+            const imagePath = currentImageUrl.replace(window.location.origin + '/', '');
+            
+            // יצירת פאזל חדש עם אותה תמונה ומספר חלקים חדש
+            createCustomPuzzle(imagePath, pieces);
+            
+            // הודעה לשחקן
+            showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');
+        }
     }
 }
 

@@ -1,381 +1,398 @@
-// משחק מצא את ההבדלים - גרסה אמיתית עם תמונות ההבדלים
-function startFindDifferences() {
-    console.log('Starting Find Differences Game - Real Version');
-    
-    // יצירת מודל המשחק
-    createGameModal();
-}
-
-function createGameModal() {
-    // הסרת מודל קיים אם יש
-    const existingModal = document.querySelector('.find-differences-modal');
-    if (existingModal) {
-        existingModal.remove();
+class FindDifferencesGame {
+    constructor() {
+        this.gameStarted = false;
+        this.completed = false;
+        this.score = 0;
+        this.foundDifferences = 0;
+        this.totalDifferences = 5;
+        this.startTime = null;
+        this.gameTime = 0;
+        this.sounds = {
+    success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
+            wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
+            click: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
+            complete: new Audio('sounds/game-level-complete-143022.mp3')
+        };
+        
+        // רשימת ההבדלים עם הקואורדינטות שלהם
+        this.differences = [
+            { id: 'leaf', name: 'עלה', shape: 'circle', coords: '133,280,11', found: false },
+            { id: 'light', name: 'אור', shape: 'rect', coords: '253,2,292,24', found: false },
+            { id: 'nolight', name: 'אין אור', shape: 'rect', coords: '273,151,293,182', found: false },
+            { id: 'sauce', name: 'רוטב', shape: 'circle', coords: '368,385,7', found: false },
+            { id: 'petal', name: 'עלה כותרת', shape: 'rect', coords: '261,375,281,403', found: false }
+        ];
     }
-    
-    // יצירת מודל חדש
-    const modal = document.createElement('div');
-    modal.className = 'find-differences-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🔍 מצא את ההבדלים</h2>
-                <button class="close-btn" onclick="closeFindDifferences()">×</button>
+
+    start() {
+        this.gameStarted = false;
+        this.completed = false;
+        this.score = 0;
+        this.foundDifferences = 0;
+        this.startTime = null;
+        this.gameTime = 0;
+        
+        // איפוס רשימת ההבדלים
+        this.differences.forEach(diff => diff.found = false);
+        
+        this.showStartScreen();
+    }
+
+    showStartScreen() {
+        const gameArea = document.getElementById('game-area');
+        gameArea.innerHTML = `
+            <div class="find-diff-start-screen">
+                <div class="find-diff-start-content">
+                    <h1>🔍 מצא את ההבדלים</h1>
+                    <p>מצא את 5 ההבדלים בין שתי התמונות</p>
+                    <p>לחץ על ההבדלים בתמונה הימנית</p>
+                    <button id="find-diff-start-btn" class="find-diff-start-button">
+                        התחל לשחק
+                    </button>
+        </div>
             </div>
-            <div class="game-info">
-                <div class="score">נקודות: <span id="score">0</span></div>
-                <div class="found">נמצאו: <span id="found">0</span>/5</div>
-                <div class="timer">זמן: <span id="timer">120</span></div>
-            </div>
-            <div class="game-container">
-                <div class="images-container">
-                    <div class="image-wrapper">
-                        <h3>תמונה ראשונה</h3>
-                        <div class="image-box" id="image1">
-                            <img src="find-differences-images/image1.jpg" alt="תמונה ראשונה">
-                        </div>
+        `;
+
+        document.getElementById('find-diff-start-btn').addEventListener('click', () => {
+            this.sounds.click.play();
+            this.startGame();
+        });
+    }
+
+    startGame() {
+        this.gameStarted = true;
+        this.startTime = new Date().getTime();
+        this.showGameBoard();
+    }
+
+    showGameBoard() {
+        const gameArea = document.getElementById('game-area');
+        
+        gameArea.innerHTML = `
+            <div class="find-diff-game">
+                <div class="find-diff-header">
+                    <div class="find-diff-info">
+                        <span>נמצאו: ${this.foundDifferences}/${this.totalDifferences}</span>
                     </div>
-                    <div class="image-wrapper">
-                        <h3>תמונה שנייה - מצא את ההבדלים!</h3>
-                        <div class="image-box" id="image2">
-                            <img src="find-differences-images/image2.jpg" alt="תמונה שנייה" usemap="#photohunt">
-                            
-                            <!-- Image map עם קואורדינטות ההבדלים המדויקות -->
-                            <map name="photohunt">
-                                <area id="leaf" shape="circle" coords="133, 280, 11" title="הבדל 1 - עלה" />
-                                <area id="light" shape="rect" coords="253, 2, 292, 24" title="הבדל 2 - אור" />
-                                <area id="nolight" shape="rect" coords="273, 151, 293, 182" title="הבדל 3 - אור נעדר" />
-                                <area id="sauce" shape="circle" coords="368, 385, 7" title="הבדל 4 - רוטב" />
-                                <area id="petal" shape="rect" coords="261, 375, 281, 403" title="הבדל 5 - עלה כותרת" />
-                            </map>
-                            
-                            <!-- תמונות ההבדלים שיופיעו כשנמצאו -->
-                            <div id="leaf-diff" class="difference-found" style="display: none; position: absolute; top: 269px; left: 122px;">
-                                <img src="find-differences-images/leaf.png" alt="עלה">
+                    <div class="find-diff-score">
+                        <span>ניקוד: ${this.score}</span>
+                    </div>
+                    <div class="find-diff-timer">
+                        <span id="game-timer">00:00</span>
+                    </div>
+                </div>
+                
+                <div class="find-diff-title">
+                    <h2>מצא את 5 ההבדלים</h2>
+                    <p>לחץ על ההבדלים בתמונה הימנית</p>
+                </div>
+
+                <div class="find-diff-game-container">
+                    <div class="find-diff-images">
+                        <div class="find-diff-image-wrapper">
+                            <h3>תמונה מקורית</h3>
+                            <div class="find-diff-original">
+                                <img src="find-differences-images/HD_PhotoHunt_Before_0001_sm.jpg" alt="תמונה מקורית">
                             </div>
-                            <div id="light-diff" class="difference-found" style="display: none; position: absolute; top: 2px; left: 253px;">
-                                <img src="find-differences-images/light.png" alt="אור">
-                            </div>
-                            <div id="nolight-diff" class="difference-found" style="display: none; position: absolute; top: 151px; left: 273px;">
-                                <img src="find-differences-images/nolight.png" alt="אור נעדר">
-                            </div>
-                            <div id="sauce-diff" class="difference-found" style="display: none; position: absolute; top: 378px; left: 361px;">
-                                <img src="find-differences-images/sauce.png" alt="רוטב">
-                            </div>
-                            <div id="petal-diff" class="difference-found" style="display: none; position: absolute; top: 375px; left: 261px;">
-                                <img src="find-differences-images/petal.png" alt="עלה כותרת">
+                        </div>
+                        
+                        <div class="find-diff-image-wrapper">
+                            <h3>מצא את ההבדלים</h3>
+                            <div class="find-diff-different">
+                                <img src="find-differences-images/HD_PhotoHunt_After_0001_sm.jpg" alt="תמונה עם הבדלים">
+                                
+                                <!-- שכבת ההבדלים -->
+                                ${this.createDifferenceOverlays()}
+                                
+                                <!-- מפת תמונה לקליקים -->
+                                <img class="find-diff-transparent-map" src="find-differences-images/transparentmap.png" usemap="#photohunt" alt="מפת הבדלים">
+                                <map name="photohunt">
+                                    ${this.createImageMapAreas()}
+                                </map>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="game-instructions">
-                <p>🎯 לחץ על התמונה השנייה כדי למצוא את ההבדלים!</p>
-                <p>💡 רמז: יש 5 הבדלים בין שתי התמונות</p>
-            </div>
-            <div class="game-controls">
-                <button onclick="resetGame()" class="control-btn">🔄 התחל מחדש</button>
-                <button onclick="showHint()" class="control-btn">💡 רמז</button>
-            </div>
+
+                <div class="find-diff-progress">
+                    <div class="find-diff-progress-bar">
+                        <div class="find-diff-progress-fill" style="width: ${(this.foundDifferences / this.totalDifferences) * 100}%"></div>
+                    </div>
+                    <p>התקדמות: ${this.foundDifferences} מתוך ${this.totalDifferences} הבדלים</p>
+          </div>
+
+                <div class="find-diff-controls">
+                    <button id="find-diff-hint-btn" class="find-diff-button hint-btn">💡 רמז</button>
+                    <button id="find-diff-restart-btn" class="find-diff-button restart-btn">🔄 התחל מחדש</button>
         </div>
+      </div>
     `;
-    
-    document.body.appendChild(modal);
-    
-    // התחלת המשחק
-    initGame();
-}
 
-// משתני המשחק
-let gameState = {
-    score: 0,
-    found: 0,
-    timeLeft: 120,
-    gameActive: true,
-    differences: ['leaf', 'light', 'nolight', 'sauce', 'petal'],
-    foundDifferences: []
-};
-
-function initGame() {
-    console.log('Initializing real differences game...');
-    
-    // איפוס משתני המשחק
-    gameState.score = 0;
-    gameState.found = 0;
-    gameState.timeLeft = 120;
-    gameState.gameActive = true;
-    gameState.foundDifferences = [];
-    
-    // עדכון התצוגה
-    updateDisplay();
-    
-    // הוספת מאזיני אירועים
-    setupEventListeners();
-    
-    // התחלת הטיימר
-    startTimer();
-}
-
-function setupEventListeners() {
-    // מאזין לקליקים על התמונה השנייה (רק לטעויות)
-    const image2 = document.getElementById('image2');
-    if (image2) {
-        image2.addEventListener('click', handleImageClick);
+        this.attachEventListeners();
+        this.startTimer();
     }
-    
-    // מאזין לקליקים על אזורי ההבדלים
-    const areas = document.querySelectorAll('map[name="photohunt"] area');
-    areas.forEach(area => {
-        area.addEventListener('click', handleDifferenceClick);
-    });
-}
 
-function handleImageClick(event) {
-    if (!gameState.gameActive) return;
-    
-    // בדוק אם הקליק היה על area (הבדל) - אם כן, אל תעשה כלום
-    if (event.target.tagName.toLowerCase() === 'area') {
-        return;
+    createDifferenceOverlays() {
+        return this.differences.map(diff => 
+            `<div id="${diff.id}-diff" class="find-diff-overlay" style="display: none;">
+                <img src="find-differences-images/${diff.id}.png" alt="${diff.name}">
+            </div>`
+        ).join('');
     }
-    
-    console.log('Wrong click on image at:', event.offsetX, event.offsetY);
-    
-    // אפקט קליק שגוי
-    showWrongClick(event.offsetX, event.offsetY);
-    
-    // הפחתת נקודות על קליק שגוי
-    gameState.score = Math.max(0, gameState.score - 3);
-    updateDisplay();
-    
-    // צליל שגיאה
-    playSound('wrong');
-}
 
-function handleDifferenceClick(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (!gameState.gameActive) return;
-    
-    const diffId = event.target.id;
-    
-    if (gameState.foundDifferences.includes(diffId)) {
-        return; // כבר נמצא
+    createImageMapAreas() {
+        return this.differences.map(diff => 
+            `<area id="${diff.id}" shape="${diff.shape}" coords="${diff.coords}" alt="${diff.name}" title="${diff.name}">`
+        ).join('');
     }
-    
-    console.log('Difference found:', diffId);
-    
-    // הצגת ההבדל
-    const diffElement = document.getElementById(diffId + '-diff');
-    if (diffElement) {
-        diffElement.style.display = 'block';
+
+    attachEventListeners() {
+        // הוספת מאזינים לאזורי ההבדלים
+        this.differences.forEach(diff => {
+            const area = document.getElementById(diff.id);
+            if (area) {
+                area.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleDifferenceClick(diff.id);
+                });
+            }
+        });
+
+        // כפתור רמז
+        const hintBtn = document.getElementById('find-diff-hint-btn');
+        if (hintBtn) {
+            hintBtn.addEventListener('click', () => {
+                this.showHint();
+            });
+        }
+
+        // כפתור התחל מחדש
+        const restartBtn = document.getElementById('find-diff-restart-btn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                this.sounds.click.play();
+                this.start();
+            });
+        }
+
+        // לחיצה שגויה על התמונה
+        const differentImage = document.querySelector('.find-diff-different');
+        if (differentImage) {
+            differentImage.addEventListener('click', (e) => {
+                // אם לא לחצו על area, זה לחיצה שגויה
+                if (e.target.tagName !== 'AREA') {
+                    this.handleWrongClick(e);
+                }
+            });
+        }
+    }
+
+    handleDifferenceClick(differenceId) {
+        const difference = this.differences.find(d => d.id === differenceId);
         
-        // אפקט הופעה
-        diffElement.style.opacity = '0';
-        diffElement.style.transform = 'scale(0.5)';
-        diffElement.style.transition = 'all 0.5s ease';
+        if (!difference || difference.found) {
+          return;
+        }
+
+        // סמן כנמצא
+        difference.found = true;
+        this.foundDifferences++;
+        this.score += 100;
+
+        // הצג את ההבדל
+        const overlay = document.getElementById(`${differenceId}-diff`);
+        if (overlay) {
+            overlay.style.display = 'block';
+            overlay.classList.add('found-animation');
+        }
+
+        // נגן צליל הצלחה
+        this.sounds.success.play();
+
+        // עדכן את הממשק
+        this.updateUI();
+
+        // בדוק אם סיימנו
+        if (this.foundDifferences >= this.totalDifferences) {
+            setTimeout(() => {
+                this.completeGame();
+            }, 1000);
+        }
+    }
+
+    handleWrongClick(event) {
+        this.sounds.wrong.play();
+        
+        // יצירת אפקט X אדום במקום הלחיצה
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        const wrongMark = document.createElement('div');
+        wrongMark.className = 'find-diff-wrong-mark';
+        wrongMark.style.left = x + 'px';
+        wrongMark.style.top = y + 'px';
+        wrongMark.innerHTML = '❌';
+        
+        event.currentTarget.appendChild(wrongMark);
         
         setTimeout(() => {
-            diffElement.style.opacity = '1';
-            diffElement.style.transform = 'scale(1)';
-        }, 50);
+            if (wrongMark.parentNode) {
+                wrongMark.parentNode.removeChild(wrongMark);
+            }
+        }, 1000);
+
+        // הפחת ניקוד
+        this.score = Math.max(0, this.score - 10);
+        this.updateUI();
     }
-    
-    // עדכון מצב המשחק
-    gameState.foundDifferences.push(diffId);
-    gameState.found++;
-    gameState.score += 20;
-    
-    // עדכון התצוגה
-    updateDisplay();
-    
-    // צליל הצלחה
-    playSound('success');
-    
-    // בדיקת סיום המשחק
-    if (gameState.found >= 5) {
-        setTimeout(() => {
-            endGame(true);
+
+    showHint() {
+        this.sounds.click.play();
+        
+        // מצא הבדל שעוד לא נמצא
+        const unFoundDifference = this.differences.find(d => !d.found);
+        
+        if (unFoundDifference) {
+            const area = document.getElementById(unFoundDifference.id);
+            if (area) {
+                // הוסף אפקט הבהוב
+                area.classList.add('find-diff-hint-flash');
+                
+                setTimeout(() => {
+                    area.classList.remove('find-diff-hint-flash');
+                }, 2000);
+                
+                // הפחת ניקוד עבור השימוש ברמז
+                this.score = Math.max(0, this.score - 25);
+                this.updateUI();
+            }
+        }
+    }
+
+    updateUI() {
+        // עדכן ניקוד
+        const scoreElement = document.querySelector('.find-diff-score span');
+        if (scoreElement) {
+            scoreElement.textContent = `ניקוד: ${this.score}`;
+        }
+
+        // עדכן התקדמות
+        const infoElement = document.querySelector('.find-diff-info span');
+        if (infoElement) {
+            infoElement.textContent = `נמצאו: ${this.foundDifferences}/${this.totalDifferences}`;
+        }
+
+        // עדכן פס התקדמות
+        const progressFill = document.querySelector('.find-diff-progress-fill');
+        if (progressFill) {
+            progressFill.style.width = `${(this.foundDifferences / this.totalDifferences) * 100}%`;
+        }
+
+        const progressText = document.querySelector('.find-diff-progress p');
+        if (progressText) {
+            progressText.textContent = `התקדמות: ${this.foundDifferences} מתוך ${this.totalDifferences} הבדלים`;
+        }
+    }
+
+    startTimer() {
+        this.timerInterval = setInterval(() => {
+            if (this.gameStarted && !this.completed) {
+                this.gameTime = new Date().getTime() - this.startTime;
+                const minutes = Math.floor(this.gameTime / 60000);
+                const seconds = Math.floor((this.gameTime % 60000) / 1000);
+                
+                const timerElement = document.getElementById('game-timer');
+                if (timerElement) {
+                    timerElement.textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
         }, 1000);
     }
-}
 
-function showWrongClick(x, y) {
-    const wrongEffect = document.createElement('div');
-    wrongEffect.className = 'wrong-click-effect';
-    wrongEffect.style.position = 'absolute';
-    wrongEffect.style.left = x + 'px';
-    wrongEffect.style.top = y + 'px';
-    wrongEffect.style.color = 'red';
-    wrongEffect.style.fontSize = '24px';
-    wrongEffect.style.fontWeight = 'bold';
-    wrongEffect.style.pointerEvents = 'none';
-    wrongEffect.style.zIndex = '1000';
-    wrongEffect.textContent = '❌';
-    
-    const image2 = document.getElementById('image2');
-    image2.appendChild(wrongEffect);
-    
-    setTimeout(() => {
-        if (wrongEffect.parentNode) {
-            wrongEffect.remove();
-        }
-    }, 1000);
-}
-
-function startTimer() {
-    const timerInterval = setInterval(() => {
-        if (!gameState.gameActive) {
-            clearInterval(timerInterval);
-            return;
-        }
+    completeGame() {
+        this.completed = true;
+        this.gameStarted = false;
         
-        gameState.timeLeft--;
-        updateDisplay();
-        
-        if (gameState.timeLeft <= 0) {
-            clearInterval(timerInterval);
-            endGame(false);
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
         }
-    }, 1000);
-}
 
-function updateDisplay() {
-    const scoreElement = document.getElementById('score');
-    const foundElement = document.getElementById('found');
-    const timerElement = document.getElementById('timer');
-    
-    if (scoreElement) scoreElement.textContent = gameState.score;
-    if (foundElement) foundElement.textContent = gameState.found;
-    if (timerElement) timerElement.textContent = gameState.timeLeft;
-}
+        // בונוס זמן
+        const timeBonus = Math.max(0, 300 - Math.floor(this.gameTime / 1000)) * 2;
+        this.score += timeBonus;
 
-function endGame(won) {
-    gameState.gameActive = false;
-    
-    let message, emoji;
-    if (won) {
-        message = `כל הכבוד! מצאת את כל ההבדלים!\nהנקודות שלך: ${gameState.score}\nזמן שנותר: ${gameState.timeLeft} שניות`;
-        emoji = '🎉';
-        playSound('complete');
-    } else {
-        message = `הזמן נגמר!\nמצאת ${gameState.found} מתוך 5 הבדלים\nהנקודות שלך: ${gameState.score}`;
-        emoji = '⏰';
-        playSound('wrong');
+        this.sounds.complete.play();
+        
+        const gameArea = document.getElementById('game-area');
+        gameArea.innerHTML = `
+            <div class="find-diff-complete">
+                <div class="find-diff-complete-content">
+                    <h1>🎉 כל הכבוד!</h1>
+                    <h2>מצאת את כל ההבדלים!</h2>
+                    
+                    <div class="find-diff-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">זמן:</span>
+                            <span class="stat-value">${Math.floor(this.gameTime / 60000)}:${Math.floor((this.gameTime % 60000) / 1000).toString().padStart(2, '0')}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">הבדלים:</span>
+                            <span class="stat-value">${this.foundDifferences}/${this.totalDifferences}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">בונוס זמן:</span>
+                            <span class="stat-value">+${timeBonus}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="find-diff-final-score">
+                        <p>הניקוד הסופי שלך:</p>
+                        <div class="find-diff-score-display">${this.score}</div>
+                    </div>
+                    
+                    <div class="find-diff-complete-buttons">
+                        <button id="find-diff-play-again-btn" class="find-diff-button">
+                            שחק שוב
+                        </button>
+                        <button id="find-diff-home-btn" class="find-diff-button">
+                            חזור לתפריט
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('find-diff-play-again-btn').addEventListener('click', () => {
+            this.sounds.click.play();
+            this.start();
+        });
+
+        document.getElementById('find-diff-home-btn').addEventListener('click', () => {
+            this.sounds.click.play();
+            showCategories();
+        });
     }
-    
-    setTimeout(() => {
-        alert(emoji + ' ' + message);
-    }, 500);
-}
 
-function resetGame() {
-    // הסתרת כל ההבדלים
-    const foundDiffs = document.querySelectorAll('.difference-found');
-    foundDiffs.forEach(diff => {
-        diff.style.display = 'none';
-    });
-    
-    // הסרת אפקטים
-    const wrongEffects = document.querySelectorAll('.wrong-click-effect');
-    wrongEffects.forEach(effect => effect.remove());
-    
-    // התחלה מחדש
-    initGame();
-}
-
-function showHint() {
-    if (!gameState.gameActive) return;
-    
-    // מציאת הבדל שלא נמצא
-    const unfoundDifferences = gameState.differences.filter(id => 
-        !gameState.foundDifferences.includes(id)
-    );
-    
-    if (unfoundDifferences.length === 0) return;
-    
-    const randomDiff = unfoundDifferences[Math.floor(Math.random() * unfoundDifferences.length)];
-    const areaElement = document.getElementById(randomDiff);
-    
-    if (areaElement) {
-        // יצירת אפקט הבזקה על האזור
-        const hintEffect = document.createElement('div');
-        hintEffect.style.position = 'absolute';
-        hintEffect.style.border = '4px solid yellow';
-        hintEffect.style.borderRadius = '10px';
-        hintEffect.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
-        hintEffect.style.pointerEvents = 'none';
-        hintEffect.style.zIndex = '999';
-        hintEffect.style.boxShadow = '0 0 20px yellow';
+    stop() {
+        this.gameStarted = false;
+        this.completed = false;
         
-        // קביעת מיקום וגודל לפי סוג הצורה
-        const coords = areaElement.getAttribute('coords').split(',').map(Number);
-        const shape = areaElement.getAttribute('shape');
-        
-        if (shape === 'circle') {
-            const [x, y, r] = coords;
-            hintEffect.style.left = (x - r - 5) + 'px';
-            hintEffect.style.top = (y - r - 5) + 'px';
-            hintEffect.style.width = (r * 2 + 10) + 'px';
-            hintEffect.style.height = (r * 2 + 10) + 'px';
-            hintEffect.style.borderRadius = '50%';
-        } else if (shape === 'rect') {
-            const [x1, y1, x2, y2] = coords;
-            hintEffect.style.left = (x1 - 5) + 'px';
-            hintEffect.style.top = (y1 - 5) + 'px';
-            hintEffect.style.width = (x2 - x1 + 10) + 'px';
-            hintEffect.style.height = (y2 - y1 + 10) + 'px';
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
         }
-        
-        const image2 = document.getElementById('image2');
-        image2.appendChild(hintEffect);
-        
-        setTimeout(() => {
-            if (hintEffect.parentNode) {
-                hintEffect.remove();
-            }
-        }, 3000);
-        
-        // הפחתת נקודות על רמז
-        gameState.score = Math.max(0, gameState.score - 10);
-        updateDisplay();
     }
 }
 
-function closeFindDifferences() {
-    const modal = document.querySelector('.find-differences-modal');
-    if (modal) {
-        modal.remove();
-    }
-}
+// משתנה גלובלי למשחק
+let findDifferencesGame = null;
 
-function playSound(soundName) {
-    try {
-        let soundFile;
-        switch(soundName) {
-            case 'success':
-                soundFile = 'sounds/success-340660 (mp3cut.net).mp3';
-                break;
-            case 'wrong':
-                soundFile = 'sounds/wrong-47985 (mp3cut.net).mp3';
-                break;
-            case 'complete':
-                soundFile = 'sounds/game-level-complete-143022.mp3';
-                break;
-            case 'click':
-                soundFile = 'sounds/click-tap-computer-mouse-352734.mp3';
-                break;
-            default:
-                return;
-        }
-        
-        const audio = new Audio(soundFile);
-        audio.volume = 0.3;
-        audio.play().catch(e => console.log('Cannot play sound:', e));
-    } catch (e) {
-        console.log('Sound error:', e);
-    }
+// פונקציה להתחלת המשחק
+function startFindDifferences() {
+    const gameArea = document.getElementById('game-area');
+    gameArea.className = 'game-active find-differences-active';
+    
+    findDifferencesGame = new FindDifferencesGame();
+    findDifferencesGame.start();
 }
-
-// הפונקציה הגלובלית להפעלת המשחק
-window.startFindDifferences = startFindDifferences; 

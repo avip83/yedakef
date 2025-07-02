@@ -95,10 +95,16 @@ class FindDifferencesGame {
         `;
         
         // Add to modal
-        const modal = document.getElementById('game-modal');
+        let modal = document.getElementById('game-modal');
+        if (!modal) {
+            showModal(); // Create modal if it doesn't exist
+            modal = document.getElementById('game-modal');
+        }
         const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = '';
-        modalBody.appendChild(this.gameContainer);
+        if (modalBody) {
+            modalBody.innerHTML = '';
+            modalBody.appendChild(this.gameContainer);
+        }
         
         // Create differences clickable areas
         this.createDifferencesAreas();
@@ -339,6 +345,37 @@ class FindDifferencesGame {
     }
 }
 
+// Global functions for modal management
+function showModal() {
+    const modal = document.getElementById('game-modal');
+    if (!modal) {
+        // Create modal if it doesn't exist
+        const newModal = document.createElement('div');
+        newModal.id = 'game-modal';
+        newModal.className = 'game-modal';
+        newModal.innerHTML = `
+            <div class="game-modal-content">
+                <button class="close-button" onclick="closeModal()">×</button>
+                <div class="modal-body"></div>
+            </div>
+        `;
+        document.body.appendChild(newModal);
+    }
+    document.getElementById('game-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    const modal = document.getElementById('game-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Clean up the modal content
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = '';
+        }
+    }
+}
+
 // Global function to start the game
 function startFindDifferences() {
     const game = new FindDifferencesGame();
@@ -346,5 +383,7 @@ function startFindDifferences() {
     showModal();
 }
 
-// Make sure the function is available globally
+// Make sure the functions are available globally
 window.startFindDifferences = startFindDifferences;
+window.showModal = showModal;
+window.closeModal = closeModal;

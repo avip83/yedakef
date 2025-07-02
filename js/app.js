@@ -215,7 +215,8 @@ class KidsApp {
             } else if (window[gameId] && typeof window[gameId].init === 'function') {
                 this.openGameModal(game);
             } else {
-                alert('אירעה שגיאה בטעינת המשחק. ודא שהקובץ קיים ותקין.');
+                // נסה לפתוח את המודל גם אם הפונקציה לא נמצאה
+                this.openGameModal(game);
             }
         };
         script.onerror = () => {
@@ -231,7 +232,18 @@ class KidsApp {
         } else if (window[game.id] && typeof window[game.id].init === 'function') {
             window[game.id].init();
         } else {
-            this.showGameMessage(game);
+            // אם זה משחק מצא את ההבדלים אבל הפונקציה לא נמצאה, נסה שוב
+            if (game.id === 'find-differences') {
+                setTimeout(() => {
+                    if (typeof window.startFindDifferences === 'function') {
+                        window.startFindDifferences();
+                    } else {
+                        this.showGameMessage(game);
+                    }
+                }, 100);
+            } else {
+                this.showGameMessage(game);
+            }
         }
     }
 

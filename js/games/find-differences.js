@@ -169,11 +169,11 @@ class FindDifferencesGame {
         setTimeout(() => {
             hintText.innerHTML = `
                 <div class="hints-list">
-                    <div>1️⃣ תולעת אדמה 🪱 ליד הדשא</div>
-                    <div>2️⃣ זנב של השועל 🦊</div>
+                    <div>1️⃣ דמעה/זיעה על פני השועל 💧</div>
+                    <div>2️⃣ זנב של השועל 🦊 (צורה שונה)</div>
                     <div>3️⃣ ענף של עץ 🌴 מאחורי השועל</div>
-                    <div>4️⃣ דמעה/זיעה על פני השועל</div>
-                    <div>5️⃣ צבע האוזן השמאלית של השועל</div>
+                    <div>4️⃣ צבע האוזן השמאלית של השועל 👂</div>
+                    <div>5️⃣ משהו בדשא 🌱 (תסתכל היטב)</div>
                 </div>
             `;
         }, 1000);

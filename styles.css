@@ -530,6 +530,207 @@ button, .game-card, .category-card {
     font-family: 'Baloo 2', 'Varela Round', Arial, sans-serif;
 }
 
+/* Digital Coloring Game Styles */
+.coloring-toolbar {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tool-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.tool-group label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.tool-btn {
+    width: 50px;
+    height: 50px;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.tool-btn.active {
+    border-color: #2196f3;
+    background: #e3f2fd;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.color-palette {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.color-btn {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.color-btn:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.color-btn.active {
+    border-color: #333;
+    transform: scale(1.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    font-size: 16px;
+}
+
+.canvas-container {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+.canvas-loading {
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.action-buttons {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.action-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    font-family: 'Baloo 2', 'Varela Round', Arial, sans-serif;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.image-counter {
+    background: #e3f2fd;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.close-modal:hover {
+    background: #d32f2f;
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Responsive Design for Coloring Game */
+@media (max-width: 768px) {
+    .game-modal-content {
+        margin: 10px;
+        max-width: calc(100vw - 20px) !important;
+        max-height: calc(100vh - 20px) !important;
+    }
+    
+    .coloring-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tool-group {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .color-palette {
+        max-width: 100%;
+    }
+    
+    .color-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    #coloringCanvas {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        width: 100%;
+    }
+}
+
 .categories-container .back-button,
 .games-container .back-button {
     margin-top: 40px;

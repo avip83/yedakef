@@ -34,8 +34,7 @@ function startSimplePuzzleGame() {
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
                 <div style="margin-bottom: 20px;">
-                    <button onclick="toggleMute()" id="muteButton" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔊 צליל</button>
-                    <button onclick="nextLevel()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">➡️ שלב הבא</button>
+                    <button onclick="nextLevel()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">➡️ שלב הבא</button>
                 </div>
             </div>
             
@@ -53,8 +52,7 @@ function startSimplePuzzleGame() {
             <!-- הסבר על החלון הפנימי -->
             <div style="margin-top: 15px; max-width: 600px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; text-align: center;">
                 <p style="margin: 0; color: #856404; font-size: 14px;">
-                    💡 <strong>הסבר:</strong> כשהפאזל נטען, יופיע חלון קטן שמאפשר לבחור מספר חלקים ואפשרויות נוספות. 
-                    לחץ על "OK" כדי להתחיל עם ההגדרות או שנה אותן לפי הרצון שלך.
+                    💡 <strong>הסבר:</strong> לחץ על "OK" כדי להתחיל או שנה את ההגדרות לפי הרצון שלך.
                 </p>
             </div>
         </div>
@@ -63,7 +61,6 @@ function startSimplePuzzleGame() {
     // הוספת פונקציות גלובליות
     window.nextLevel = nextLevel;
     window.updateProgressBar = updateProgressBar;
-    window.toggleMute = toggleMute;
     
     // עדכון בר ההתקדמות הראשוני
     setTimeout(() => {
@@ -122,38 +119,7 @@ function updateProgressBar() {
     }
 }
 
-function toggleMute() {
-    const muteButton = document.getElementById('muteButton');
-    const puzzleFrame = document.getElementById('puzzleFrame');
-    
-    window.isMuted = !window.isMuted;
-    
-    if (window.isMuted) {
-        muteButton.innerHTML = '🔇 מושתק';
-        muteButton.style.background = '#f44336';
-        // שליחת הודעה לפאזל להשתקה (אם נתמך)
-        if (puzzleFrame && puzzleFrame.contentWindow) {
-            try {
-                puzzleFrame.contentWindow.postMessage('mute', '*');
-            } catch(e) {
-                // התעלם משגיאות
-            }
-        }
-        showNotification('🔇 הצליל הושתק', '#f44336');
-    } else {
-        muteButton.innerHTML = '🔊 צליל';
-        muteButton.style.background = '#2196F3';
-        // שליחת הודעה לפאזל לביטול השתקה (אם נתמך)
-        if (puzzleFrame && puzzleFrame.contentWindow) {
-            try {
-                puzzleFrame.contentWindow.postMessage('unmute', '*');
-            } catch(e) {
-                // התעלם משגיאות
-            }
-        }
-        showNotification('🔊 הצליל פועל', '#2196F3');
-    }
-}
+
 
 function showNotification(message, color) {
     const notification = document.createElement('div');
@@ -174,14 +140,27 @@ function showNotification(message, color) {
 
 
 function playSuccessSound() {
-    // ניגון צליל הצלחה רק אם לא מושתק
-    if (!window.isMuted) {
+    // ניגון צליל הצלחה עם תמיכה טובה יותר למובייל
+    try {
         const audio = new Audio('sounds/success-340660 (mp3cut.net).mp3');
-        audio.volume = 0.5; // עוצמה בינונית
-        audio.play().catch(() => {
-            // התעלם משגיאות אם הצליל לא יכול להתנגן (במובייל לדוגמה)
-            console.log('לא ניתן לנגן צליל - כנראה במובייל או חסום');
-        });
+        
+        // בדיקת תמיכה בפורמט
+        if (audio.canPlayType && audio.canPlayType('audio/mpeg') !== '') {
+            audio.volume = 0.5; // עוצמה בינונית
+            
+            // ניסיון להשמיע - במובייל זה עלול להיחסם
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // זה נורמלי במובייל - דפדפנים חוסמים autoplay
+                    console.log('שמע נחסם בדפדפן (זה נורמלי במובייל):', error.name);
+                });
+            }
+        }
+    } catch (e) {
+        // אם יש שגיאה ביצירת אובייקט האודיו
+        console.log('שגיאה ביצירת אודיו:', e);
     }
 }
 
@@ -212,7 +191,6 @@ window['simple-puzzle'] = {
         modal.className = 'game-modal';
         modal.innerHTML = `
             <div class="game-modal-content" style="max-width: 95vw; width: 95%; max-height: 95vh; overflow: auto;">
-                <button class="close-button" onclick="this.parentElement.parentElement.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = '';" style="position: absolute; top: 12px; right: 12px; z-index: 2000; background: #ff4444; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; cursor: pointer;">←</button>
                 <div id="gameArea"></div>
             </div>
         `;

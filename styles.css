@@ -931,8 +931,8 @@ button, .game-card, .category-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
     padding: 20px;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 95vw;
+    max-height: 95vh;
     overflow-y: auto;
     position: relative;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -1005,7 +1005,7 @@ button, .game-card, .category-card {
 
 .find-differences-modal .image-wrapper {
     flex: 1;
-    min-width: 250px;
+    min-width: 300px;
     text-align: center;
 }
 
@@ -1033,30 +1033,37 @@ button, .game-card, .category-card {
 .find-differences-modal .image-box img {
     width: 100%;
     height: auto;
-    max-width: 350px;
+    max-width: 450px;
     display: block;
+    cursor: crosshair;
 }
 
-.find-differences-modal .difference {
-    position: absolute;
+/* עיצוב למפת התמונה */
+.find-differences-modal map area {
     cursor: pointer;
-    background: rgba(255, 0, 0, 0.1);
-    border: 2px dashed rgba(255, 0, 0, 0.3);
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    z-index: 10;
+    outline: none;
 }
 
-.find-differences-modal .difference:hover {
-    background: rgba(255, 255, 0, 0.2);
-    border-color: rgba(255, 255, 0, 0.5);
-    transform: scale(1.1);
+.find-differences-modal map area:hover {
+    background: rgba(255, 255, 0, 0.3);
 }
 
-.find-differences-modal .difference.found {
-    background: rgba(0, 255, 0, 0.8) !important;
-    border: 3px solid green !important;
+/* תמונות ההבדלים שנמצאו */
+.find-differences-modal .difference-found {
+    position: absolute;
     pointer-events: none;
+    z-index: 10;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+    border: 2px solid #00ff00;
+    background: rgba(0, 255, 0, 0.2);
+    padding: 2px;
+}
+
+.find-differences-modal .difference-found img {
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 .find-differences-modal .game-instructions {
@@ -1125,11 +1132,27 @@ button, .game-card, .category-card {
     }
 }
 
+/* אפקט הבזקת רמז */
+@keyframes hintFlash {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+.find-differences-modal .hint-effect {
+    animation: hintFlash 0.5s ease-in-out infinite;
+}
+
 /* עיצוב responsive למובייל */
 @media (max-width: 768px) {
     .find-differences-modal .modal-content {
         padding: 15px;
-        max-width: 95vw;
+        max-width: 98vw;
     }
     
     .find-differences-modal .modal-header h2 {
@@ -1146,7 +1169,7 @@ button, .game-card, .category-card {
     }
     
     .find-differences-modal .image-box img {
-        max-width: 280px;
+        max-width: 100%;
     }
     
     .find-differences-modal .game-info {
@@ -1165,6 +1188,26 @@ button, .game-card, .category-card {
     
     .find-differences-modal .control-btn {
         width: 200px;
+    }
+    
+    /* התאמות למפת התמונה במובייל */
+    .find-differences-modal .image-box {
+        transform: scale(0.8);
+        transform-origin: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .find-differences-modal .image-box {
+        transform: scale(0.7);
+    }
+    
+    .find-differences-modal .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .find-differences-modal .game-instructions p {
+        font-size: 1rem;
     }
 }
 

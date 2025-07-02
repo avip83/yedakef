@@ -1,6 +1,6 @@
-// משחק מצא את ההבדלים - פשוט ובסיסי
+// משחק מצא את ההבדלים - גרסה אמיתית עם תמונות ההבדלים
 function startFindDifferences() {
-    console.log('Starting Find Differences Game');
+    console.log('Starting Find Differences Game - Real Version');
     
     // יצירת מודל המשחק
     createGameModal();
@@ -24,32 +24,54 @@ function createGameModal() {
             </div>
             <div class="game-info">
                 <div class="score">נקודות: <span id="score">0</span></div>
-                <div class="found">נמצאו: <span id="found">0</span>/3</div>
-                <div class="timer">זמן: <span id="timer">60</span></div>
+                <div class="found">נמצאו: <span id="found">0</span>/5</div>
+                <div class="timer">זמן: <span id="timer">120</span></div>
             </div>
             <div class="game-container">
                 <div class="images-container">
                     <div class="image-wrapper">
-                        <h3>תמונה ראשונה - תפוח</h3>
+                        <h3>תמונה ראשונה</h3>
                         <div class="image-box" id="image1">
-                            <img src="fruits/apple.jpg" alt="תפוח">
+                            <img src="find-differences-images/image1.jpg" alt="תמונה ראשונה">
                         </div>
                     </div>
                     <div class="image-wrapper">
-                        <h3>תמונה שנייה - בננה</h3>
+                        <h3>תמונה שנייה - מצא את ההבדלים!</h3>
                         <div class="image-box" id="image2">
-                            <img src="fruits/banana.jpg" alt="בננה">
-                            <!-- נקודות ההבדלים - מיקומים פשוטים -->
-                            <div class="difference" data-id="1" style="top: 25%; left: 25%; width: 60px; height: 60px;" title="הבדל 1"></div>
-                            <div class="difference" data-id="2" style="top: 50%; left: 50%; width: 60px; height: 60px;" title="הבדל 2"></div>
-                            <div class="difference" data-id="3" style="top: 70%; left: 30%; width: 60px; height: 60px;" title="הבדל 3"></div>
+                            <img src="find-differences-images/image2.jpg" alt="תמונה שנייה" usemap="#photohunt">
+                            
+                            <!-- Image map עם קואורדינטות ההבדלים המדויקות -->
+                            <map name="photohunt">
+                                <area id="leaf" shape="circle" coords="133, 280, 11" title="הבדל 1 - עלה" />
+                                <area id="light" shape="rect" coords="253, 2, 292, 24" title="הבדל 2 - אור" />
+                                <area id="nolight" shape="rect" coords="273, 151, 293, 182" title="הבדל 3 - אור נעדר" />
+                                <area id="sauce" shape="circle" coords="368, 385, 7" title="הבדל 4 - רוטב" />
+                                <area id="petal" shape="rect" coords="261, 375, 281, 403" title="הבדל 5 - עלה כותרת" />
+                            </map>
+                            
+                            <!-- תמונות ההבדלים שיופיעו כשנמצאו -->
+                            <div id="leaf-diff" class="difference-found" style="display: none; position: absolute; top: 269px; left: 122px;">
+                                <img src="find-differences-images/leaf.png" alt="עלה">
+                            </div>
+                            <div id="light-diff" class="difference-found" style="display: none; position: absolute; top: 2px; left: 253px;">
+                                <img src="find-differences-images/light.png" alt="אור">
+                            </div>
+                            <div id="nolight-diff" class="difference-found" style="display: none; position: absolute; top: 151px; left: 273px;">
+                                <img src="find-differences-images/nolight.png" alt="אור נעדר">
+                            </div>
+                            <div id="sauce-diff" class="difference-found" style="display: none; position: absolute; top: 378px; left: 361px;">
+                                <img src="find-differences-images/sauce.png" alt="רוטב">
+                            </div>
+                            <div id="petal-diff" class="difference-found" style="display: none; position: absolute; top: 375px; left: 261px;">
+                                <img src="find-differences-images/petal.png" alt="עלה כותרת">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="game-instructions">
                 <p>🎯 לחץ על התמונה השנייה כדי למצוא את ההבדלים!</p>
-                <p>💡 רמז: יש 3 הבדלים בין התפוח לבננה</p>
+                <p>💡 רמז: יש 5 הבדלים בין שתי התמונות</p>
             </div>
             <div class="game-controls">
                 <button onclick="resetGame()" class="control-btn">🔄 התחל מחדש</button>
@@ -68,19 +90,19 @@ function createGameModal() {
 let gameState = {
     score: 0,
     found: 0,
-    timeLeft: 60,
+    timeLeft: 120,
     gameActive: true,
-    differences: [1, 2, 3],
+    differences: ['leaf', 'light', 'nolight', 'sauce', 'petal'],
     foundDifferences: []
 };
 
 function initGame() {
-    console.log('Initializing game...');
+    console.log('Initializing real differences game...');
     
     // איפוס משתני המשחק
     gameState.score = 0;
     gameState.found = 0;
-    gameState.timeLeft = 60;
+    gameState.timeLeft = 120;
     gameState.gameActive = true;
     gameState.foundDifferences = [];
     
@@ -95,29 +117,34 @@ function initGame() {
 }
 
 function setupEventListeners() {
-    // מאזין לקליקים על התמונה השנייה
+    // מאזין לקליקים על התמונה השנייה (רק לטעויות)
     const image2 = document.getElementById('image2');
     if (image2) {
         image2.addEventListener('click', handleImageClick);
     }
     
-    // מאזין לקליקים על ההבדלים
-    const differences = document.querySelectorAll('.difference');
-    differences.forEach(diff => {
-        diff.addEventListener('click', handleDifferenceClick);
+    // מאזין לקליקים על אזורי ההבדלים
+    const areas = document.querySelectorAll('map[name="photohunt"] area');
+    areas.forEach(area => {
+        area.addEventListener('click', handleDifferenceClick);
     });
 }
 
 function handleImageClick(event) {
     if (!gameState.gameActive) return;
     
-    console.log('Image clicked at:', event.offsetX, event.offsetY);
+    // בדוק אם הקליק היה על area (הבדל) - אם כן, אל תעשה כלום
+    if (event.target.tagName.toLowerCase() === 'area') {
+        return;
+    }
+    
+    console.log('Wrong click on image at:', event.offsetX, event.offsetY);
     
     // אפקט קליק שגוי
     showWrongClick(event.offsetX, event.offsetY);
     
     // הפחתת נקודות על קליק שגוי
-    gameState.score = Math.max(0, gameState.score - 2);
+    gameState.score = Math.max(0, gameState.score - 3);
     updateDisplay();
     
     // צליל שגיאה
@@ -125,11 +152,12 @@ function handleImageClick(event) {
 }
 
 function handleDifferenceClick(event) {
-    event.stopPropagation(); // מניעת הפעלת handleImageClick
+    event.preventDefault();
+    event.stopPropagation();
     
     if (!gameState.gameActive) return;
     
-    const diffId = parseInt(event.target.getAttribute('data-id'));
+    const diffId = event.target.id;
     
     if (gameState.foundDifferences.includes(diffId)) {
         return; // כבר נמצא
@@ -137,14 +165,26 @@ function handleDifferenceClick(event) {
     
     console.log('Difference found:', diffId);
     
-    // סימון ההבדל כנמצא
-    event.target.classList.add('found');
+    // הצגת ההבדל
+    const diffElement = document.getElementById(diffId + '-diff');
+    if (diffElement) {
+        diffElement.style.display = 'block';
+        
+        // אפקט הופעה
+        diffElement.style.opacity = '0';
+        diffElement.style.transform = 'scale(0.5)';
+        diffElement.style.transition = 'all 0.5s ease';
+        
+        setTimeout(() => {
+            diffElement.style.opacity = '1';
+            diffElement.style.transform = 'scale(1)';
+        }, 50);
+    }
+    
+    // עדכון מצב המשחק
     gameState.foundDifferences.push(diffId);
     gameState.found++;
-    gameState.score += 10;
-    
-    // אפקט חזותי
-    showFoundEffect(event.target);
+    gameState.score += 20;
     
     // עדכון התצוגה
     updateDisplay();
@@ -153,8 +193,10 @@ function handleDifferenceClick(event) {
     playSound('success');
     
     // בדיקת סיום המשחק
-    if (gameState.found >= 3) {
-        endGame(true);
+    if (gameState.found >= 5) {
+        setTimeout(() => {
+            endGame(true);
+        }, 1000);
     }
 }
 
@@ -179,18 +221,6 @@ function showWrongClick(x, y) {
             wrongEffect.remove();
         }
     }, 1000);
-}
-
-function showFoundEffect(element) {
-    element.innerHTML = '✅';
-    element.style.backgroundColor = 'rgba(0, 255, 0, 0.8)';
-    element.style.borderRadius = '50%';
-    element.style.display = 'flex';
-    element.style.alignItems = 'center';
-    element.style.justifyContent = 'center';
-    element.style.fontSize = '30px';
-    element.style.border = '3px solid green';
-    element.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.7)';
 }
 
 function startTimer() {
@@ -225,11 +255,11 @@ function endGame(won) {
     
     let message, emoji;
     if (won) {
-        message = `כל הכבוד! מצאת את כל ההבדלים!\nהנקודות שלך: ${gameState.score}`;
+        message = `כל הכבוד! מצאת את כל ההבדלים!\nהנקודות שלך: ${gameState.score}\nזמן שנותר: ${gameState.timeLeft} שניות`;
         emoji = '🎉';
         playSound('complete');
     } else {
-        message = `הזמן נגמר!\nמצאת ${gameState.found} מתוך 3 הבדלים\nהנקודות שלך: ${gameState.score}`;
+        message = `הזמן נגמר!\nמצאת ${gameState.found} מתוך 5 הבדלים\nהנקודות שלך: ${gameState.score}`;
         emoji = '⏰';
         playSound('wrong');
     }
@@ -240,15 +270,10 @@ function endGame(won) {
 }
 
 function resetGame() {
-    // איפוס כל ההבדלים
-    const differences = document.querySelectorAll('.difference');
-    differences.forEach(diff => {
-        diff.classList.remove('found');
-        diff.innerHTML = '';
-        diff.style.backgroundColor = '';
-        diff.style.borderRadius = '';
-        diff.style.border = '';
-        diff.style.boxShadow = '';
+    // הסתרת כל ההבדלים
+    const foundDiffs = document.querySelectorAll('.difference-found');
+    foundDiffs.forEach(diff => {
+        diff.style.display = 'none';
     });
     
     // הסרת אפקטים
@@ -270,24 +295,49 @@ function showHint() {
     if (unfoundDifferences.length === 0) return;
     
     const randomDiff = unfoundDifferences[Math.floor(Math.random() * unfoundDifferences.length)];
-    const diffElement = document.querySelector(`[data-id="${randomDiff}"]`);
+    const areaElement = document.getElementById(randomDiff);
     
-    if (diffElement) {
-        // אפקט הבזקה
-        diffElement.style.border = '4px solid yellow';
-        diffElement.style.boxShadow = '0 0 20px yellow';
-        diffElement.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+    if (areaElement) {
+        // יצירת אפקט הבזקה על האזור
+        const hintEffect = document.createElement('div');
+        hintEffect.style.position = 'absolute';
+        hintEffect.style.border = '4px solid yellow';
+        hintEffect.style.borderRadius = '10px';
+        hintEffect.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+        hintEffect.style.pointerEvents = 'none';
+        hintEffect.style.zIndex = '999';
+        hintEffect.style.boxShadow = '0 0 20px yellow';
+        
+        // קביעת מיקום וגודל לפי סוג הצורה
+        const coords = areaElement.getAttribute('coords').split(',').map(Number);
+        const shape = areaElement.getAttribute('shape');
+        
+        if (shape === 'circle') {
+            const [x, y, r] = coords;
+            hintEffect.style.left = (x - r - 5) + 'px';
+            hintEffect.style.top = (y - r - 5) + 'px';
+            hintEffect.style.width = (r * 2 + 10) + 'px';
+            hintEffect.style.height = (r * 2 + 10) + 'px';
+            hintEffect.style.borderRadius = '50%';
+        } else if (shape === 'rect') {
+            const [x1, y1, x2, y2] = coords;
+            hintEffect.style.left = (x1 - 5) + 'px';
+            hintEffect.style.top = (y1 - 5) + 'px';
+            hintEffect.style.width = (x2 - x1 + 10) + 'px';
+            hintEffect.style.height = (y2 - y1 + 10) + 'px';
+        }
+        
+        const image2 = document.getElementById('image2');
+        image2.appendChild(hintEffect);
         
         setTimeout(() => {
-            if (!diffElement.classList.contains('found')) {
-                diffElement.style.border = '';
-                diffElement.style.boxShadow = '';
-                diffElement.style.backgroundColor = '';
+            if (hintEffect.parentNode) {
+                hintEffect.remove();
             }
         }, 3000);
         
         // הפחתת נקודות על רמז
-        gameState.score = Math.max(0, gameState.score - 5);
+        gameState.score = Math.max(0, gameState.score - 10);
         updateDisplay();
     }
 }

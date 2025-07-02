@@ -2,24 +2,19 @@
 function startSimplePuzzleGame() {
     const gameArea = document.getElementById('gameArea');
     
-    // רשימת תמונות לפאזל
+    // רשימת תמונות לפאזל - כל התמונות בספרייה
     const puzzleImages = [
-        'puzzle/1.png',
-        'puzzle/2.png', 
-        'puzzle/3.png',
-        'puzzle/4.png',
-        'puzzle/5.png',
-        'puzzle/6.png',
-        'puzzle/7.png',
-        'puzzle/8.png',
-        'puzzle/9.png',
-        'puzzle/10.png'
+        'puzzle/1.png', 'puzzle/2.png', 'puzzle/3.png', 'puzzle/4.png', 'puzzle/5.png',
+        'puzzle/6.png', 'puzzle/7.png', 'puzzle/8.png', 'puzzle/9.png', 'puzzle/10.png',
+        'puzzle/11.png', 'puzzle/12.png', 'puzzle/13.png', 'puzzle/14.png', 'puzzle/15.png',
+        'puzzle/16.png', 'puzzle/17.png', 'puzzle/18.png', 'puzzle/19.png', 'puzzle/20.png'
     ];
     
     // משתנים גלובליים
     window.currentLevel = 1;
-    window.totalLevels = 10;
+    window.totalLevels = puzzleImages.length; // 20 שלבים לפי מספר התמונות
     window.currentPuzzleImages = puzzleImages;
+    window.isMuted = false;
     
     // בחירת תמונה אקראית
     const randomImage = puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
@@ -32,14 +27,15 @@ function startSimplePuzzleGame() {
                     <div id="progressFill" style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: 10%; transition: width 0.3s ease;"></div>
                 </div>
                 <div style="text-align: center; margin-top: 5px; color: #666; font-size: 12px;">
-                    שלב <span id="currentLevel">1</span> מתוך 10
+                    שלב <span id="currentLevel">1</span> מתוך <span id="totalLevels">20</span>
                 </div>
             </div>
 
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
                 <div style="margin-bottom: 20px;">
-                    <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">💡 טיפים</button>
+                    <button onclick="toggleMute()" id="muteButton" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔊 צליל</button>
+                    <button onclick="nextLevel()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">➡️ שלב הבא</button>
                 </div>
             </div>
             
@@ -65,21 +61,21 @@ function startSimplePuzzleGame() {
     `;
     
     // הוספת פונקציות גלובליות
-    window.showHint = showHint;
     window.nextLevel = nextLevel;
     window.updateProgressBar = updateProgressBar;
+    window.toggleMute = toggleMute;
     
     // עדכון בר ההתקדמות הראשוני
     setTimeout(() => {
         updateProgressBar();
     }, 100);
     
-    // האזנה להשלמת פאזל
+    // האזנה להשלמת פאזל (לא תמיד עובד, לכן יש כפתור ידני)
     window.addEventListener('message', function(event) {
         if (event.origin === 'https://www.jigsawexplorer.com' && event.data === 'puzzle-complete') {
             setTimeout(() => {
-                showNextLevelButton();
                 playSuccessSound();
+                showNotification('🎉 כל הכבוד! השלב הושלם!', '#4CAF50');
             }, 500);
         }
     });
@@ -99,7 +95,7 @@ function nextLevel() {
         // עדכון בר ההתקדמות
         updateProgressBar();
         
-        // הסרת כפתור השלב הבא אם קיים
+        // הסרת כפתור השלב הבא הזמני אם קיים
         const nextButton = document.getElementById('nextLevelButton');
         if (nextButton) {
             nextButton.remove();
@@ -116,28 +112,47 @@ function nextLevel() {
 function updateProgressBar() {
     const progressFill = document.getElementById('progressFill');
     const currentLevelSpan = document.getElementById('currentLevel');
+    const totalLevelsSpan = document.getElementById('totalLevels');
     
-    if (progressFill && currentLevelSpan) {
+    if (progressFill && currentLevelSpan && totalLevelsSpan) {
         const progressPercent = (window.currentLevel / window.totalLevels) * 100;
         progressFill.style.width = progressPercent + '%';
         currentLevelSpan.textContent = window.currentLevel;
+        totalLevelsSpan.textContent = window.totalLevels;
     }
 }
 
-function showNextLevelButton() {
-    // יצירת כפתור שלב הבא
-    const nextButton = document.createElement('div');
-    nextButton.id = 'nextLevelButton';
-    nextButton.innerHTML = `
-        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; text-align: center;">
-            <h3 style="color: white; margin-bottom: 20px;">🎉 כל הכבוד!</h3>
-            <p style="color: #ddd; margin-bottom: 25px;">הצלחת להשלים את השלב!</p>
-            <button onclick="nextLevel()" style="padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
-                ${window.currentLevel < window.totalLevels ? '➡️ שלב הבא' : '🏆 סיום'}
-            </button>
-        </div>
-    `;
-    document.body.appendChild(nextButton);
+function toggleMute() {
+    const muteButton = document.getElementById('muteButton');
+    const puzzleFrame = document.getElementById('puzzleFrame');
+    
+    window.isMuted = !window.isMuted;
+    
+    if (window.isMuted) {
+        muteButton.innerHTML = '🔇 מושתק';
+        muteButton.style.background = '#f44336';
+        // שליחת הודעה לפאזל להשתקה (אם נתמך)
+        if (puzzleFrame && puzzleFrame.contentWindow) {
+            try {
+                puzzleFrame.contentWindow.postMessage('mute', '*');
+            } catch(e) {
+                // התעלם משגיאות
+            }
+        }
+        showNotification('🔇 הצליל הושתק', '#f44336');
+    } else {
+        muteButton.innerHTML = '🔊 צליל';
+        muteButton.style.background = '#2196F3';
+        // שליחת הודעה לפאזל לביטול השתקה (אם נתמך)
+        if (puzzleFrame && puzzleFrame.contentWindow) {
+            try {
+                puzzleFrame.contentWindow.postMessage('unmute', '*');
+            } catch(e) {
+                // התעלם משגיאות
+            }
+        }
+        showNotification('🔊 הצליל פועל', '#2196F3');
+    }
 }
 
 function showNotification(message, color) {
@@ -156,32 +171,18 @@ function showNotification(message, color) {
     }, 2500);
 }
 
-function showHint() {
-    const hintModal = document.createElement('div');
-    hintModal.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-            <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; margin: 20px;">
-                <h3 style="color: #333; margin-bottom: 20px;">💡 טיפים לפתרון הפאזל</h3>
-                <ul style="text-align: right; color: #666; line-height: 1.8;">
-                    <li>התחל מהפינות והקצוות</li>
-                    <li>חפש צבעים וצורות דומות</li>
-                    <li>קבץ חלקים לפי אזורים</li>
-                    <li>השתמש בתכונת המסך המלא</li>
-                    <li>קח הפסקות אם אתה תקוע</li>
-                </ul>
-                <button onclick="this.parentElement.parentElement.remove()" style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px;">הבנתי</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(hintModal);
-}
+
 
 function playSuccessSound() {
-    // ניגון צליל הצלחה
-    const audio = new Audio('sounds/success-340660 (mp3cut.net).mp3');
-    audio.play().catch(() => {
-        // התעלם משגיאות אם הצליל לא יכול להתנגן
-    });
+    // ניגון צליל הצלחה רק אם לא מושתק
+    if (!window.isMuted) {
+        const audio = new Audio('sounds/success-340660 (mp3cut.net).mp3');
+        audio.volume = 0.5; // עוצמה בינונית
+        audio.play().catch(() => {
+            // התעלם משגיאות אם הצליל לא יכול להתנגן (במובייל לדוגמה)
+            console.log('לא ניתן לנגן צליל - כנראה במובייל או חסום');
+        });
+    }
 }
 
 // הוספת סגנונות CSS לאנימציות

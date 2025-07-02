@@ -909,4 +909,406 @@ button, .game-card, .category-card {
         width: 100%;
         padding: 15px;
     }
+}
+
+/* Find Differences Game Styles */
+.find-differences-game {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fffbe9;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.find-differences-game .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.find-differences-game .game-header h2 {
+    color: #1976d2;
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 900;
+}
+
+.find-differences-game .game-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.find-differences-game .timer-display,
+.find-differences-game .differences-display {
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid #90caf9;
+    font-weight: bold;
+    color: #1976d2;
+    font-size: 1.1rem;
+}
+
+.find-differences-game .stage-info {
+    text-align: center;
+    margin-bottom: 20px;
+    background: #e3f2fd;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #90caf9;
+}
+
+.find-differences-game .stage-info span {
+    font-weight: bold;
+    color: #1976d2;
+    font-size: 1.1rem;
+}
+
+.find-differences-game .progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.find-differences-game .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.find-differences-game .images-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.find-differences-game .image-wrapper {
+    flex: 1;
+    min-width: 300px;
+    max-width: 350px;
+}
+
+.find-differences-game .image-title {
+    text-align: center;
+    font-weight: bold;
+    color: #1976d2;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    background: #e3f2fd;
+    padding: 8px;
+    border-radius: 8px;
+    border: 2px solid #90caf9;
+}
+
+.find-differences-game .picture-container {
+    position: relative;
+    border: 3px solid #90caf9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.find-differences-game .picture-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 250px;
+    object-fit: cover;
+}
+
+.find-differences-game .click-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.find-differences-game .difference-area {
+    position: absolute;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    z-index: 15;
+}
+
+.find-differences-game .difference-area:hover {
+    background: rgba(255, 255, 0, 0.2);
+    border-color: #ffeb3b;
+}
+
+.find-differences-game .difference-area.found {
+    background: rgba(76, 175, 80, 0.3);
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+}
+
+.find-differences-game .difference-area.found::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4caf50;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.find-differences-game .game-instructions {
+    text-align: center;
+    color: #666;
+    font-size: 1rem;
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.find-differences-game .wrong-click-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #f44336;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    z-index: 1000;
+    animation: wrongClickAnimation 2s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes wrongClickAnimation {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -60%) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -70%) scale(0.9);
+    }
+}
+
+.find-differences-modal .game-info {
+    background: #e3f2fd;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #90caf9;
+}
+
+.find-differences-modal .game-info p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.find-differences-modal .game-info p:last-child {
+    margin-bottom: 0;
+}
+
+.find-differences-modal .progress-info {
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #90caf9;
+    text-align: center;
+}
+
+.find-differences-modal .level-progress span {
+    font-weight: bold;
+    color: #1976d2;
+    font-size: 1.1rem;
+}
+
+.level-complete .success-animation,
+.game-complete .success-animation {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: bounceIn 0.8s ease-out;
+}
+
+.game-over .game-over-animation {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: shake 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-10px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(10px);
+    }
+}
+
+.find-differences-modal .start-btn,
+.level-complete .next-btn,
+.game-complete .play-again-btn,
+.game-over .try-again-btn {
+    background: linear-gradient(45deg, #4caf50, #8bc34a);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+}
+
+.find-differences-modal .start-btn:hover,
+.level-complete .next-btn:hover,
+.game-complete .play-again-btn:hover,
+.game-over .try-again-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.game-complete .action-buttons,
+.game-over .action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.game-complete .final-score {
+    background: #e8f5e8;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 20px 0;
+    border: 2px solid #4caf50;
+    text-align: center;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .find-differences-game {
+        padding: 15px;
+    }
+    
+    .find-differences-game .game-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .find-differences-game .game-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .find-differences-game .game-stats {
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .find-differences-game .images-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .find-differences-game .image-wrapper {
+        min-width: auto;
+        max-width: 100%;
+    }
+    
+    .find-differences-game .timer-display,
+    .find-differences-game .differences-display {
+        font-size: 1rem;
+        padding: 6px 12px;
+    }
+    
+    .find-differences-modal .game-info {
+        padding: 15px;
+    }
+    
+    .find-differences-modal .game-info p {
+        font-size: 0.95rem;
+    }
+    
+    .game-complete .action-buttons,
+    .game-over .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .find-differences-modal .start-btn,
+    .level-complete .next-btn,
+    .game-complete .play-again-btn,
+    .game-over .try-again-btn {
+        font-size: 1.1rem;
+        padding: 12px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .find-differences-game .picture-container img {
+        max-height: 200px;
+    }
+    
+    .find-differences-game .game-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .find-differences-game .timer-display,
+    .find-differences-game .differences-display {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+    
+    .find-differences-game .difference-area.found::after {
+        font-size: 1.2rem;
+    }
 } 

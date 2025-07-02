@@ -1,3 +1,4 @@
+// משחק מצא את ההבדלים
 class FindDifferencesGame {
     constructor() {
         this.gameStarted = false;
@@ -7,14 +8,16 @@ class FindDifferencesGame {
         this.totalDifferences = 5;
         this.startTime = null;
         this.gameTime = 0;
+        
+        // צלילים
         this.sounds = {
-    success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
+            success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
             wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
             click: new Audio('sounds/click-tap-computer-mouse-352734.mp3'),
             complete: new Audio('sounds/game-level-complete-143022.mp3')
         };
         
-        // רשימת ההבדלים עם הקואורדינטות שלהם
+        // רשימת ההבדלים
         this.differences = [
             { id: 'leaf', name: 'עלה', shape: 'circle', coords: '133,280,11', found: false },
             { id: 'light', name: 'אור', shape: 'rect', coords: '253,2,292,24', found: false },
@@ -49,7 +52,7 @@ class FindDifferencesGame {
                     <button id="find-diff-start-btn" class="find-diff-start-button">
                         התחל לשחק
                     </button>
-        </div>
+                </div>
             </div>
         `;
 
@@ -101,13 +104,29 @@ class FindDifferencesGame {
                             <div class="find-diff-different">
                                 <img src="find-differences-images/HD_PhotoHunt_After_0001_sm.jpg" alt="תמונה עם הבדלים">
                                 
-                                <!-- שכבת ההבדלים -->
-                                ${this.createDifferenceOverlays()}
+                                <div id="leaf-diff" class="find-diff-overlay" style="display: none;">
+                                    <img src="find-differences-images/leaf.png" alt="עלה">
+                                </div>
+                                <div id="light-diff" class="find-diff-overlay" style="display: none;">
+                                    <img src="find-differences-images/light.png" alt="אור">
+                                </div>
+                                <div id="nolight-diff" class="find-diff-overlay" style="display: none;">
+                                    <img src="find-differences-images/nolight.png" alt="אין אור">
+                                </div>
+                                <div id="sauce-diff" class="find-diff-overlay" style="display: none;">
+                                    <img src="find-differences-images/sauce.png" alt="רוטב">
+                                </div>
+                                <div id="petal-diff" class="find-diff-overlay" style="display: none;">
+                                    <img src="find-differences-images/petal.png" alt="עלה כותרת">
+                                </div>
                                 
-                                <!-- מפת תמונה לקליקים -->
                                 <img class="find-diff-transparent-map" src="find-differences-images/transparentmap.png" usemap="#photohunt" alt="מפת הבדלים">
                                 <map name="photohunt">
-                                    ${this.createImageMapAreas()}
+                                    <area id="leaf" shape="circle" coords="133,280,11" alt="עלה" title="עלה">
+                                    <area id="light" shape="rect" coords="253,2,292,24" alt="אור" title="אור">
+                                    <area id="nolight" shape="rect" coords="273,151,293,182" alt="אין אור" title="אין אור">
+                                    <area id="sauce" shape="circle" coords="368,385,7" alt="רוטב" title="רוטב">
+                                    <area id="petal" shape="rect" coords="261,375,281,403" alt="עלה כותרת" title="עלה כותרת">
                                 </map>
                             </div>
                         </div>
@@ -116,38 +135,24 @@ class FindDifferencesGame {
 
                 <div class="find-diff-progress">
                     <div class="find-diff-progress-bar">
-                        <div class="find-diff-progress-fill" style="width: ${(this.foundDifferences / this.totalDifferences) * 100}%"></div>
+                        <div class="find-diff-progress-fill" style="width: 0%"></div>
                     </div>
-                    <p>התקדמות: ${this.foundDifferences} מתוך ${this.totalDifferences} הבדלים</p>
-          </div>
+                    <p>התקדמות: 0 מתוך 5 הבדלים</p>
+                </div>
 
                 <div class="find-diff-controls">
                     <button id="find-diff-hint-btn" class="find-diff-button hint-btn">💡 רמז</button>
                     <button id="find-diff-restart-btn" class="find-diff-button restart-btn">🔄 התחל מחדש</button>
-        </div>
-      </div>
-    `;
+                </div>
+            </div>
+        `;
 
         this.attachEventListeners();
         this.startTimer();
     }
 
-    createDifferenceOverlays() {
-        return this.differences.map(diff => 
-            `<div id="${diff.id}-diff" class="find-diff-overlay" style="display: none;">
-                <img src="find-differences-images/${diff.id}.png" alt="${diff.name}">
-            </div>`
-        ).join('');
-    }
-
-    createImageMapAreas() {
-        return this.differences.map(diff => 
-            `<area id="${diff.id}" shape="${diff.shape}" coords="${diff.coords}" alt="${diff.name}" title="${diff.name}">`
-        ).join('');
-    }
-
     attachEventListeners() {
-        // הוספת מאזינים לאזורי ההבדלים
+        // מאזינים לאזורי ההבדלים
         this.differences.forEach(diff => {
             const area = document.getElementById(diff.id);
             if (area) {
@@ -179,7 +184,6 @@ class FindDifferencesGame {
         const differentImage = document.querySelector('.find-diff-different');
         if (differentImage) {
             differentImage.addEventListener('click', (e) => {
-                // אם לא לחצו על area, זה לחיצה שגויה
                 if (e.target.tagName !== 'AREA') {
                     this.handleWrongClick(e);
                 }
@@ -191,7 +195,7 @@ class FindDifferencesGame {
         const difference = this.differences.find(d => d.id === differenceId);
         
         if (!difference || difference.found) {
-          return;
+            return;
         }
 
         // סמן כנמצא
@@ -200,7 +204,7 @@ class FindDifferencesGame {
         this.score += 100;
 
         // הצג את ההבדל
-        const overlay = document.getElementById(`${differenceId}-diff`);
+        const overlay = document.getElementById(differenceId + '-diff');
         if (overlay) {
             overlay.style.display = 'block';
             overlay.classList.add('found-animation');
@@ -274,24 +278,24 @@ class FindDifferencesGame {
         // עדכן ניקוד
         const scoreElement = document.querySelector('.find-diff-score span');
         if (scoreElement) {
-            scoreElement.textContent = `ניקוד: ${this.score}`;
+            scoreElement.textContent = 'ניקוד: ' + this.score;
         }
 
         // עדכן התקדמות
         const infoElement = document.querySelector('.find-diff-info span');
         if (infoElement) {
-            infoElement.textContent = `נמצאו: ${this.foundDifferences}/${this.totalDifferences}`;
+            infoElement.textContent = 'נמצאו: ' + this.foundDifferences + '/' + this.totalDifferences;
         }
 
         // עדכן פס התקדמות
         const progressFill = document.querySelector('.find-diff-progress-fill');
         if (progressFill) {
-            progressFill.style.width = `${(this.foundDifferences / this.totalDifferences) * 100}%`;
+            progressFill.style.width = ((this.foundDifferences / this.totalDifferences) * 100) + '%';
         }
 
         const progressText = document.querySelector('.find-diff-progress p');
         if (progressText) {
-            progressText.textContent = `התקדמות: ${this.foundDifferences} מתוך ${this.totalDifferences} הבדלים`;
+            progressText.textContent = 'התקדמות: ' + this.foundDifferences + ' מתוך ' + this.totalDifferences + ' הבדלים';
         }
     }
 
@@ -305,7 +309,8 @@ class FindDifferencesGame {
                 const timerElement = document.getElementById('game-timer');
                 if (timerElement) {
                     timerElement.textContent = 
-                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        (minutes < 10 ? '0' : '') + minutes + ':' + 
+                        (seconds < 10 ? '0' : '') + seconds;
                 }
             }
         }, 1000);
@@ -335,7 +340,7 @@ class FindDifferencesGame {
                     <div class="find-diff-stats">
                         <div class="stat-item">
                             <span class="stat-label">זמן:</span>
-                            <span class="stat-value">${Math.floor(this.gameTime / 60000)}:${Math.floor((this.gameTime % 60000) / 1000).toString().padStart(2, '0')}</span>
+                            <span class="stat-value">${Math.floor(this.gameTime / 60000)}:${(Math.floor((this.gameTime % 60000) / 1000) < 10 ? '0' : '')}${Math.floor((this.gameTime % 60000) / 1000)}</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">הבדלים:</span>
@@ -395,4 +400,4 @@ function startFindDifferences() {
     
     findDifferencesGame = new FindDifferencesGame();
     findDifferencesGame.start();
-}
+} 

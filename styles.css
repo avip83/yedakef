@@ -2520,184 +2520,272 @@ button, .game-card, .category-card {
     }
 }
 
-/* Digital Coloring Game Styles - Simple Canvas Version */
-.drawing-area {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Digital Coloring Game Styles - Easy Paint Version */
+.paint-toolbar {
+    min-width: 150px;
+    max-width: 200px;
 }
 
-#coloringCanvas {
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    transition: box-shadow 0.3s ease;
+.paint-toolbar h3 {
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    font-family: 'Arial', sans-serif;
 }
 
-#coloringCanvas:hover {
-    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+.colors-grid {
+    max-width: 110px;
+    margin: 0 auto;
 }
 
-.controls-section {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border: 2px solid #e0e6ed;
+.color-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
-.color-control input[type="color"] {
-    transition: transform 0.3s ease;
-}
-
-.color-control input[type="color"]:hover {
-    transform: scale(1.1);
-}
-
-.pen-control input[type="range"] {
-    background: linear-gradient(to right, #4caf50 0%, #45a049 100%);
-    outline: none;
-    border-radius: 15px;
-    height: 8px;
-}
-
-.pen-control input[type="range"]::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
+.color-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.3);
     border-radius: 50%;
-    background: #4caf50;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transform: translate(-50%, -50%);
     transition: all 0.3s ease;
 }
 
-.pen-control input[type="range"]::-webkit-slider-thumb:hover {
-    background: #45a049;
-    transform: scale(1.2);
+.color-btn:hover::before {
+    width: 100%;
+    height: 100%;
 }
 
-.control-btn, .action-btn {
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.color-btn.active {
+    animation: colorPulse 2s infinite;
 }
 
-.control-btn:hover, .action-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+@keyframes colorPulse {
+    0%, 100% { 
+        transform: scale(1.2); 
+        box-shadow: 0 0 20px rgba(255,255,255,0.8);
+    }
+    50% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 10px rgba(255,255,255,0.4);
+    }
 }
 
-.control-btn:active, .action-btn:active {
-    transform: translateY(-1px);
-}
-
-.control-btn:disabled {
-    background: #ccc !important;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.gallery-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.gallery-section h3 {
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 20px;
-}
-
-.gallery-images {
-    background: rgba(255,255,255,0.1) !important;
+.tools-grid .tool-btn {
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
 }
 
-.gallery-item {
-    background: rgba(255,255,255,0.1);
-    border-radius: 15px;
-    padding: 10px;
+.tools-grid .tool-btn:hover {
+    background: rgba(255,255,255,0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.tools-grid .tool-btn:active {
+    transform: translateY(0) !important;
+}
+
+.stamps-grid {
+    max-width: 110px;
+    margin: 0 auto;
+}
+
+.stamp-btn {
     backdrop-filter: blur(5px);
+    position: relative;
+}
+
+.stamp-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.stamp-btn:hover::after {
+    transform: translateX(100%);
+}
+
+.stamp-btn.active {
+    background: rgba(255,255,255,0.4) !important;
+    animation: stampSelected 0.5s ease;
+}
+
+@keyframes stampSelected {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(5deg); }
+    100% { transform: scale(1.1) rotate(0deg); }
+}
+
+.canvas-container {
+    position: relative;
     transition: all 0.3s ease;
 }
 
-.gallery-item:hover {
-    background: rgba(255,255,255,0.2);
-    transform: translateY(-5px);
+.canvas-container:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4) !important;
 }
 
-.gallery-image {
+#paintCanvas {
     transition: all 0.3s ease;
-    border-radius: 10px !important;
 }
 
-.gallery-item p {
-    color: white !important;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+#paintCanvas:active {
+    transform: scale(0.99);
 }
 
-.additional-controls {
-    background: rgba(255,255,255,0.1);
-    padding: 20px;
-    border-radius: 15px;
+.canvas-info {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.canvas-info:hover {
+    background: rgba(0,0,0,0.8) !important;
+}
+
+.instructions {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.image-counter {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    box-shadow: 0 6px 20px rgba(79,172,254,0.4);
-    transition: all 0.3s ease;
+.instructions h3 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
 }
 
-.image-counter:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(79,172,254,0.5);
+.instructions p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #555;
 }
 
-/* Animation for loading */
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+/* ציור חלק יותר */
+#paintCanvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: pixelated;
 }
 
-.drawing-area canvas {
-    animation: pulse 2s infinite;
+/* אפקטים מיוחדים */
+.paint-toolbar {
+    animation: slideInLeft 0.5s ease;
 }
 
-.drawing-area canvas:hover {
-    animation: none;
+.canvas-container {
+    animation: slideInRight 0.5s ease;
+}
+
+.instructions {
+    animation: slideInUp 0.5s ease 0.3s both;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    #coloringCanvas {
-        width: 90vw;
-        height: auto;
-        max-width: 400px;
+    .game-modal-body {
+        flex-direction: column !important;
+        align-items: center !important;
     }
     
-    .controls-section {
-        flex-direction: column;
-        gap: 15px;
+    .paint-toolbar {
+        order: 2;
+        min-width: 100%;
+        max-width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px;
     }
     
-    .gallery-images {
+    .colors-section,
+    .tools-section,
+    .stamps-section {
+        margin-bottom: 0 !important;
+        flex: 1;
+    }
+    
+    .colors-grid,
+    .stamps-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        max-width: none;
+    }
+    
+    .tools-grid {
+        flex-direction: row !important;
         justify-content: center;
     }
     
-    .gallery-image {
-        width: 100px !important;
-        height: 75px !important;
+    .canvas-container {
+        order: 1;
+        margin-bottom: 20px;
     }
     
-    .additional-controls {
-        flex-direction: column;
-        gap: 10px;
+    #paintCanvas {
+        width: 90vw;
+        height: auto;
+        max-width: 400px;
+        max-height: 300px;
+    }
+    
+    .instructions {
+        order: 3;
+        margin: 10px;
+    }
+    
+    .color-btn,
+    .stamp-btn {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .tool-btn {
+        padding: 8px !important;
+        font-size: 12px !important;
     }
 }

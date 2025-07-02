@@ -1,389 +1,331 @@
-class FindDifferencesGame {
-    constructor() {
-        this.gameContainer = null;
-        this.differencesFound = 0;
-        this.totalDifferences = 5;
-        this.score = 0;
-        this.timeLeft = 120; // 2 minutes
-        this.gameTimer = null;
-        this.gameStarted = false;
-        this.soundEnabled = true;
-        
-        // Sound effects
-        this.sounds = {
-            success: new Audio('sounds/success-340660 (mp3cut.net).mp3'),
-            wrong: new Audio('sounds/wrong-47985 (mp3cut.net).mp3'),
-            complete: new Audio('sounds/game-level-complete-143022.mp3'),
-            click: new Audio('sounds/click-tap-computer-mouse-352734.mp3')
-        };
-        
-        // Set sound volumes
-        Object.values(this.sounds).forEach(sound => {
-            sound.volume = 0.5;
-            sound.preload = 'auto';
-        });
-        
-        this.differences = [
-            { id: 'diff1', x: 60, y: 154, width: 25, height: 26, hint: 'תולעת אדמה ליד הדשא' },
-            { id: 'diff2', x: 13, y: 162, width: 45, height: 37, hint: 'זנב השועל' },
-            { id: 'diff3', x: 199, y: 50, width: 62, height: 41, hint: 'ענף עץ מאחורי השועל' },
-            { id: 'diff4', x: 190, y: 51, width: 46, height: 32, hint: 'דמעה/זיעה על פני השועל' },
-            { id: 'diff5', x: 66, y: 122, width: 37, height: 49, hint: 'צבע האוזן השמאלית של השועל' }
-        ];
+// משחק מצא את ההבדלים - פשוט ובסיסי
+function startFindDifferences() {
+    console.log('Starting Find Differences Game');
+    
+    // יצירת מודל המשחק
+    createGameModal();
+}
+
+function createGameModal() {
+    // הסרת מודל קיים אם יש
+    const existingModal = document.querySelector('.find-differences-modal');
+    if (existingModal) {
+        existingModal.remove();
     }
     
-    init() {
-        this.createGameHTML();
-        this.setupEventListeners();
-        this.startGame();
-    }
-    
-    createGameHTML() {
-        this.gameContainer = document.createElement('div');
-        this.gameContainer.className = 'find-differences-game';
-        this.gameContainer.innerHTML = `
-            <div class="game-header">
+    // יצירת מודל חדש
+    const modal = document.createElement('div');
+    modal.className = 'find-differences-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
                 <h2>🔍 מצא את ההבדלים</h2>
-                <div class="game-info">
-                    <div class="info-item">
-                        <span class="label">נמצאו:</span>
-                        <span id="found-count">${this.differencesFound}</span>/<span id="total-count">${this.totalDifferences}</span>
+                <button class="close-btn" onclick="closeFindDifferences()">×</button>
+            </div>
+            <div class="game-info">
+                <div class="score">נקודות: <span id="score">0</span></div>
+                <div class="found">נמצאו: <span id="found">0</span>/3</div>
+                <div class="timer">זמן: <span id="timer">60</span></div>
+            </div>
+            <div class="game-container">
+                <div class="images-container">
+                    <div class="image-wrapper">
+                        <h3>תמונה ראשונה - תפוח</h3>
+                        <div class="image-box" id="image1">
+                            <img src="fruits/apple.jpg" alt="תפוח">
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <span class="label">זמן:</span>
-                        <span id="time-left">${this.formatTime(this.timeLeft)}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">ניקוד:</span>
-                        <span id="score">${this.score}</span>
+                    <div class="image-wrapper">
+                        <h3>תמונה שנייה - בננה</h3>
+                        <div class="image-box" id="image2">
+                            <img src="fruits/banana.jpg" alt="בננה">
+                            <!-- נקודות ההבדלים - מיקומים פשוטים -->
+                            <div class="difference" data-id="1" style="top: 25%; left: 25%; width: 60px; height: 60px;" title="הבדל 1"></div>
+                            <div class="difference" data-id="2" style="top: 50%; left: 50%; width: 60px; height: 60px;" title="הבדל 2"></div>
+                            <div class="difference" data-id="3" style="top: 70%; left: 30%; width: 60px; height: 60px;" title="הבדל 3"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
             <div class="game-instructions">
-                <p>👆 לחץ על האובייקטים בתמונה הראשונה (מצא את ההבדלים) שחסרים בתמונה השנייה</p>
+                <p>🎯 לחץ על התמונה השנייה כדי למצוא את ההבדלים!</p>
+                <p>💡 רמז: יש 3 הבדלים בין התפוח לבננה</p>
             </div>
-            
-            <div class="images-container">
-                <div class="image-wrapper">
-                    <h3>תמונה 1 (מצא בה את ההבדלים)</h3>
-                    <div class="image-container" id="image1">
-                        <img src="find-differences-images/unreal.jpg" alt="תמונה עם הבדלים">
-                        <div class="differences-overlay" id="differences-overlay"></div>
-                    </div>
-                </div>
-                
-                <div class="image-wrapper">
-                    <h3>תמונה 2 (תמונה השוואה)</h3>
-                    <div class="image-container" id="image2">
-                        <img src="find-differences-images/Real.jpg" alt="תמונה השוואה">
-                    </div>
-                </div>
-            </div>
-            
             <div class="game-controls">
-                <button class="btn hint-btn" id="hint-btn">💡 רמז</button>
-                <button class="btn restart-btn" id="restart-btn">🔄 התחל מחדש</button>
-                <button class="btn sound-btn" id="sound-btn">🔊 צליל</button>
+                <button onclick="resetGame()" class="control-btn">🔄 התחל מחדש</button>
+                <button onclick="showHint()" class="control-btn">💡 רמז</button>
             </div>
-            
-            <div class="hint-display" id="hint-display"></div>
-            
-            <div class="game-footer">
-                <p>מצא את 5 ההבדלים בין התמונות!</p>
-            </div>
-        `;
-        
-        // Add to modal
-        let modal = document.getElementById('game-modal');
-        if (!modal) {
-            showModal(); // Create modal if it doesn't exist
-            modal = document.getElementById('game-modal');
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // התחלת המשחק
+    initGame();
+}
+
+// משתני המשחק
+let gameState = {
+    score: 0,
+    found: 0,
+    timeLeft: 60,
+    gameActive: true,
+    differences: [1, 2, 3],
+    foundDifferences: []
+};
+
+function initGame() {
+    console.log('Initializing game...');
+    
+    // איפוס משתני המשחק
+    gameState.score = 0;
+    gameState.found = 0;
+    gameState.timeLeft = 60;
+    gameState.gameActive = true;
+    gameState.foundDifferences = [];
+    
+    // עדכון התצוגה
+    updateDisplay();
+    
+    // הוספת מאזיני אירועים
+    setupEventListeners();
+    
+    // התחלת הטיימר
+    startTimer();
+}
+
+function setupEventListeners() {
+    // מאזין לקליקים על התמונה השנייה
+    const image2 = document.getElementById('image2');
+    if (image2) {
+        image2.addEventListener('click', handleImageClick);
+    }
+    
+    // מאזין לקליקים על ההבדלים
+    const differences = document.querySelectorAll('.difference');
+    differences.forEach(diff => {
+        diff.addEventListener('click', handleDifferenceClick);
+    });
+}
+
+function handleImageClick(event) {
+    if (!gameState.gameActive) return;
+    
+    console.log('Image clicked at:', event.offsetX, event.offsetY);
+    
+    // אפקט קליק שגוי
+    showWrongClick(event.offsetX, event.offsetY);
+    
+    // הפחתת נקודות על קליק שגוי
+    gameState.score = Math.max(0, gameState.score - 2);
+    updateDisplay();
+    
+    // צליל שגיאה
+    playSound('wrong');
+}
+
+function handleDifferenceClick(event) {
+    event.stopPropagation(); // מניעת הפעלת handleImageClick
+    
+    if (!gameState.gameActive) return;
+    
+    const diffId = parseInt(event.target.getAttribute('data-id'));
+    
+    if (gameState.foundDifferences.includes(diffId)) {
+        return; // כבר נמצא
+    }
+    
+    console.log('Difference found:', diffId);
+    
+    // סימון ההבדל כנמצא
+    event.target.classList.add('found');
+    gameState.foundDifferences.push(diffId);
+    gameState.found++;
+    gameState.score += 10;
+    
+    // אפקט חזותי
+    showFoundEffect(event.target);
+    
+    // עדכון התצוגה
+    updateDisplay();
+    
+    // צליל הצלחה
+    playSound('success');
+    
+    // בדיקת סיום המשחק
+    if (gameState.found >= 3) {
+        endGame(true);
+    }
+}
+
+function showWrongClick(x, y) {
+    const wrongEffect = document.createElement('div');
+    wrongEffect.className = 'wrong-click-effect';
+    wrongEffect.style.position = 'absolute';
+    wrongEffect.style.left = x + 'px';
+    wrongEffect.style.top = y + 'px';
+    wrongEffect.style.color = 'red';
+    wrongEffect.style.fontSize = '24px';
+    wrongEffect.style.fontWeight = 'bold';
+    wrongEffect.style.pointerEvents = 'none';
+    wrongEffect.style.zIndex = '1000';
+    wrongEffect.textContent = '❌';
+    
+    const image2 = document.getElementById('image2');
+    image2.appendChild(wrongEffect);
+    
+    setTimeout(() => {
+        if (wrongEffect.parentNode) {
+            wrongEffect.remove();
         }
-        const modalBody = modal.querySelector('.modal-body');
-        if (modalBody) {
-            modalBody.innerHTML = '';
-            modalBody.appendChild(this.gameContainer);
+    }, 1000);
+}
+
+function showFoundEffect(element) {
+    element.innerHTML = '✅';
+    element.style.backgroundColor = 'rgba(0, 255, 0, 0.8)';
+    element.style.borderRadius = '50%';
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    element.style.justifyContent = 'center';
+    element.style.fontSize = '30px';
+    element.style.border = '3px solid green';
+    element.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.7)';
+}
+
+function startTimer() {
+    const timerInterval = setInterval(() => {
+        if (!gameState.gameActive) {
+            clearInterval(timerInterval);
+            return;
         }
         
-        // Create differences clickable areas
-        this.createDifferencesAreas();
-    }
-    
-    createDifferencesAreas() {
-        const overlay = document.getElementById('differences-overlay');
+        gameState.timeLeft--;
+        updateDisplay();
         
-        this.differences.forEach((diff, index) => {
-            const area = document.createElement('div');
-            area.className = 'difference-area';
-            area.id = diff.id;
-            area.style.cssText = `
-                position: absolute;
-                left: ${diff.x}px;
-                top: ${diff.y}px;
-                width: ${diff.width}px;
-                height: ${diff.height}px;
-                cursor: pointer;
-                z-index: 10;
-            `;
-            
-            area.addEventListener('click', () => this.handleDifferenceClick(diff, area));
-            overlay.appendChild(area);
-        });
-    }
-    
-    setupEventListeners() {
-        document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
-        document.getElementById('restart-btn').addEventListener('click', () => this.restartGame());
-        document.getElementById('sound-btn').addEventListener('click', () => this.toggleSound());
-    }
-    
-    startGame() {
-        this.gameStarted = true;
-        this.startTimer();
-    }
-    
-    startTimer() {
-        this.gameTimer = setInterval(() => {
-            this.timeLeft--;
-            document.getElementById('time-left').textContent = this.formatTime(this.timeLeft);
-            
-            if (this.timeLeft <= 0) {
-                this.endGame(false);
-            }
-        }, 1000);
-    }
-    
-    handleDifferenceClick(diff, area) {
-        if (!this.gameStarted) return;
-        
-        // Play click sound
-        this.playSound('click');
-        
-        // Mark as found
-        area.classList.add('found');
-        area.style.cssText += `
-            background-color: rgba(0, 255, 0, 0.3);
-            border: 2px solid #00ff00;
-            border-radius: 50%;
-            pointer-events: none;
-        `;
-        
-        // Add found animation
-        area.classList.add('found-animation');
-        
-        this.differencesFound++;
-        this.score += 20; // 20 points per difference
-        
-        // Update display
-        document.getElementById('found-count').textContent = this.differencesFound;
-        document.getElementById('score').textContent = this.score;
-        
-        // Play success sound
-        this.playSound('success');
-        
-        // Show success message
-        this.showMessage(`מעולה! מצאת: ${diff.hint}`, 'success');
-        
-        // Check if game completed
-        if (this.differencesFound >= this.totalDifferences) {
-            setTimeout(() => this.endGame(true), 500);
+        if (gameState.timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endGame(false);
         }
+    }, 1000);
+}
+
+function updateDisplay() {
+    const scoreElement = document.getElementById('score');
+    const foundElement = document.getElementById('found');
+    const timerElement = document.getElementById('timer');
+    
+    if (scoreElement) scoreElement.textContent = gameState.score;
+    if (foundElement) foundElement.textContent = gameState.found;
+    if (timerElement) timerElement.textContent = gameState.timeLeft;
+}
+
+function endGame(won) {
+    gameState.gameActive = false;
+    
+    let message, emoji;
+    if (won) {
+        message = `כל הכבוד! מצאת את כל ההבדלים!\nהנקודות שלך: ${gameState.score}`;
+        emoji = '🎉';
+        playSound('complete');
+    } else {
+        message = `הזמן נגמר!\nמצאת ${gameState.found} מתוך 3 הבדלים\nהנקודות שלך: ${gameState.score}`;
+        emoji = '⏰';
+        playSound('wrong');
     }
     
-    showHint() {
-        const hintDisplay = document.getElementById('hint-display');
-        const remainingDiffs = this.differences.filter(diff => 
-            !document.getElementById(diff.id).classList.contains('found')
-        );
-        
-        if (remainingDiffs.length > 0) {
-            const randomDiff = remainingDiffs[Math.floor(Math.random() * remainingDiffs.length)];
-            hintDisplay.innerHTML = `
-                <div class="hint-message">
-                    💡 רמז: ${randomDiff.hint}
-                </div>
-            `;
-            hintDisplay.style.display = 'block';
-            
-            // Hide hint after 5 seconds
-            setTimeout(() => {
-                hintDisplay.style.display = 'none';
-            }, 5000);
-        }
-    }
+    setTimeout(() => {
+        alert(emoji + ' ' + message);
+    }, 500);
+}
+
+function resetGame() {
+    // איפוס כל ההבדלים
+    const differences = document.querySelectorAll('.difference');
+    differences.forEach(diff => {
+        diff.classList.remove('found');
+        diff.innerHTML = '';
+        diff.style.backgroundColor = '';
+        diff.style.borderRadius = '';
+        diff.style.border = '';
+        diff.style.boxShadow = '';
+    });
     
-    showMessage(message, type = 'info') {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `game-message ${type}`;
-        messageDiv.textContent = message;
-        messageDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            z-index: 1000;
-            animation: messageSlideIn 0.3s ease-out;
-        `;
-        
-        document.body.appendChild(messageDiv);
+    // הסרת אפקטים
+    const wrongEffects = document.querySelectorAll('.wrong-click-effect');
+    wrongEffects.forEach(effect => effect.remove());
+    
+    // התחלה מחדש
+    initGame();
+}
+
+function showHint() {
+    if (!gameState.gameActive) return;
+    
+    // מציאת הבדל שלא נמצא
+    const unfoundDifferences = gameState.differences.filter(id => 
+        !gameState.foundDifferences.includes(id)
+    );
+    
+    if (unfoundDifferences.length === 0) return;
+    
+    const randomDiff = unfoundDifferences[Math.floor(Math.random() * unfoundDifferences.length)];
+    const diffElement = document.querySelector(`[data-id="${randomDiff}"]`);
+    
+    if (diffElement) {
+        // אפקט הבזקה
+        diffElement.style.border = '4px solid yellow';
+        diffElement.style.boxShadow = '0 0 20px yellow';
+        diffElement.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
         
         setTimeout(() => {
-            messageDiv.style.animation = 'messageSlideOut 0.3s ease-in';
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.parentNode.removeChild(messageDiv);
-                }
-            }, 300);
-        }, 2000);
-    }
-    
-    endGame(won) {
-        this.gameStarted = false;
-        clearInterval(this.gameTimer);
-        
-        if (won) {
-            // Add time bonus
-            this.score += this.timeLeft;
-            this.playSound('complete');
-            
-            this.showEndModal(
-                '🎉 כל הכבוד!',
-                `מצאת את כל ההבדלים!<br>
-                 ניקוד סופי: ${this.score}<br>
-                 זמן שנותר: ${this.formatTime(this.timeLeft)}`
-            );
-        } else {
-            this.showEndModal(
-                '⏰ הזמן נגמר!',
-                `מצאת ${this.differencesFound} מתוך ${this.totalDifferences} הבדלים<br>
-                 ניקוד: ${this.score}<br>
-                 נסה שוב!`
-            );
-        }
-    }
-    
-    showEndModal(title, message) {
-        const endModal = document.createElement('div');
-        endModal.className = 'game-end-modal';
-        endModal.innerHTML = `
-            <div class="end-modal-content">
-                <h2>${title}</h2>
-                <p>${message}</p>
-                <div class="end-modal-buttons">
-                    <button class="btn primary" onclick="this.parentElement.parentElement.parentElement.remove(); startFindDifferences();">שחק שוב</button>
-                    <button class="btn secondary" onclick="this.parentElement.parentElement.parentElement.remove(); closeModal();">סגור</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(endModal);
-    }
-    
-    restartGame() {
-        this.differencesFound = 0;
-        this.score = 0;
-        this.timeLeft = 120;
-        this.gameStarted = false;
-        
-        if (this.gameTimer) {
-            clearInterval(this.gameTimer);
-        }
-        
-        // Reset UI
-        document.getElementById('found-count').textContent = this.differencesFound;
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('time-left').textContent = this.formatTime(this.timeLeft);
-        
-        // Reset differences
-        this.differences.forEach(diff => {
-            const area = document.getElementById(diff.id);
-            if (area) {
-                area.classList.remove('found', 'found-animation');
-                area.style.cssText = `
-                    position: absolute;
-                    left: ${diff.x}px;
-                    top: ${diff.y}px;
-                    width: ${diff.width}px;
-                    height: ${diff.height}px;
-                    cursor: pointer;
-                    z-index: 10;
-                `;
-                area.style.pointerEvents = 'auto';
+            if (!diffElement.classList.contains('found')) {
+                diffElement.style.border = '';
+                diffElement.style.boxShadow = '';
+                diffElement.style.backgroundColor = '';
             }
-        });
+        }, 3000);
         
-        // Hide hint
-        document.getElementById('hint-display').style.display = 'none';
-        
-        this.startGame();
-    }
-    
-    toggleSound() {
-        this.soundEnabled = !this.soundEnabled;
-        const soundBtn = document.getElementById('sound-btn');
-        soundBtn.textContent = this.soundEnabled ? '🔊 צליל' : '🔇 צליל';
-    }
-    
-    playSound(soundName) {
-        if (this.soundEnabled && this.sounds[soundName]) {
-            this.sounds[soundName].currentTime = 0;
-            this.sounds[soundName].play().catch(e => console.log('Sound play failed:', e));
-        }
-    }
-    
-    formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        // הפחתת נקודות על רמז
+        gameState.score = Math.max(0, gameState.score - 5);
+        updateDisplay();
     }
 }
 
-// Global functions for modal management
-function showModal() {
-    const modal = document.getElementById('game-modal');
-    if (!modal) {
-        // Create modal if it doesn't exist
-        const newModal = document.createElement('div');
-        newModal.id = 'game-modal';
-        newModal.className = 'game-modal';
-        newModal.innerHTML = `
-            <div class="game-modal-content">
-                <button class="close-button" onclick="closeModal()">×</button>
-                <div class="modal-body"></div>
-            </div>
-        `;
-        document.body.appendChild(newModal);
-    }
-    document.getElementById('game-modal').style.display = 'flex';
-}
-
-function closeModal() {
-    const modal = document.getElementById('game-modal');
+function closeFindDifferences() {
+    const modal = document.querySelector('.find-differences-modal');
     if (modal) {
-        modal.style.display = 'none';
-        // Clean up the modal content
-        const modalBody = modal.querySelector('.modal-body');
-        if (modalBody) {
-            modalBody.innerHTML = '';
-        }
+        modal.remove();
     }
 }
 
-// Global function to start the game
-function startFindDifferences() {
-    const game = new FindDifferencesGame();
-    game.init();
-    showModal();
+function playSound(soundName) {
+    try {
+        let soundFile;
+        switch(soundName) {
+            case 'success':
+                soundFile = 'sounds/success-340660 (mp3cut.net).mp3';
+                break;
+            case 'wrong':
+                soundFile = 'sounds/wrong-47985 (mp3cut.net).mp3';
+                break;
+            case 'complete':
+                soundFile = 'sounds/game-level-complete-143022.mp3';
+                break;
+            case 'click':
+                soundFile = 'sounds/click-tap-computer-mouse-352734.mp3';
+                break;
+            default:
+                return;
+        }
+        
+        const audio = new Audio(soundFile);
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Cannot play sound:', e));
+    } catch (e) {
+        console.log('Sound error:', e);
+    }
 }
 
-// Make sure the functions are available globally
-window.startFindDifferences = startFindDifferences;
-window.showModal = showModal;
-window.closeModal = closeModal;
+// הפונקציה הגלובלית להפעלת המשחק
+window.startFindDifferences = startFindDifferences; 

@@ -51,12 +51,12 @@ const KIDS_DATA = {
                     { id: 'shape-match', name: 'התאמת צורות', description: 'גרור צורה מתאימה למקום הנכון', icon: '🔷', difficulty: 'easy' },
                     { id: 'animal-sounds', name: 'זיהוי חיות וקולות', description: 'התאם בין חיה לקול שלה', icon: '🐶', difficulty: 'easy' },
                     { id: 'simple-puzzle', name: 'פאזל תמונות פשוט', description: 'הרכב תמונה החל מ-9 חלקים', icon: '🧩', difficulty: 'easy' },
-                    { id: 'find-differences', name: 'מצא את ההבדלים', description: 'מצא 4 הבדלים בין התמונות', icon: '🔍', difficulty: 'easy' },
+                    { id: 'find-differences', name: 'מצא את ההבדלים', description: 'מצא את ההבדלים בין שתי התמונות', icon: '🔍', difficulty: 'easy' },
     
                     { id: 'count-objects', name: 'ספור חפצים', description: 'ספר חפצים עד 3', icon: '🔢', difficulty: 'easy' },
-                    { id: 'what-is-missing', name: 'מה חסר?', description: 'מצא את הפריט החסר בתמונה', icon: '❓', difficulty: 'easy' },
+                    { id: 'what-is-missing', name: 'מה חסר?', description: 'זכור מה היה כאן ומצא מה חסר', icon: '❓', difficulty: 'medium' },
                     { id: 'sound-match', name: 'צלילים ראשונים', description: 'התאם צליל לתמונה', icon: '🔊', difficulty: 'easy' },
-                    { id: 'tower-builder', name: 'בניית מגדל קוביות', description: 'גרור קוביות ובנה מגדל', icon: '🧱', difficulty: 'easy' },
+                    { id: 'tower-builder', name: 'בונה מגדלים', description: 'בנה מגדל גבוה ויציב מקוביות', icon: '🏗️', difficulty: 'medium' },
                     { id: 'digital-coloring', name: 'צביעה דיגיטלית', description: 'מלא שטחים בצבעים', icon: '🖌️', difficulty: 'easy' },
                 ]
             }

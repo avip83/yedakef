@@ -911,264 +911,261 @@ button, .game-card, .category-card {
     }
 }
 
-/* Find Differences Game Styles - Based on Prabhatyadav60 */
+/* משחק מצא את ההבדלים */
 .find-differences-modal {
-    max-width: 1400px !important;
-    width: 95% !important;
-    max-height: 95vh !important;
-    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.find-differences-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.find-differences-modal .modal-content {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.find-differences-container .game-header {
-    text-align: center;
-    padding: 20px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
+.find-differences-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 15px;
+}
+
+.find-differences-modal .modal-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.find-differences-modal .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.find-differences-modal .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.find-differences-modal .game-info {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
     backdrop-filter: blur(10px);
 }
 
-.find-differences-container .game-header h2 {
-    margin: 0 0 15px 0;
-    font-size: 2.5em;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-}
-
-.find-differences-container .game-info {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 20px;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-.find-differences-container .game-info span {
-    background: rgba(255,255,255,0.2);
-    padding: 8px 15px;
-    border-radius: 20px;
-    backdrop-filter: blur(5px);
-}
-
-.find-differences-container .game-instructions {
+.find-differences-modal .game-info > div {
     text-align: center;
-    padding: 15px;
-    background: rgba(249, 0, 85, 0.8);
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 1.1em;
+    font-size: 1.2rem;
     font-weight: bold;
 }
 
-.find-differences-container .images-container {
+.find-differences-modal .game-info span {
+    color: #ffeb3b;
+    font-size: 1.5rem;
+}
+
+.find-differences-modal .game-container {
+    margin-bottom: 20px;
+}
+
+.find-differences-modal .images-container {
     display: flex;
     gap: 20px;
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 20px;
 }
 
-.find-differences-container .image-wrapper {
+.find-differences-modal .image-wrapper {
     flex: 1;
-    min-width: 300px;
-    max-width: 500px;
-}
-
-.find-differences-container .image-wrapper h3 {
+    min-width: 250px;
     text-align: center;
-    margin-bottom: 10px;
-    font-size: 1.3em;
-    background: rgba(255,255,255,0.1);
-    padding: 10px;
-    border-radius: 5px;
 }
 
-.find-differences-container .image-container {
+.find-differences-modal .image-wrapper h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+    color: #ffeb3b;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.find-differences-modal .image-box {
     position: relative;
-    height: 320px;
-    border: 3px solid #333;
-    border-radius: 10px;
+    display: inline-block;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
 }
 
-.find-differences-container #parent-real {
-    background-image: url('find-differences-images/unreal.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+.find-differences-modal .image-box:hover {
+    transform: scale(1.02);
 }
 
-.find-differences-container #parent-unreal {
-    background-image: url('find-differences-images/Real.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+.find-differences-modal .image-box img {
+    width: 100%;
+    height: auto;
+    max-width: 350px;
+    display: block;
 }
 
-.find-differences-container .difference-spot {
+.find-differences-modal .difference {
     position: absolute;
     cursor: pointer;
-    border-radius: 50%;
+    background: rgba(255, 0, 0, 0.1);
+    border: 2px dashed rgba(255, 0, 0, 0.3);
+    border-radius: 10px;
     transition: all 0.3s ease;
     z-index: 10;
-    /* נקודות סמויות - רק עם hover יופיעו */
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
 }
 
-.find-differences-container .difference-spot:hover {
-    background: rgba(255, 255, 0, 0.5);
-    border: 2px solid #ffff00;
+.find-differences-modal .difference:hover {
+    background: rgba(255, 255, 0, 0.2);
+    border-color: rgba(255, 255, 0, 0.5);
     transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.7);
 }
 
-/* Positioning for each difference spot - כוונון מדויק לפי ההבדלים האמיתיים */
-.find-differences-container #diff1 {
-    /* דמעה על פני השועל */
-    top: 140px;
-    left: 420px;
-    width: 15px;
-    height: 15px;
+.find-differences-modal .difference.found {
+    background: rgba(0, 255, 0, 0.8) !important;
+    border: 3px solid green !important;
+    pointer-events: none;
 }
 
-.find-differences-container #diff2 {
-    /* זנב השועל */
-    top: 200px;
-    left: 500px;
-    width: 80px;
-    height: 60px;
+.find-differences-modal .game-instructions {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
 }
 
-.find-differences-container #diff3 {
-    /* ענף עץ מאחורי השועל */
-    top: 80px;
-    left: 300px;
-    width: 40px;
-    height: 40px;
+.find-differences-modal .game-instructions p {
+    margin: 5px 0;
+    font-size: 1.1rem;
 }
 
-.find-differences-container #diff4 {
-    /* צבע האוזן השמאלית */
-    top: 100px;
-    left: 380px;
-    width: 25px;
-    height: 30px;
-}
-
-.find-differences-container #diff5 {
-    /* משהו בדשא */
-    top: 280px;
-    left: 200px;
-    width: 30px;
-    height: 20px;
-}
-
-.find-differences-container .difference-spot.found {
-    background: rgba(0, 255, 0, 0.6);
-    border: 3px solid #00ff00;
-    animation: foundPulse 0.6s ease-in-out;
-}
-
-.find-differences-container .found-marker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: 1.5em;
-    color: white;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-}
-
-.find-differences-container .game-controls {
+.find-differences-modal .game-controls {
     display: flex;
     justify-content: center;
     gap: 15px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
 }
 
-.find-differences-container .difficulty-button,
-.find-differences-container .hint-button,
-.find-differences-container .restart-button,
-.find-differences-container .back-button {
-    padding: 12px 25px;
-    font-size: 1.1em;
-    font-weight: bold;
+.find-differences-modal .control-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
     border: none;
+    padding: 15px 25px;
     border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.find-differences-container .difficulty-button {
-    background: linear-gradient(45deg, #9f7aea, #805ad5);
-    color: white;
-}
-
-.find-differences-container .hint-button {
-    background: linear-gradient(45deg, #68d391, #38a169);
-    color: white;
-}
-
-.find-differences-container .restart-button {
-    background: linear-gradient(45deg, #fbb6ce, #ed64a6);
-    color: white;
-}
-
-.find-differences-container .back-button {
-    background: linear-gradient(45deg, #90cdf4, #4299e1);
-    color: white;
-}
-
-.find-differences-container .difficulty-button:hover,
-.find-differences-container .hint-button:hover,
-.find-differences-container .restart-button:hover,
-.find-differences-container .back-button:hover {
+.find-differences-modal .control-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #ee5a52, #ff6b6b);
 }
 
-.find-differences-container .hint-area {
-    background: rgba(136, 136, 210, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 20px;
-    border: 2px solid #333;
+.find-differences-modal .control-btn:active {
+    transform: translateY(0);
 }
 
-.find-differences-container .hint-area h4 {
-    margin-top: 0;
-    color: white;
-    text-align: center;
+.find-differences-modal .wrong-click-effect {
+    position: absolute;
+    pointer-events: none;
+    animation: wrongClickAnimation 1s ease-out;
+    z-index: 1000;
 }
 
-.find-differences-container .hints-list {
-    display: grid;
-    gap: 10px;
-    font-size: 1.1em;
+@keyframes wrongClickAnimation {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.5);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
 }
 
-.find-differences-container .hints-list div {
-    background: rgba(255,255,255,0.1);
-    padding: 8px 12px;
-    border-radius: 5px;
-    border-left: 4px solid #00ff00;
+/* עיצוב responsive למובייל */
+@media (max-width: 768px) {
+    .find-differences-modal .modal-content {
+        padding: 15px;
+        max-width: 95vw;
+    }
+    
+    .find-differences-modal .modal-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .find-differences-modal .images-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .find-differences-modal .image-wrapper {
+        min-width: auto;
+    }
+    
+    .find-differences-modal .image-box img {
+        max-width: 280px;
+    }
+    
+    .find-differences-modal .game-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .find-differences-modal .game-info > div {
+        font-size: 1rem;
+    }
+    
+    .find-differences-modal .game-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .find-differences-modal .control-btn {
+        width: 200px;
+    }
 }
 
 /* Completion Modal */

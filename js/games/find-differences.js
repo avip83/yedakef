@@ -16,8 +16,12 @@ class FindDifferencesGame {
     }
 
     createGameHTML() {
-        const gameArea = document.getElementById('game-area');
-        gameArea.innerHTML = `
+        // יצירת מודאל המשחק
+        const modal = document.createElement('div');
+        modal.className = 'game-modal';
+        modal.innerHTML = `
+            <div class="game-modal-content find-differences-modal">
+                <button class="close-button" onclick="this.parentElement.parentElement.remove()">×</button>
             <div class="find-differences-container">
                 <div class="game-header">
                     <h2>🔍 מצא את ההבדלים</h2>
@@ -61,9 +65,11 @@ class FindDifferencesGame {
                     <p id="hint-text">טוען רמזים...</p>
                 </div>
             </div>
+            </div>
         `;
 
-        this.gameContainer = document.querySelector('.find-differences-container');
+        document.body.appendChild(modal);
+        this.gameContainer = modal;
     }
 
     setupEventListeners() {
@@ -266,8 +272,11 @@ class FindDifferencesGame {
         const modals = document.querySelectorAll('.completion-modal');
         modals.forEach(modal => modal.remove());
         
-        // חזרה לתפריט
-        showCategories();
+        // הסרת המשחק
+        if (this.gameContainer) {
+            this.gameContainer.remove();
+        }
+        
         this.playSound('click');
     }
 

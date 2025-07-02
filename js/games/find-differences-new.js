@@ -174,10 +174,6 @@ window['find-differences-new'] = {
 
   startGame() {
     try {
-      const modal = document.querySelector('.game-modal');
-      if (modal) {
-        modal.remove();
-      }
       this.renderGame();
       this.startTimer();
       this.gameActive = true;
@@ -188,9 +184,16 @@ window['find-differences-new'] = {
   },
 
   renderGame() {
+    // עדכון המודל הקיים במקום יצירת gameContainer נפרד
+    const modal = document.querySelector('.game-modal');
+    if (!modal) {
+      console.error('Game modal not found');
+      return;
+    }
+    
     const gameHtml = `
-      <div class="find-differences-game">
-        <div class="game-header">
+      <div class="game-modal-content find-differences-modal">
+        <div class="modal-header">
           <button class="back-btn" onclick="window['find-differences-new'].endGame();">← חזרה</button>
           <h2>🔍 מצא את ההבדלים</h2>
           <div class="game-stats">
@@ -203,43 +206,40 @@ window['find-differences-new'] = {
           </div>
         </div>
         
-        <div class="stage-info">
-          <span>שלב ${this.stage + 1} מתוך ${this.totalStages}</span>
-          <div class="progress-bar-container">
-            <div class="progress-bar" style="width: ${((this.stage + 1) / this.totalStages) * 100}%"></div>
-          </div>
-        </div>
-
-        <div class="images-container">
-          <div class="image-wrapper">
-            <div class="image-title">תמונה מקורית</div>
-            <div class="picture-container" id="top-picture">
-              <img src="diffrent/rabit_a.jpg" alt="תמונה מקורית">
-              <div class="click-layer" id="top-layer"></div>
+        <div class="modal-body">
+          <div class="stage-info">
+            <span>שלב ${this.stage + 1} מתוך ${this.totalStages}</span>
+            <div class="progress-bar-container">
+              <div class="progress-bar" style="width: ${((this.stage + 1) / this.totalStages) * 100}%"></div>
             </div>
           </div>
-          
-          <div class="image-wrapper">
-            <div class="image-title">מצא את ההבדלים</div>
-            <div class="picture-container" id="bottom-picture">
-              <img src="diffrent/rabit_b.jpg" alt="תמונה עם הבדלים">
-              <div class="click-layer" id="bottom-layer"></div>
+
+          <div class="images-container">
+            <div class="image-wrapper">
+              <div class="image-title">תמונה מקורית</div>
+              <div class="picture-container" id="top-picture">
+                <img src="diffrent/rabit_a.jpg" alt="תמונה מקורית">
+                <div class="click-layer" id="top-layer"></div>
+              </div>
+            </div>
+            
+            <div class="image-wrapper">
+              <div class="image-title">מצא את ההבדלים</div>
+              <div class="picture-container" id="bottom-picture">
+                <img src="diffrent/rabit_b.jpg" alt="תמונה עם הבדלים">
+                <div class="click-layer" id="bottom-layer"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="game-instructions">
-          <p>👆 לחץ על האזורים השונים בתמונות כדי למצוא את ההבדלים</p>
+          <div class="game-instructions">
+            <p>👆 לחץ על האזורים השונים בתמונות כדי למצוא את ההבדלים</p>
+          </div>
         </div>
       </div>
     `;
     
-    const gameContainer = document.getElementById('gameContainer');
-    if (!gameContainer) {
-      console.error('gameContainer not found');
-      return;
-    }
-    gameContainer.innerHTML = gameHtml;
+    modal.innerHTML = gameHtml;
     this.setupDifferences();
   },
 
@@ -327,11 +327,16 @@ window['find-differences-new'] = {
     const effect = document.createElement('div');
     effect.className = 'wrong-click-effect';
     effect.textContent = '-10 שניות';
-    document.querySelector('.find-differences-game').appendChild(effect);
-    
-    setTimeout(() => {
-      effect.remove();
-    }, 2000);
+    const modalBody = document.querySelector('.game-modal .modal-body');
+    if (modalBody) {
+      modalBody.appendChild(effect);
+      
+      setTimeout(() => {
+        if (effect.parentNode) {
+          effect.remove();
+        }
+      }, 2000);
+    }
   },
 
   startTimer() {
@@ -480,6 +485,10 @@ window['find-differences-new'] = {
   endGame() {
     this.gameActive = false;
     this.stopTimer();
-    this.showModal();
+    const modal = document.querySelector('.game-modal');
+    if (modal) {
+      modal.remove();
+    }
+    window.showGameSelection();
   }
 }; 

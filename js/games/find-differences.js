@@ -7,6 +7,7 @@ class FindDifferencesGame {
         this.gameActive = true;
         this.startTime = null;
         this.score = 0;
+        this.easyMode = false;
     }
 
     init() {
@@ -55,6 +56,7 @@ class FindDifferencesGame {
                 </div>
 
                 <div class="game-controls">
+                    <button id="difficulty-btn" class="difficulty-button">👁️ מצב קל</button>
                     <button id="hint-btn" class="hint-button">💡 רמז</button>
                     <button id="restart-btn" class="restart-button">🔄 התחל מחדש</button>
                     <button id="back-btn" class="back-button">🏠 חזור לתפריט</button>
@@ -80,12 +82,15 @@ class FindDifferencesGame {
                 const diffSpot = document.getElementById(`diff${i}`);
                 if (diffSpot) {
                     diffSpot.addEventListener('click', (e) => this.handleDifferenceClick(e, i));
-                    console.log(`Added listener to diff${i}`); // Debug
-                } else {
-                    console.log(`Could not find diff${i}`); // Debug
                 }
             }
 
+            // כפתור קושי
+            const difficultyBtn = document.getElementById('difficulty-btn');
+            if (difficultyBtn) {
+                difficultyBtn.addEventListener('click', () => this.toggleDifficulty());
+            }
+            
             // כפתור רמז
             const hintBtn = document.getElementById('hint-btn');
             if (hintBtn) {
@@ -107,7 +112,6 @@ class FindDifferencesGame {
     }
 
     handleDifferenceClick(event, diffNumber) {
-        console.log(`Clicked on difference ${diffNumber}`); // Debug
         if (!this.gameActive) return;
 
         const clickedSpot = event.target;
@@ -174,6 +178,23 @@ class FindDifferencesGame {
             `;
         }, 1000);
         
+        this.playSound('click');
+    }
+
+    toggleDifficulty() {
+        this.easyMode = !this.easyMode;
+        const difficultyBtn = document.getElementById('difficulty-btn');
+        const container = document.querySelector('.find-differences-container');
+        
+        if (this.easyMode) {
+            difficultyBtn.textContent = '🎯 מצב קשה';
+            container.classList.add('easy-mode');
+        } else {
+            difficultyBtn.textContent = '👁️ מצב קל';
+            container.classList.remove('easy-mode');
+        }
+        
+        this.showMessage(this.easyMode ? 'מצב קל - הנקודות נראות!' : 'מצב קשה - הנקודות סמויות!', 'info');
         this.playSound('click');
     }
 

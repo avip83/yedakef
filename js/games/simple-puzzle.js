@@ -62,9 +62,9 @@ function startSimplePuzzleGame() {
             <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 12px; padding: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
                 <iframe id="puzzleFrame" 
                         src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=9&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
-                        width="600" 
-                        height="420" 
-                        style="border: none; border-radius: 8px; max-width: 100%; max-height: 65vh;"
+                        width="500" 
+                        height="380" 
+                        style="border: none; border-radius: 8px; max-width: 100%; max-height: 60vh;"
                         frameborder="0"
                         allowfullscreen>
                 </iframe>
@@ -179,7 +179,8 @@ style.textContent = `
     /* תמיכה מובייל טובה יותר */
     @media (max-width: 768px) {
         #puzzleContainer iframe {
-            height: 350px !important;
+            width: 450px !important;
+            height: 340px !important;
             max-height: 50vh !important;
         }
         
@@ -194,7 +195,8 @@ style.textContent = `
     
     @media (max-width: 480px) {
         #puzzleContainer iframe {
-            height: 300px !important;
+            width: 320px !important;
+            height: 280px !important;
             max-height: 45vh !important;
         }
         

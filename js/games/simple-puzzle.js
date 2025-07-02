@@ -23,7 +23,7 @@ function startSimplePuzzleGame() {
         <div style="background: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="color: #333; margin: 0 0 15px 0; font-size: 1.8em;">🧩 פאזל תמונות</h2>
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 15px;">
                     <label style="color: #666; font-weight: bold; margin-left: 10px;">מספר חלקים:</label>
                     <select id="piecesSelect" style="margin: 0 10px; padding: 8px; border-radius: 8px; border: 2px solid #ddd; font-size: 14px;">
                         <option value="9">9 חלקים (3x3)</option>
@@ -35,11 +35,16 @@ function startSimplePuzzleGame() {
                     <button onclick="createNewPuzzle()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0 5px;">🔄 פאזל חדש</button>
                     <button onclick="showHint()" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">💡 טיפים</button>
                 </div>
+                <div style="background: #e3f2fd; padding: 8px 15px; border-radius: 8px; margin-bottom: 15px; border-right: 4px solid #2196F3;">
+                    <p style="margin: 0; color: #1976D2; font-size: 13px;">
+                        <strong>💡 הוראה:</strong> אם מופיעה הודעה לבחירת מספר חלקים - פשוט לחץ "OK" או בחר את מספר החלקים הרצוי ולחץ "OK"
+                    </p>
+                </div>
             </div>
             
             <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <iframe id="puzzleFrame" 
-                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true&autostart=true&menu=false" 
+                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=9&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
                         width="600" 
                         height="450" 
                         style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
@@ -86,7 +91,7 @@ function createNewPuzzle() {
     const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
     
     // עדכון הפאזל עם פרמטרים מתקדמים
-    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true&autostart=true&menu=false`;
+    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
     
     // הודעה לשחקן
     showNotification(`🎲 פאזל חדש עם ${pieces} חלקים!`, '#4CAF50');
@@ -104,7 +109,7 @@ function updatePuzzlePieces() {
     
     if (currentImageUrl) {
         // עדכון רק מספר החלקים, שמירת אותה תמונה עם פרמטרים מתקדמים
-        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(currentImageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true&autostart=true&menu=false`;
+        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(currentImageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
         
         // הודעה לשחקן
         showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');

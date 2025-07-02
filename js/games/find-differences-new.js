@@ -173,10 +173,18 @@ window['find-differences-new'] = {
   },
 
   startGame() {
-    document.querySelector('.game-modal').remove();
-    this.renderGame();
-    this.startTimer();
-    this.gameActive = true;
+    try {
+      const modal = document.querySelector('.game-modal');
+      if (modal) {
+        modal.remove();
+      }
+      this.renderGame();
+      this.startTimer();
+      this.gameActive = true;
+    } catch (error) {
+      console.error('Error starting game:', error);
+      alert('שגיאה בהפעלת המשחק. נסה שוב.');
+    }
   },
 
   renderGame() {
@@ -206,7 +214,7 @@ window['find-differences-new'] = {
           <div class="image-wrapper">
             <div class="image-title">תמונה מקורית</div>
             <div class="picture-container" id="top-picture">
-              <img src="${this.gameData.images[this.currentImageIndex].src}_a.jpg" alt="תמונה מקורית">
+              <img src="diffrent/rabit_a.jpg" alt="תמונה מקורית">
               <div class="click-layer" id="top-layer"></div>
             </div>
           </div>
@@ -214,7 +222,7 @@ window['find-differences-new'] = {
           <div class="image-wrapper">
             <div class="image-title">מצא את ההבדלים</div>
             <div class="picture-container" id="bottom-picture">
-              <img src="${this.gameData.images[this.currentImageIndex].src}_b.jpg" alt="תמונה עם הבדלים">
+              <img src="diffrent/rabit_b.jpg" alt="תמונה עם הבדלים">
               <div class="click-layer" id="bottom-layer"></div>
             </div>
           </div>
@@ -226,7 +234,12 @@ window['find-differences-new'] = {
       </div>
     `;
     
-    document.getElementById('gameArea').innerHTML = gameHtml;
+    const gameContainer = document.getElementById('gameContainer');
+    if (!gameContainer) {
+      console.error('gameContainer not found');
+      return;
+    }
+    gameContainer.innerHTML = gameHtml;
     this.setupDifferences();
   },
 

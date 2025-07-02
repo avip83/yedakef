@@ -51,6 +51,7 @@ const KIDS_DATA = {
                     { id: 'shape-match', name: 'התאמת צורות', description: 'גרור צורה מתאימה למקום הנכון', icon: '🔷', difficulty: 'easy' },
                     { id: 'animal-sounds', name: 'זיהוי חיות וקולות', description: 'התאם בין חיה לקול שלה', icon: '🐶', difficulty: 'easy' },
                     { id: 'simple-puzzle', name: 'פאזל תמונות פשוט', description: 'הרכב תמונה החל מ-9 חלקים', icon: '🧩', difficulty: 'easy' },
+                    { id: 'find-differences', name: 'מצא את ההבדלים', description: 'מצא 4 הבדלים בין תמונות - 10 שלבים', icon: '🔍', difficulty: 'easy' },
     
                     { id: 'count-objects', name: 'ספור חפצים', description: 'ספר חפצים עד 3', icon: '🔢', difficulty: 'easy' },
                     { id: 'what-is-missing', name: 'מה חסר?', description: 'מצא את הפריט החסר בתמונה', icon: '❓', difficulty: 'easy' },

@@ -100,7 +100,7 @@ class KidsApp {
         // הצג את כל המשחקים ברשימה אחת
         const gamesGrid = document.getElementById('gamesGrid');
         gamesGrid.innerHTML = allGames.map(game => {
-            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle';
+            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'find-differences';
             return `
                 <div class="game-card" data-age="${ageId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}
@@ -157,7 +157,7 @@ class KidsApp {
         const gamesGrid = document.getElementById('gamesGrid');
         const games = DataManager.getGamesForCategory(ageId, categoryId);
         gamesGrid.innerHTML = games.map(game => {
-            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle';
+            const isReady = game.id === 'color-match' || game.id === 'shape-match' || game.id === 'animal-sounds' || game.id === 'count-objects' || game.id === 'what-is-missing' || game.id === 'simple-puzzle' || game.id === 'find-differences';
             return `
                 <div class="game-card" data-age="${ageId}" data-category="${categoryId}" data-game="${game.id}" tabindex="0" aria-label="בחר משחק ${game.name}">
                     ${isReady ? '' : `<div class="game-status-icon" title="בקרוב"><span style='color:#ff9800;font-size:2em;font-weight:bold'>🔒</span></div>`}

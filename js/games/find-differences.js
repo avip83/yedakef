@@ -395,10 +395,10 @@ class FindDifferencesGame {
 }
 
 // משתנה גלובלי למשחק
-let findDifferencesGame = null;
+window.findDifferencesGame = null;
 
 // פונקציה להתחלת המשחק
-function startFindDifferences() {
+window.startFindDifferences = function() {
     const gameArea = document.getElementById('game-area');
     if (!gameArea) {
         console.error('game-area element not found');
@@ -418,6 +418,6 @@ function startFindDifferences() {
     gameArea.style.display = 'block';
     gameArea.className = 'game-active find-differences-active';
     
-    findDifferencesGame = new FindDifferencesGame();
-    findDifferencesGame.start();
-} 
+    window.findDifferencesGame = new FindDifferencesGame();
+    window.findDifferencesGame.start();
+}; 

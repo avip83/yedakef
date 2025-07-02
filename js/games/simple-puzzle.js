@@ -38,11 +38,14 @@ function startSimplePuzzleGame() {
             </div>
             
             <div id="puzzleContainer" style="text-align: center; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <div id="puzzleLoading" style="padding: 50px; color: #666;">⏳ יוצר פאזל...</div>
-                <div id="puzzleFrame" style="display: none;"></div>
-                <div id="userInstructions" style="display: none; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 10px; color: #1976d2; font-size: 14px;">
-                    💡 אם מופיע חלון בחירת חלקים, פשוט לחץ "OK" כדי להתחיל את הפאזל
-                </div>
+                <iframe id="puzzleFrame" 
+                        src="https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=9&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true" 
+                        width="600" 
+                        height="450" 
+                        style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
+                        frameborder="0"
+                        allowfullscreen>
+                </iframe>
             </div>
         </div>
     `;
@@ -51,21 +54,17 @@ function startSimplePuzzleGame() {
     window.createNewPuzzle = createNewPuzzle;
     window.showHint = showHint;
     window.updatePuzzlePieces = updatePuzzlePieces;
-    window.createCustomPuzzle = createCustomPuzzle;
     window.currentPuzzleImages = puzzleImages;
     
-    // יצירת הפאזל הראשון אחרי שה-DOM נטען
+    // האזנה לשינויים בבחירת מספר החלקים
     setTimeout(() => {
-        createCustomPuzzle(randomImage, 9);
-        
-        // האזנה לשינויים בבחירת מספר החלקים
         const piecesSelect = document.getElementById('piecesSelect');
         if (piecesSelect) {
             piecesSelect.addEventListener('change', function() {
                 updatePuzzlePieces();
             });
         }
-    }, 200);
+    }, 100);
     
     // האזנה להשלמת פאזל
     window.addEventListener('message', function(event) {
@@ -78,136 +77,16 @@ function startSimplePuzzleGame() {
     });
 }
 
-async function createCustomPuzzle(imagePath, pieces) {
-    console.log('createCustomPuzzle called with:', imagePath, pieces);
-    
-    const puzzleLoading = document.getElementById('puzzleLoading');
-    const puzzleFrame = document.getElementById('puzzleFrame');
-    
-    if (!puzzleLoading || !puzzleFrame) {
-        console.error('Elements not found:', { puzzleLoading, puzzleFrame });
-        return;
-    }
-    
-    puzzleLoading.style.display = 'block';
-    puzzleFrame.style.display = 'none';
-    
-    try {
-        // יצירת URL מלא לתמונה - נשתמש ב-jsdelivr CDN כדי לעקוף CORS
-        const imageUrl = `https://cdn.jsdelivr.net/gh/avip83/yedakef@main/${imagePath}`;
-        console.log('Image URL:', imageUrl);
-        
-        // יצירת פאזל מותאם אישית עם הפרמטרים הנכונים - ננסה פורמט שונה
-        const customPuzzleUrl = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?url=${encodeURIComponent(imageUrl)}&pieces=${pieces}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true&autostart=1&skipdialog=1`;
-        console.log('Puzzle URL:', customPuzzleUrl);
-        
-        // יצירת iframe עם הפאזל
-        puzzleFrame.innerHTML = `
-            <iframe id="puzzleIframe" src="${customPuzzleUrl}" 
-                    width="600" 
-                    height="450" 
-                    style="border: none; border-radius: 10px; max-width: 100%; max-height: 70vh;"
-                    frameborder="0"
-                    allowfullscreen>
-            </iframe>
-        `;
-        
-        // הסתרת הטעינה והצגת הפאזל
-        setTimeout(() => {
-            puzzleLoading.style.display = 'none';
-            puzzleFrame.style.display = 'block';
-            console.log('Puzzle should be visible now');
-            
-            // ניסיון לסגור את הדיאלוג הפנימי
-            tryCloseDialog(pieces);
-            
-            // הצגת הוראות למשתמש אחרי 3 שניות אם הדיאלוג עדיין פתוח
-            setTimeout(() => {
-                const userInstructions = document.getElementById('userInstructions');
-                if (userInstructions) {
-                    userInstructions.style.display = 'block';
-                    
-                    // הסתרת ההוראות אחרי 10 שניות
-                    setTimeout(() => {
-                        userInstructions.style.display = 'none';
-                    }, 10000);
-                }
-            }, 3000);
-        }, 1000);
-        
-    } catch (error) {
-        console.error('שגיאה ביצירת הפאזל:', error);
-        puzzleLoading.innerHTML = '❌ שגיאה ביצירת הפאזל';
-    }
-}
-
-function tryCloseDialog(pieces) {
-    console.log('Trying to close dialog...');
-    
-    const iframe = document.getElementById('puzzleIframe');
-    if (!iframe) return;
-    
-    // ניסיון מספר 1: שליחת הודעה ל-iframe
-    try {
-        iframe.contentWindow.postMessage({
-            action: 'setPieces',
-            pieces: pieces
-        }, 'https://www.jigsawexplorer.com');
-    } catch (e) {
-        console.log('PostMessage failed:', e);
-    }
-    
-    // ניסיון מספר 2: סימולציה של לחיצה על OK
-    setTimeout(() => {
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            
-            // חיפוש כפתור OK או דיאלוג
-            const okButton = iframeDoc.querySelector('button[onclick*="OK"], button:contains("OK"), .ok-button, #ok-button');
-            if (okButton) {
-                console.log('Found OK button, clicking...');
-                okButton.click();
-            }
-            
-            // חיפוש דיאלוג לסגירה
-            const dialog = iframeDoc.querySelector('.dialog, .modal, .popup, [role="dialog"]');
-            if (dialog) {
-                console.log('Found dialog, trying to close...');
-                dialog.style.display = 'none';
-            }
-            
-        } catch (e) {
-            console.log('Cannot access iframe content due to CORS:', e);
-        }
-    }, 2000);
-    
-    // ניסיון מספר 3: שליחת אירועי מקלדת
-    setTimeout(() => {
-        try {
-            const iframeWindow = iframe.contentWindow;
-            
-            // שליחת Enter או Escape
-            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 });
-            const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27 });
-            
-            iframeWindow.dispatchEvent(enterEvent);
-            setTimeout(() => iframeWindow.dispatchEvent(escapeEvent), 500);
-            
-        } catch (e) {
-            console.log('Keyboard events failed:', e);
-        }
-    }, 3000);
-}
-
 function createNewPuzzle() {
     const piecesSelect = document.getElementById('piecesSelect');
+    const puzzleFrame = document.getElementById('puzzleFrame');
     const pieces = piecesSelect.value;
     
     // בחירת תמונה אקראית חדשה
     const randomImage = window.currentPuzzleImages[Math.floor(Math.random() * window.currentPuzzleImages.length)];
     
-    // יצירת פאזל חדש
-    createCustomPuzzle(randomImage, pieces);
+    // עדכון הפאזל עם פרמטרים מתקדמים
+    puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=${pieces}&url=${encodeURIComponent(window.location.origin + '/' + randomImage)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
     
     // הודעה לשחקן
     showNotification(`🎲 פאזל חדש עם ${pieces} חלקים!`, '#4CAF50');
@@ -215,25 +94,20 @@ function createNewPuzzle() {
 
 function updatePuzzlePieces() {
     const piecesSelect = document.getElementById('piecesSelect');
+    const puzzleFrame = document.getElementById('puzzleFrame');
     const pieces = piecesSelect.value;
     
-    // קבלת התמונה הנוכחית
-    const puzzleFrame = document.getElementById('puzzleFrame');
-    const iframe = puzzleFrame.querySelector('iframe');
+    // שמירת התמונה הנוכחית
+    const currentSrc = puzzleFrame.src;
+    const urlMatch = currentSrc.match(/url=([^&]+)/);
+    const currentImageUrl = urlMatch ? decodeURIComponent(urlMatch[1]) : null;
     
-    if (iframe && iframe.src) {
-        // חילוץ URL התמונה מה-iframe הנוכחי
-        const urlMatch = iframe.src.match(/url=([^&]+)/);
-        if (urlMatch) {
-            const currentImageUrl = decodeURIComponent(urlMatch[1]);
-            const imagePath = currentImageUrl.replace(window.location.origin + '/', '');
-            
-            // יצירת פאזל חדש עם אותה תמונה ומספר חלקים חדש
-            createCustomPuzzle(imagePath, pieces);
-            
-            // הודעה לשחקן
-            showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');
-        }
+    if (currentImageUrl) {
+        // עדכון רק מספר החלקים, שמירת אותה תמונה עם פרמטרים מתקדמים
+        puzzleFrame.src = `https://www.jigsawexplorer.com/online-jigsaw-puzzle-player.html?pieces=${pieces}&url=${encodeURIComponent(currentImageUrl)}&bg=f0f0f0&rotate=false&timer=true&allowFullScreen=true`;
+        
+        // הודעה לשחקן
+        showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');
     }
 }
 

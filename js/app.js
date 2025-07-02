@@ -209,7 +209,10 @@ class KidsApp {
         script.src = `js/games/${gameId}.js?v=${Date.now()}`;
         script.id = scriptId;
         script.onload = () => {
-            if (window[gameId] && typeof window[gameId].init === 'function') {
+            // בדיקה מיוחדת למשחק מצא את ההבדלים
+            if (gameId === 'find-differences' && typeof window.startFindDifferences === 'function') {
+                window.startFindDifferences();
+            } else if (window[gameId] && typeof window[gameId].init === 'function') {
                 this.openGameModal(game);
             } else {
                 alert('אירעה שגיאה בטעינת המשחק. ודא שהקובץ קיים ותקין.');
@@ -222,7 +225,10 @@ class KidsApp {
     }
 
     openGameModal(game) {
-        if (window[game.id] && typeof window[game.id].init === 'function') {
+        // בדיקה מיוחדת למשחק מצא את ההבדלים
+        if (game.id === 'find-differences' && typeof window.startFindDifferences === 'function') {
+            window.startFindDifferences();
+        } else if (window[game.id] && typeof window[game.id].init === 'function') {
             window[game.id].init();
         } else {
             this.showGameMessage(game);

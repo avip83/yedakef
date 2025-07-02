@@ -2,18 +2,18 @@
 function startSimplePuzzleGame() {
     const gameArea = document.getElementById('gameArea');
     
-    // רשימת תמונות לפאזל
+    // רשימת תמונות לפאזל - תמונות חיצוניות זמינות
     const puzzleImages = [
-        'puzzle/1.png',
-        'puzzle/2.png', 
-        'puzzle/3.png',
-        'puzzle/4.png',
-        'puzzle/5.png',
-        'puzzle/6.png',
-        'puzzle/7.png',
-        'puzzle/8.png',
-        'puzzle/9.png',
-        'puzzle/10.png'
+        'https://picsum.photos/400/300?random=1',
+        'https://picsum.photos/400/300?random=2',
+        'https://picsum.photos/400/300?random=3',
+        'https://picsum.photos/400/300?random=4',
+        'https://picsum.photos/400/300?random=5',
+        'https://picsum.photos/400/300?random=6',
+        'https://picsum.photos/400/300?random=7',
+        'https://picsum.photos/400/300?random=8',
+        'https://picsum.photos/400/300?random=9',
+        'https://picsum.photos/400/300?random=10'
     ];
     
     // בחירת תמונה אקראית
@@ -90,8 +90,8 @@ async function createCustomPuzzle(imagePath, pieces) {
     puzzleFrame.style.display = 'none';
     
     try {
-        // יצירת URL מלא לתמונה - נשתמש ב-jsdelivr CDN כדי לעקוף CORS
-        const imageUrl = `https://cdn.jsdelivr.net/gh/avip83/yedakef@main/${imagePath}`;
+        // השתמש ב-URL הישיר של התמונה (כבר מלא)
+        const imageUrl = imagePath.startsWith('http') ? imagePath : `${window.location.origin}/${imagePath}`;
         console.log('Image URL:', imageUrl);
         
         // יצירת פאזל מותאם אישית עם הפרמטרים הנכונים
@@ -149,10 +149,9 @@ function updatePuzzlePieces() {
         const urlMatch = iframe.src.match(/url=([^&]+)/);
         if (urlMatch) {
             const currentImageUrl = decodeURIComponent(urlMatch[1]);
-            const imagePath = currentImageUrl.replace(window.location.origin + '/', '');
             
             // יצירת פאזל חדש עם אותה תמונה ומספר חלקים חדש
-            createCustomPuzzle(imagePath, pieces);
+            createCustomPuzzle(currentImageUrl, pieces);
             
             // הודעה לשחקן
             showNotification(`🔄 עודכן ל-${pieces} חלקים!`, '#2196F3');

@@ -90,8 +90,8 @@ async function createCustomPuzzle(imagePath, pieces) {
     puzzleFrame.style.display = 'none';
     
     try {
-        // יצירת URL מלא לתמונה
-        const imageUrl = window.location.origin + '/' + imagePath;
+        // יצירת URL מלא לתמונה - נשתמש ב-jsdelivr CDN כדי לעקוף CORS
+        const imageUrl = `https://cdn.jsdelivr.net/gh/avip83/yedakef@main/${imagePath}`;
         console.log('Image URL:', imageUrl);
         
         // יצירת פאזל מותאם אישית עם הפרמטרים הנכונים
